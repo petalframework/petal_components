@@ -14,6 +14,8 @@ defmodule PetalComponents.Check.Rule do
   #                  are kept only for the files this run checks
   #
   # ctx is a map: :path, :kind (:ex | :heex | :css), :petal? (fn tag -> bool),
+  # :scope (%Scope{}: the component names the file brings in from
+  # PetalComponents, and the names an app module it imports shadows),
   # :source (the %Source{}).
 
   alias PetalComponents.Check.Finding

@@ -32,13 +32,14 @@ defmodule PetalComponents.Check.Components do
   defines), `:excepts` (names some host file imports `except:`) and
   `:aliases` (`%{"Chat" => "PetalComponents.Chat"}`).
 
-  A local call is petal when the name is in the set and nothing in the app
-  shadows it. A remote call is petal when its module resolves, through the
+  A local call is petal when the file brings that name in from
+  PetalComponents (`:scope`, see `PetalComponents.Check.Scope`) and nothing
+  in the app shadows it. A remote call is petal when its module resolves, through the
   file's aliases, to `PetalComponents.*`.
   """
   def petal?(%Tag{kind: :local_component, name: name}, info) do
-    MapSet.member?(info.names, name) and not MapSet.member?(info.defs, name) and
-      not MapSet.member?(info.excepts, name)
+    MapSet.member?(info.scope.names, name) and not MapSet.member?(info.scope.shadow, name) and
+      not MapSet.member?(info.defs, name) and not MapSet.member?(info.excepts, name)
   end
 
   def petal?(%Tag{kind: :remote_component, name: name}, info) do

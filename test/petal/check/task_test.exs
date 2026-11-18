@@ -45,7 +45,7 @@ defmodule Mix.Tasks.Petal.CheckTest do
   end
 
   test "new errors under --strict exit 1, and each line has the documented shape", %{root: root} do
-    write_files(root, %{"lib/app_web/page.html.heex" => bad_page()})
+    write_files(root, with_modules(%{"lib/app_web/page.html.heex" => bad_page()}))
     assert catch_exit(in_app(root, ["--strict", "--no-color"])) == {:shutdown, 1}
     out = output()
     lines = out |> String.split("\n") |> Enum.filter(&String.starts_with?(&1, "lib/"))
@@ -88,7 +88,7 @@ defmodule Mix.Tasks.Petal.CheckTest do
   end
 
   test "--format json --output writes one JSON document; stdout gets one line", %{root: root} do
-    write_files(root, %{"lib/app_web/page.html.heex" => bad_page()})
+    write_files(root, with_modules(%{"lib/app_web/page.html.heex" => bad_page()}))
     catch_exit(in_app(root, ["--strict", "--format", "json", "--output", "out.json"]))
     out = output()
     assert out =~ "petal.check: report written to out.json (2 new errors, 0 unchecked, exit 1)"
@@ -125,7 +125,7 @@ defmodule Mix.Tasks.Petal.CheckTest do
   end
 
   test "--color forces colour on the severity word", %{root: root} do
-    write_files(root, %{"lib/app_web/page.html.heex" => bad_page()})
+    write_files(root, with_modules(%{"lib/app_web/page.html.heex" => bad_page()}))
     in_app(root, ["--color"])
     assert output() =~ IO.ANSI.red() <> "error" <> IO.ANSI.reset()
   end
@@ -194,7 +194,7 @@ defmodule Mix.Tasks.Petal.CheckTest do
   end
 
   test "--update-baseline then a clean strict run", %{root: root} do
-    write_files(root, %{"lib/app_web/page.html.heex" => bad_page()})
+    write_files(root, with_modules(%{"lib/app_web/page.html.heex" => bad_page()}))
     assert in_app(root, ["--update-baseline"]) == :ok
 
     assert output() =~

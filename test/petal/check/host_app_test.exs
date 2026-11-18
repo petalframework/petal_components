@@ -35,7 +35,33 @@ defmodule PetalComponents.Check.HostAppTest do
       end
       """,
       "lib/broken.ex" => "defmodule Broken do\n  def x( do\nend\n",
-      "lib/host_web/page.html.heex" => ~s(<.field type="combobox" variant="input" />\n)
+      # the Phoenix 1.8 layout: the template's module uses the web module,
+      # whose html_helpers bring PetalComponents in
+      "lib/host_web.ex" => """
+      defmodule HostWeb do
+        def html do
+          quote do
+            use Phoenix.Component
+            unquote(html_helpers())
+          end
+        end
+
+        defp html_helpers do
+          quote do
+            use PetalComponents
+          end
+        end
+
+        defmacro __using__(which) when is_atom(which), do: apply(__MODULE__, which, [])
+      end
+      """,
+      "lib/host_web/page_html.ex" => """
+      defmodule HostWeb.PageHTML do
+        use HostWeb, :html
+        embed_templates "page_html/*"
+      end
+      """,
+      "lib/host_web/page_html/home.html.heex" => ~s(<.field type="combobox" variant="input" />\n)
     })
 
     env = [{"MIX_ENV", "dev"}, {"MIX_TEST_PARTITION", nil}]

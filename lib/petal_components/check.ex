@@ -12,6 +12,7 @@ defmodule PetalComponents.Check do
   alias PetalComponents.Check.Report
   alias PetalComponents.Check.Rule
   alias PetalComponents.Check.Rules
+  alias PetalComponents.Check.Scope
   alias PetalComponents.Check.Source
   alias PetalComponents.Check.Suppressions
   alias PetalComponents.Check.Unit
@@ -95,11 +96,12 @@ defmodule PetalComponents.Check do
     tok = Keyword.get_lazy(opts, :tokenizer, &Heex.tokenizer/0)
     names = Keyword.get_lazy(opts, :petal_names, &Components.petal_names/0)
 
-    excepts =
-      project_excepts(
-        root,
-        Enum.uniq(files.project_ex ++ Enum.filter(files.checked, &String.ends_with?(&1, ".ex")))
-      )
+    ex_files =
+      Enum.uniq(files.project_ex ++ Enum.filter(files.checked, &String.ends_with?(&1, ".ex")))
+
+    excepts = project_excepts(root, ex_files)
+    index = Scope.index(root, ex_files)
+    petal = petal_lookup(names)
 
     per_source = Enum.reject(enabled, &(&1.scope == :project))
     hero_inline? = hero_inline?(root, files.project_css)
@@ -121,7 +123,8 @@ defmodule PetalComponents.Check do
             hero_inline?: hero_inline?
           }
 
-          info = with_colocated(info, source, root)
+          {info, texts} = with_colocated(info, source, root)
+          info = Map.put(info, :scope, Scope.of(texts, index, petal))
           {source, found} = run_source(source, per_source, info)
           {%{source | units: [], tags: [], ast: nil, lines: nil}, found}
         end,
@@ -233,6 +236,7 @@ defmodule PetalComponents.Check do
       names: info.names,
       defs: info.defs,
       hero_inline?: info.hero_inline?,
+      scope: info.scope,
       petal?: &Components.petal?(&1, info)
     }
 
@@ -336,33 +340,72 @@ defmodule PetalComponents.Check do
     |> MapSet.new()
   end
 
-  # A .heex file's functions and aliases are its module's: `foo_live.ex`
-  # beside `foo_live.html.heex`, or `layouts.ex` for `layouts/*.html.heex`.
+  # A .heex file's functions, aliases and scope are its module's:
+  # `foo_live.ex` beside `foo_live.html.heex`, `layouts.ex` for
+  # `layouts/*.html.heex`, or (Phoenix.View) `views/page_view.ex` for
+  # `templates/page/*.html.heex`. Returns the info and the texts the file's
+  # scope is read from (its own text for a .ex file; none for CSS).
   defp with_colocated(info, %Source{kind: :heex, path: path}, root) do
     dir = Path.dirname(path)
     base = path |> Path.basename() |> String.replace(~r/(\.html)?\.heex$/, "")
-    candidates = [Path.join(dir, base <> ".ex"), dir <> ".ex"]
+    candidates = [Path.join(dir, base <> ".ex"), dir <> ".ex"] ++ view_module(dir)
 
-    Enum.reduce(candidates, info, fn rel, info ->
+    Enum.reduce(candidates, {info, []}, fn rel, {info, texts} ->
       case colocated(rel, root) do
         nil ->
-          info
+          {info, texts}
 
-        %{defs: d, aliases: a} ->
-          %{info | defs: MapSet.union(info.defs, d), aliases: Map.merge(a, info.aliases)}
+        %{defs: d, aliases: a, text: text} ->
+          info = %{info | defs: MapSet.union(info.defs, d), aliases: Map.merge(a, info.aliases)}
+          {info, [text | texts]}
       end
     end)
   end
 
-  defp with_colocated(info, _source, _root), do: info
+  defp with_colocated(info, %Source{kind: :ex, abs: abs}, _root) do
+    case Scope.read(abs) do
+      nil -> {info, []}
+      text -> {info, [text]}
+    end
+  end
+
+  defp with_colocated(info, _source, _root), do: {info, []}
+
+  defp view_module(dir) do
+    templates = Path.dirname(dir)
+
+    if Path.basename(templates) == "templates",
+      do: [Path.join([Path.dirname(templates), "views", Path.basename(dir) <> "_view.ex"])],
+      else: []
+  end
 
   defp colocated(rel, root) do
-    with {:ok, src} <- File.read(Path.join(root, rel)),
-         {:ok, ast, _} <- ElixirAst.parse(src, rel) do
-      info = ElixirAst.collect(ast, PetalComponents.Check.Pos.lines(src))
-      %{defs: info.defs, aliases: info.aliases}
+    with {:ok, text} <- File.read(Path.join(root, rel)),
+         {:ok, ast, _} <- ElixirAst.parse(text, rel) do
+      info = ElixirAst.collect(ast, PetalComponents.Check.Pos.lines(text))
+      %{defs: info.defs, aliases: info.aliases, text: text}
     else
       _ -> nil
+    end
+  end
+
+  # Component names for a PetalComponents module a file uses or imports.
+  # `PetalComponents` itself is every name `use PetalComponents` brings in.
+  defp petal_lookup(names) do
+    fn
+      "PetalComponents" ->
+        names
+
+      mod ->
+        try do
+          m = Module.safe_concat([mod])
+
+          if Code.ensure_loaded?(m) and function_exported?(m, :__components__, 0),
+            do: for({n, _} <- m.__components__(), into: MapSet.new(), do: Atom.to_string(n)),
+            else: MapSet.new()
+        rescue
+          ArgumentError -> MapSet.new()
+        end
     end
   end
 

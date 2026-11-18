@@ -34,9 +34,10 @@ defmodule PetalComponents.Check.Rules.PcFunctionPrefix do
 
   @impl true
   def check(%Tag{kind: :local_component, name: "pc_" <> bare = name} = tag, ctx) do
-    if MapSet.member?(ctx.names, bare) and not MapSet.member?(ctx.defs, name),
-      do: [finding(tag, "<." <> name, "<." <> bare)],
-      else: []
+    if MapSet.member?(ctx.scope.names, bare) and not MapSet.member?(ctx.defs, name) and
+         not MapSet.member?(ctx.scope.shadow, name),
+       do: [finding(tag, "<." <> name, "<." <> bare)],
+       else: []
   end
 
   def check(%Tag{kind: :remote_component, name: name} = tag, ctx) do

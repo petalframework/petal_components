@@ -135,10 +135,11 @@ defmodule PetalComponents.Check.EngineTest do
   end
 
   test "--only and --except" do
-    files = %{
-      "lib/a.html.heex" =>
-        ~s(<p class="#{t()}"></p>\n<.field type="combobox" variant="input" />\n)
-    }
+    files =
+      with_modules(%{
+        "lib/a.html.heex" =>
+          ~s(<p class="#{t()}"></p>\n<.field type="combobox" variant="input" />\n)
+      })
 
     assert [%{rule: "combobox-variant"}] =
              run_files(files, rules: @both, only: ["combobox-variant"]).findings

@@ -81,7 +81,7 @@ defmodule PetalComponents.Check.HeexTest do
   test "an unterminated attr quote in one fragment leaves the others checked" do
     src = """
     defmodule A do
-      use Phoenix.Component
+      use PetalComponents
       def a(assigns), do: ~H|<div class="oops>x</div>|
       def b(assigns), do: ~H|<.field type="combobox" variant="input" />|
     end

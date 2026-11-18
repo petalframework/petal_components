@@ -101,6 +101,13 @@ defmodule Mix.Tasks.Petal.Check do
   and a string that reads as a sentence. A file that cannot be parsed, or
   HEEx whose tags do not balance, is reported as unchecked, never as clean.
 
+  Component rules read a `<.button>` call as petal_components' only when the
+  file brings PetalComponents in: `use PetalComponents`, an `import
+  PetalComponents.X`, or `use MyAppWeb, :html` whose module does one of
+  those. A `.heex` file takes this from the module beside it. A call to a
+  function the file defines, or imports from another app module, is the
+  app's own and is skipped.
+
   ## Rules
 
   Run `mix petal.check --rules` for the list and `--explain RULE` for one.

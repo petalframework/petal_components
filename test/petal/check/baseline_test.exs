@@ -36,7 +36,7 @@ defmodule PetalComponents.Check.BaselineTest do
     root: root,
     bl: bl
   } do
-    write_files(root, %{"lib/a.html.heex" => page()})
+    write_files(root, with_modules(%{"lib/a.html.heex" => page()}))
     assert run(root, bl).exit_status == 1
 
     r = run(root, bl, update_baseline: true)
@@ -50,14 +50,19 @@ defmodule PetalComponents.Check.BaselineTest do
     assert r.exit_status == 0
     assert Enum.all?(r.findings, &(&1.status == :baselined))
 
-    write_files(root, %{"lib/a.html.heex" => page(10)})
+    write_files(root, with_modules(%{"lib/a.html.heex" => page(10)}))
     assert run(root, bl).exit_status == 0
   end
 
   test "a second copy of a baselined finding is new", %{root: root, bl: bl} do
-    write_files(root, %{"lib/a.html.heex" => page()})
+    write_files(root, with_modules(%{"lib/a.html.heex" => page()}))
     run(root, bl, update_baseline: true)
-    write_files(root, %{"lib/a.html.heex" => page() <> ~s(<p class="#{t()}"></p>\n)})
+
+    write_files(
+      root,
+      with_modules(%{"lib/a.html.heex" => page() <> ~s(<p class="#{t()}"></p>\n)})
+    )
+
     r = run(root, bl)
     assert r.exit_status == 1
     # Both copies of the subject are listed; the other key stays baselined.
@@ -66,11 +71,11 @@ defmodule PetalComponents.Check.BaselineTest do
   end
 
   test "a new copy added ABOVE a baselined one is named at its own line", %{root: root, bl: bl} do
-    write_files(root, %{"lib/a.html.heex" => page(3)})
+    write_files(root, with_modules(%{"lib/a.html.heex" => page(3)}))
     run(root, bl, update_baseline: true)
 
     src = ~s(<p class="#{t()}">new</p>\n) <> page(2)
-    write_files(root, %{"lib/a.html.heex" => src})
+    write_files(root, with_modules(%{"lib/a.html.heex" => src}))
     r = run(root, bl)
     assert r.exit_status == 1
 
@@ -83,7 +88,7 @@ defmodule PetalComponents.Check.BaselineTest do
   end
 
   test "stale entries are counted and pruned, never added", %{root: root, bl: bl} do
-    write_files(root, %{"lib/a.html.heex" => page()})
+    write_files(root, with_modules(%{"lib/a.html.heex" => page()}))
     run(root, bl, update_baseline: true)
 
     # fix one, add a different new one
@@ -110,13 +115,13 @@ defmodule PetalComponents.Check.BaselineTest do
   end
 
   test "stale counts only rules that ran", %{root: root, bl: bl} do
-    write_files(root, %{"lib/a.html.heex" => page()})
+    write_files(root, with_modules(%{"lib/a.html.heex" => page()}))
     run(root, bl, update_baseline: true)
     assert run(root, bl, only: ["combobox-variant"]).stale == 0
   end
 
   test "the file is byte-stable across two updates", %{root: root, bl: bl} do
-    write_files(root, %{"lib/a.html.heex" => page(), "lib/b.html.heex" => page()})
+    write_files(root, with_modules(%{"lib/a.html.heex" => page(), "lib/b.html.heex" => page()}))
     run(root, bl, update_baseline: true)
     first = File.read!(bl)
     run(root, bl, update_baseline: true)
@@ -137,9 +142,14 @@ defmodule PetalComponents.Check.BaselineTest do
   end
 
   test "an unchecked file keeps its old entries on update", %{root: root, bl: bl} do
-    write_files(root, %{"lib/a.html.heex" => page()})
+    write_files(root, with_modules(%{"lib/a.html.heex" => page()}))
     run(root, bl, update_baseline: true)
-    write_files(root, %{"lib/a.html.heex" => page() <> "<div class=\"oops></div>\n"})
+
+    write_files(
+      root,
+      with_modules(%{"lib/a.html.heex" => page() <> "<div class=\"oops></div>\n"})
+    )
+
     r = run(root, bl, update_baseline: true)
     assert r.baseline_change.removed == 0
     {:ok, entries, true} = Baseline.load(bl, true)
@@ -156,7 +166,7 @@ defmodule PetalComponents.Check.BaselineTest do
   end
 
   test "no baseline file and errors in two files prints the owner hint", %{root: root, bl: bl} do
-    write_files(root, %{"lib/a.html.heex" => page(), "lib/b.html.heex" => page()})
+    write_files(root, with_modules(%{"lib/a.html.heex" => page(), "lib/b.html.heex" => page()}))
     text = Enum.join(Format.text(run(root, bl)), "\n")
 
     assert text =~
@@ -164,7 +174,7 @@ defmodule PetalComponents.Check.BaselineTest do
 
     assert text =~ "your agent should not."
 
-    write_files(root, %{"lib/b.html.heex" => "<p></p>\n"})
+    write_files(root, with_modules(%{"lib/b.html.heex" => "<p></p>\n"}))
     refute Enum.join(Format.text(run(root, bl)), "\n") =~ "No baseline file"
   end
 end
