@@ -66,7 +66,8 @@ jobs:
       - name: Install deps
         run: mix deps.get
       - name: Confirm the lock is on LiveView 1.1
-        run: grep -o '"phoenix_live_view": {:hex, :phoenix_live_view, "1\.1\.[0-9]*"' mix.lock
+        run: |
+          grep -o '"phoenix_live_view": {:hex, :phoenix_live_view, "1\.1\.[0-9]*"' mix.lock
       - name: Compile without warnings on LiveView 1.1
         run: mix compile --warnings-as-errors
       - name: Run the petal.check tests on LiveView 1.1
