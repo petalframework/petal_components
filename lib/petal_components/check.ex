@@ -82,23 +82,35 @@ defmodule PetalComponents.Check do
     tok = Keyword.get_lazy(opts, :tokenizer, &Heex.tokenizer/0)
     names = Keyword.get_lazy(opts, :petal_names, &Components.petal_names/0)
 
-    sources = Enum.map(files.checked, &Source.read(Path.join(root, &1), &1, tok))
-    by_path = Map.new(sources, &{&1.path, &1})
-    excepts = project_excepts(root, files.project_ex, by_path)
+    excepts =
+      project_excepts(
+        root,
+        Enum.uniq(files.project_ex ++ Enum.filter(files.checked, &String.ends_with?(&1, ".ex")))
+      )
 
+    per_source = Enum.reject(enabled, &(&1.scope == :project))
+
+    # Each file is read and checked in its own process. Only findings and a
+    # slim source (no units or tags, whose position closures hold the whole
+    # file) come back, so nothing large is copied between processes.
     {sources, findings} =
-      Enum.map_reduce(sources, [], fn source, acc ->
-        info = %{
-          names: names,
-          excepts: excepts,
-          defs: source.defs,
-          aliases: source.aliases
-        }
+      files.checked
+      |> Task.async_stream(
+        fn rel ->
+          source = Source.read(Path.join(root, rel), rel, tok)
+          info = %{names: names, excepts: excepts, defs: source.defs, aliases: source.aliases}
+          info = with_colocated(info, source, root)
+          {source, found} = run_source(source, per_source, info)
+          {%{source | units: [], tags: [], ast: nil}, found}
+        end,
+        ordered: true,
+        timeout: :infinity,
+        max_concurrency: System.schedulers_online()
+      )
+      |> Enum.map(fn {:ok, result} -> result end)
+      |> Enum.unzip()
 
-        info = with_colocated(info, source, root, by_path)
-        {source, found} = run_source(source, Enum.reject(enabled, &(&1.scope == :project)), info)
-        {source, acc ++ found}
-      end)
+    findings = List.flatten(findings)
 
     {sources, project_found} = run_project(enabled, sources, files, root, tok)
     findings = findings ++ project_found
@@ -268,12 +280,8 @@ defmodule PetalComponents.Check do
   # `import PetalComponents.X, except: [name: 1]` anywhere in the app means
   # the app has its own `name`. Read from every .ex under the default roots,
   # so a run on one changed file still knows.
-  defp project_excepts(root, project_ex, by_path) do
-    from_sources = Enum.reduce(Map.values(by_path), MapSet.new(), &MapSet.union(&2, &1.excepts))
-
-    project_ex
-    |> Enum.reject(&Map.has_key?(by_path, &1))
-    |> Enum.reduce(from_sources, fn rel, acc ->
+  defp project_excepts(root, ex_files) do
+    Enum.reduce(ex_files, MapSet.new(), fn rel, acc ->
       case File.read(Path.join(root, rel)) do
         {:ok, text} -> MapSet.union(acc, scan_excepts(text))
         _ -> acc
@@ -292,13 +300,13 @@ defmodule PetalComponents.Check do
 
   # A .heex file's functions and aliases are its module's: `foo_live.ex`
   # beside `foo_live.html.heex`, or `layouts.ex` for `layouts/*.html.heex`.
-  defp with_colocated(info, %Source{kind: :heex, path: path}, root, by_path) do
+  defp with_colocated(info, %Source{kind: :heex, path: path}, root) do
     dir = Path.dirname(path)
     base = path |> Path.basename() |> String.replace(~r/(\.html)?\.heex$/, "")
     candidates = [Path.join(dir, base <> ".ex"), dir <> ".ex"]
 
     Enum.reduce(candidates, info, fn rel, info ->
-      case colocated(rel, root, by_path) do
+      case colocated(rel, root) do
         nil ->
           info
 
@@ -308,21 +316,15 @@ defmodule PetalComponents.Check do
     end)
   end
 
-  defp with_colocated(info, _source, _root, _by_path), do: info
+  defp with_colocated(info, _source, _root), do: info
 
-  defp colocated(rel, root, by_path) do
-    case Map.get(by_path, rel) do
-      %Source{ast: ast} = s when ast != nil ->
-        %{defs: s.defs, aliases: s.aliases}
-
-      _ ->
-        with {:ok, src} <- File.read(Path.join(root, rel)),
-             {:ok, ast, _} <- ElixirAst.parse(src, rel) do
-          info = ElixirAst.collect(ast, PetalComponents.Check.Pos.lines(src))
-          %{defs: info.defs, aliases: info.aliases}
-        else
-          _ -> nil
-        end
+  defp colocated(rel, root) do
+    with {:ok, src} <- File.read(Path.join(root, rel)),
+         {:ok, ast, _} <- ElixirAst.parse(src, rel) do
+      info = ElixirAst.collect(ast, PetalComponents.Check.Pos.lines(src))
+      %{defs: info.defs, aliases: info.aliases}
+    else
+      _ -> nil
     end
   end
 

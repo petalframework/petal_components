@@ -301,14 +301,23 @@ defmodule PetalComponents.Check.Heex do
   # The value starts after `name`, optional spaces, `=`, optional spaces and
   # the delimiter. Falls back to the usual `name="` width.
   defp string_value_start(n, delim, {l, c}, lines) do
-    rest =
-      lines |> Pos.line(l) |> Kernel.||("") |> String.slice((c - 1 + String.length(n))..-1//1)
-
+    {_, rest} = lines |> Pos.line(l) |> Kernel.||("") |> String.split_at(c - 1 + String.length(n))
     d = <<delim::utf8>>
 
-    case Regex.run(~r/^\s*=\s*#{Regex.escape(d)}/, rest) do
-      [m] -> {l, c + String.length(n) + String.length(m)}
-      _ -> {l, c + String.length(n) + 2}
+    # The common `name="` costs no scan at all.
+    if String.starts_with?(rest, "=" <> d) do
+      {l, c + String.length(n) + 2}
+    else
+      after_eq = rest |> String.trim_leading() |> String.trim_leading("=")
+      after_ws = String.trim_leading(after_eq)
+
+      if String.starts_with?(rest |> String.trim_leading(), "=") and
+           String.starts_with?(after_ws, d) do
+        width = String.length(rest) - String.length(after_ws) + 1
+        {l, c + String.length(n) + width}
+      else
+        {l, c + String.length(n) + 2}
+      end
     end
   end
 
