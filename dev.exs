@@ -3313,8 +3313,10 @@ defmodule Dev.PlaygroundLive do
       %{
         name: "my_app_web.ex",
         code: """
-        # lib/<your_app>_web.ex - inside `def html`'s quote block
-        use PetalComponents\
+        # lib/<your_app>_web.ex - inside `defp html_helpers`, in place of
+        # `import MyAppWeb.CoreComponents` (Phoenix 1.8 defines these four too)
+        use PetalComponents
+        import MyAppWeb.CoreComponents, except: [button: 1, icon: 1, input: 1, table: 1]\
         """
       },
       %{

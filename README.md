@@ -57,33 +57,30 @@ If you'd rather install yourself, in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:petal_components, "~> 4.0"},
+    {:petal_components, "~> 4.18"},
     # optional — only needed for the chat markdown components (<Chat.markdown>, <Chat.rich_text>)
     {:mdex, "~> 0.12"}
   ]
 end
 ```
 
-In `assets/css/app.css`:
+In `assets/css/app.css`, directly below the existing `@import "tailwindcss"` line (Phoenix 1.8 writes `@import "tailwindcss" source(none);`; keep it and do not add a second one):
 
 ```css
-@import "tailwindcss";
 @source "../../deps/petal_components/**/*.*ex";
 @source not "../../deps/petal_components/lib/petal_components/showcase";
 @import "../../deps/petal_components/assets/default.css";
 @plugin "@tailwindcss/forms";
 ```
 
-In your `MyAppWeb` module:
+In your `MyAppWeb` module, inside `defp html_helpers` (LiveViews get their imports from there, not from `def html`), replace `import MyAppWeb.CoreComponents` with:
 
 ```elixir
-def html do
-  quote do
-    use PetalComponents
-    # ... your other imports
-  end
-end
+use PetalComponents
+import MyAppWeb.CoreComponents, except: [button: 1, icon: 1, input: 1, table: 1]
 ```
+
+Phoenix 1.8's generated CoreComponents defines those four names too, and importing both makes the calls ambiguous. Pages from `mix phx.gen.live` and `mix phx.gen.auth` call the CoreComponents versions, so update their call sites: `<.input label=...>` becomes `<.field label=...>`, `<.button variant="primary">` becomes `<.button>`, and `<.table>` row actions move from the `:action` slot into a `<:col>`. [usage-rules.md](./usage-rules.md) has the full list, plus the two lines to change in the `AGENTS.md` that `phx.new` writes.
 
 Register the bundled JS hooks in `assets/js/app.js` (needed for the password/copyable/clearable inputs and the chat components — the rest of the library is CSS + LiveView.JS only):
 
@@ -96,7 +93,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
 })
 ```
 
-Run `mix deps.get`, then `mix compile` to verify.
+Run `mix deps.get`, then `mix compile --warnings-as-errors` to verify. With petal_components 4.18.0 or older, `mix deps.get` in a new Phoenix 1.8 app fails on `websock_adapter`; run `mix deps.unlock websock_adapter && mix deps.get`.
 
 ## For AI coding tools
 
