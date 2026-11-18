@@ -195,9 +195,19 @@ defmodule Mix.Tasks.Petal.CheckTest do
     # once nothing differs, the same command rewrites o.json as a clean report
     git.(["add", "."])
     git.(["commit", "-q", "-m", "more"])
-    assert in_app(root, ["--changed", "--strict", "--format", "json", "--output", "o.json"]) == :ok
+
+    assert in_app(root, ["--changed", "--strict", "--format", "json", "--output", "o.json"]) ==
+             :ok
+
     json = root |> Path.join("o.json") |> File.read!() |> Jason.decode!()
     assert {json["findings"], json["exit_status"], json["summary"]["errors"]} == {[], 0, 0}
+  end
+
+  test "an --output path that cannot be written is a usage error, not a crash", %{root: root} do
+    write_files(root, %{"lib/app_web/page.html.heex" => "<p></p>\n"})
+    e = assert_raise Mix.Error, fn -> in_app(root, ["--output", "missing/dir/r.json"]) end
+    assert e.mix == 3
+    assert e.message =~ "--output missing/dir/r.json: could not write the report"
   end
 
   test "--since never hands git an option, so it cannot write a file", %{root: root} do

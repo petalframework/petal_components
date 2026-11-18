@@ -258,7 +258,7 @@ defmodule Mix.Tasks.Petal.Check do
       end
 
     if path do
-      File.write!(path, text <> "\n")
+      write_output!(path, text <> "\n")
       errors = length(Report.new_errors(report))
       unchecked = report.unchecked |> Enum.map(& &1.path) |> Enum.uniq() |> length()
 
@@ -267,6 +267,20 @@ defmodule Mix.Tasks.Petal.Check do
       )
     else
       Mix.shell().info(text)
+    end
+  end
+
+  # Exit 1 means new errors, so a path that cannot be written is a usage
+  # error (3), never a crash.
+  defp write_output!(path, text) do
+    case File.write(path, text) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        Mix.raise("--output #{path}: could not write the report (#{:file.format_error(reason)})",
+          exit_status: 3
+        )
     end
   end
 
