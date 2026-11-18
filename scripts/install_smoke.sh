@@ -39,6 +39,8 @@ APP_DIR="$WORK/$APP"
 if [ -f "$PC_DIR/.tool-versions" ] && [ ! -f "$WORK/.tool-versions" ]; then
   cp "$PC_DIR/.tool-versions" "$WORK/.tool-versions"
 fi
+# Every mix call below runs under $WORK, so it picks up that .tool-versions.
+cd "$WORK"
 
 export MIX_HOME="$WORK/mix_home"
 export MIX_ARCHIVES="$MIX_HOME/archives"
@@ -74,6 +76,7 @@ fi
 
 step "petal_components under test: $PC_DIR"
 step "work dir: $WORK"
+elixir -e 'IO.puts("Elixir #{System.version()} / OTP #{System.otp_release()}")'
 
 step "Installing Hex, rebar and phx_new $PHX_NEW_VERSION into $MIX_HOME"
 mix local.hex --force >/dev/null
