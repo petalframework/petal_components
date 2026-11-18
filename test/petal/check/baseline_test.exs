@@ -60,8 +60,26 @@ defmodule PetalComponents.Check.BaselineTest do
     write_files(root, %{"lib/a.html.heex" => page() <> ~s(<p class="#{t()}"></p>\n)})
     r = run(root, bl)
     assert r.exit_status == 1
-    assert Enum.count(r.findings, &(&1.status == :new)) == 1
-    assert Enum.count(r.findings, &(&1.status == :baselined)) == 2
+    # Both copies of the subject are listed; the other key stays baselined.
+    assert Enum.count(r.findings, &(&1.status == :new)) == 2
+    assert Enum.count(r.findings, &(&1.status == :baselined)) == 1
+  end
+
+  test "a new copy added ABOVE a baselined one is named at its own line", %{root: root, bl: bl} do
+    write_files(root, %{"lib/a.html.heex" => page(3)})
+    run(root, bl, update_baseline: true)
+
+    src = ~s(<p class="#{t()}">new</p>\n) <> page(2)
+    write_files(root, %{"lib/a.html.heex" => src})
+    r = run(root, bl)
+    assert r.exit_status == 1
+
+    new = Enum.filter(r.findings, &(&1.status == :new))
+    assert Enum.map(new, & &1.line) == [1, 4]
+    assert hd(new).note =~ "this file has 2 copies of #{t()} and the baseline records 1"
+
+    text = Enum.join(Format.text(r), "\n")
+    assert text =~ "lib/a.html.heex:1:"
   end
 
   test "stale entries are counted and pruned, never added", %{root: root, bl: bl} do

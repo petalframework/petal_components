@@ -4,11 +4,12 @@ defmodule PetalComponents.Check.Baseline do
   # only fails on new ones. Keyed on {rule, path, subject} with a count, and
   # no line number, so edits above a finding keep it baselined.
   #
-  # Matching is by count: for a key stored with count N, the first N findings
-  # of that key in line order are :baselined and the rest are :new. So a new
-  # copy of an old token added ABOVE the old one marks the old line as new and
-  # hides the new one. The total is still right, which is what --strict
-  # gates on.
+  # Matching is by count. A key found no more often than its stored count is
+  # :baselined. A key found more often than that has a new copy, but with no
+  # line number the baseline cannot tell which copy is new: a copy added
+  # above an old one looks the same as one added below. So every copy of
+  # that key is reported :new, with a note that says so, and the line the
+  # reader just wrote is always among them.
 
   alias PetalComponents.Check.Finding
 
@@ -64,24 +65,31 @@ defmodule PetalComponents.Check.Baseline do
   def mark(findings, entries) when entries == %{}, do: findings
 
   def mark(findings, entries) do
-    {marked, _} =
+    found =
       findings
-      |> Enum.with_index()
-      |> Enum.sort_by(fn {f, i} -> {f.path, f.line, f.column, i} end)
-      |> Enum.map_reduce(entries, fn {f, i}, left ->
-        key = Finding.key(f)
+      |> Enum.filter(&(&1.status == :new and not &1.meta))
+      |> Enum.frequencies_by(&Finding.key/1)
 
-        case Map.get(left, key, 0) do
-          n when n > 0 and f.status == :new and not f.meta ->
-            {{%{f | status: :baselined}, i}, Map.put(left, key, n - 1)}
+    Enum.map(findings, fn f ->
+      key = Finding.key(f)
+      stored = Map.get(entries, key, 0)
+      count = Map.get(found, key, 0)
 
-          _ ->
-            {{f, i}, left}
-        end
-      end)
-
-    marked |> Enum.sort_by(&elem(&1, 1)) |> Enum.map(&elem(&1, 0))
+      cond do
+        f.status != :new or f.meta or stored == 0 -> f
+        count <= stored -> %{f | status: :baselined}
+        true -> %{f | note: join_note(f.note, overflow_note(f.subject, count, stored))}
+      end
+    end)
   end
+
+  defp overflow_note(subject, count, stored) do
+    "this file has #{count} copies of #{subject} and the baseline records #{stored}, " <>
+      "so one is new; the baseline cannot tell which, so all #{count} are listed"
+  end
+
+  defp join_note(nil, note), do: note
+  defp join_note(old, note), do: old <> "; " <> note
 
   @doc """
   Entries whose stored count is above what this run found. Only keys whose
