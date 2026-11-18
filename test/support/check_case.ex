@@ -73,6 +73,19 @@ defmodule PetalComponents.CheckCase do
     """
   end
 
+  @doc "Asserts the finding's subject is the text at its line and column in `src`."
+  def assert_at(src, f) do
+    line = src |> String.split("\n") |> Enum.at(f.line - 1)
+    at = String.slice(line || "", (f.column - 1)..-1//1)
+
+    ExUnit.Assertions.assert(
+      String.starts_with?(at, f.subject),
+      "#{inspect(f.subject)} is not at #{f.line}:#{f.column}: #{inspect(line)}"
+    )
+
+    f
+  end
+
   @doc """
   Applies each finding's replacement to `src` (a span edit at line:column
   over `subject`) and returns the new source. Raises if a subject is not at

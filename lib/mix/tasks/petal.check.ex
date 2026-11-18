@@ -97,7 +97,14 @@ defmodule Mix.Tasks.Petal.Check do
   ## Rules
 
   Run `mix petal.check --rules` for the list and `--explain RULE` for one.
-  Errors: combobox-variant, literal-neutral.
+
+  Errors: literal-neutral, bang-utility, important-on-pc, pc-function-prefix,
+  combobox-variant, white-alpha-ghost, tilde-e-sigil, tailwind-v4-gate,
+  dynamic-heroicon, ramp-complete. important-on-pc reports sizes,
+  positions, display, opacity and motion as warnings, since the library may
+  set those inline.
+
+  Warnings: legacy-dropdown, focus-ring, semantic-hue.
 
   Not checked by this command (see guides/design.md section 11): overlays,
   keyframes, raw HTML, dark pairs. For unknown attrs run

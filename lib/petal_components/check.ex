@@ -15,10 +15,22 @@ defmodule PetalComponents.Check do
   alias PetalComponents.Check.Source
   alias PetalComponents.Check.Suppressions
 
-  # In the order of the guide's checks.
+  # In the order of the guide's section 11 rows, then the rules from other
+  # sections of the guide.
   @rules [
+    Rules.LiteralNeutral,
+    Rules.BangUtility,
+    Rules.ImportantOnPc,
+    Rules.PcFunctionPrefix,
+    Rules.LegacyDropdown,
     Rules.ComboboxVariant,
-    Rules.LiteralNeutral
+    Rules.WhiteAlphaGhost,
+    Rules.TildeESigil,
+    Rules.TailwindV4Gate,
+    Rules.DynamicHeroicon,
+    Rules.RampComplete,
+    Rules.FocusRing,
+    Rules.SemanticHue
   ]
 
   # Section 11 rows this command does not check; the reader checks them by hand.
@@ -89,6 +101,7 @@ defmodule PetalComponents.Check do
       )
 
     per_source = Enum.reject(enabled, &(&1.scope == :project))
+    hero_inline? = hero_inline?(root, files.project_css)
 
     # Each file is read and checked in its own process. Only findings and a
     # slim source (no units or tags, whose position closures hold the whole
@@ -98,7 +111,15 @@ defmodule PetalComponents.Check do
       |> Task.async_stream(
         fn rel ->
           source = Source.read(Path.join(root, rel), rel, tok)
-          info = %{names: names, excepts: excepts, defs: source.defs, aliases: source.aliases}
+
+          info = %{
+            names: names,
+            excepts: excepts,
+            defs: source.defs,
+            aliases: source.aliases,
+            hero_inline?: hero_inline?
+          }
+
           info = with_colocated(info, source, root)
           {source, found} = run_source(source, per_source, info)
           {%{source | units: [], tags: [], ast: nil}, found}
@@ -208,6 +229,9 @@ defmodule PetalComponents.Check do
       path: source.path,
       kind: source.kind,
       source: source,
+      names: info.names,
+      defs: info.defs,
+      hero_inline?: info.hero_inline?,
       petal?: &Components.petal?(&1, info)
     }
 
@@ -273,6 +297,18 @@ defmodule PetalComponents.Check do
 
       {sources, Enum.filter(found, &MapSet.member?(checked, &1.path))}
     end
+  end
+
+  # `@source inline("hero-...")` in any app CSS file makes Tailwind build
+  # those icon classes whatever the templates say, so a name built at
+  # runtime may well render. dynamic-heroicon then stays quiet.
+  defp hero_inline?(root, css_files) do
+    Enum.any?(css_files, fn rel ->
+      case File.read(Path.join(root, rel)) do
+        {:ok, text} -> text =~ ~r/@source\s+inline\([^)]*hero-/
+        _ -> false
+      end
+    end)
   end
 
   # -- what the app shadows ---------------------------------------------------------

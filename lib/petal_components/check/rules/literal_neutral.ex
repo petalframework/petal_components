@@ -21,7 +21,8 @@ defmodule PetalComponents.Check.Rules.LiteralNeutral do
       section: "11.1",
       row_keyword: "neutral",
       scope: :class_unit,
-      why: "gray is the neutral dial; slate, zinc, neutral and stone fork the palette and ignore the app's gray remap",
+      why:
+        "gray is the neutral dial; slate, zinc, neutral and stone fork the palette and ignore the app's gray remap",
       note:
         "the default gray ramp is zinc, so the swap looks the same until the app remaps gray in @theme " <>
           "(guides/design.md section 1)",
@@ -59,7 +60,8 @@ defmodule PetalComponents.Check.Rules.LiteralNeutral do
           line: line,
           column: column,
           subject: tok.text,
-          message: "#{tok.text} is a literal neutral palette; use the gray ramp, which the app remaps in @theme",
+          message:
+            "#{tok.text} is a literal neutral palette; use the gray ramp, which the app remaps in @theme",
           replacement: replacement,
           fix: "replace #{tok.text} with #{replacement}",
           tag_line: unit.tag && unit.tag.line

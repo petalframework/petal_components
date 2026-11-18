@@ -43,6 +43,13 @@ defmodule PetalComponents.Check.Rule do
   @callback finish([term()], map()) :: [Finding.t()]
   @optional_callbacks check: 2, collect: 2, finish: 2
 
+  @doc """
+  Joins class name pieces with dashes. Rule modules build every class name
+  they print this way: Tailwind scans deps/petal_components for class
+  names, so a literal one in a rule would add CSS to every app.
+  """
+  def cls(parts) when is_list(parts), do: Enum.join(parts, "-")
+
   @doc "A finding for this rule. `fields` sets line, column, subject, message and the fix."
   def finding(%__MODULE__{} = rule, fields) do
     struct!(Finding, [rule: rule.id, severity: rule.severity, section: rule.section] ++ fields)

@@ -19,10 +19,13 @@ defmodule PetalComponents.Check.Rules.ComboboxVariant do
       section: "11.9",
       row_keyword: "combobox",
       scope: :component,
-      why: ~s(through <.field type="combobox"> the anatomy attr is combo_variant; variant is ignored there),
+      why:
+        ~s(through <.field type="combobox"> the anatomy attr is combo_variant; variant is ignored there),
       examples: [
-        {:bad, ~s(<.field type="combobox" variant="trigger" field={@form[:owner]} options={@owners} />)},
-        {:good, ~s(<.field type="combobox" combo_variant="trigger" field={@form[:owner]} options={@owners} />)}
+        {:bad,
+         ~s(<.field type="combobox" variant="trigger" field={@form[:owner]} options={@owners} />)},
+        {:good,
+         ~s(<.field type="combobox" combo_variant="trigger" field={@form[:owner]} options={@owners} />)}
       ],
       exemptions: [
         ~s(<.combo_box variant="trigger">: the combo_box component takes variant itself),
@@ -60,7 +63,8 @@ defmodule PetalComponents.Check.Rules.ComboboxVariant do
            ~s(remove #{v.source}; if you meant the combobox anatomy, set combo_variant="input" or combo_variant="trigger")}
 
         {:expr, _} ->
-          {nil, ~s(rename it to combo_#{v.source} if the value is "input" or "trigger", else remove it)}
+          {nil,
+           ~s(rename it to combo_#{v.source} if the value is "input" or "trigger", else remove it)}
 
         nil ->
           {"", "remove variant"}
@@ -70,7 +74,8 @@ defmodule PetalComponents.Check.Rules.ComboboxVariant do
       line: v.line,
       column: v.column,
       subject: v.source,
-      message: ~s(variant does nothing on <.field type="combobox">: the combobox anatomy attr is combo_variant),
+      message:
+        ~s(variant does nothing on <.field type="combobox">: the combobox anatomy attr is combo_variant),
       replacement: replacement,
       fix: fix,
       tag_line: tag.line
