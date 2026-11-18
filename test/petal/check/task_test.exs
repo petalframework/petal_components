@@ -66,8 +66,9 @@ defmodule Mix.Tasks.Petal.CheckTest do
     write_files(root, %{"lib/broken.ex" => "defmodule B do\n  def x( do\nend\n"})
     assert catch_exit(in_app(root, ["--strict"])) == {:shutdown, 2}
 
+    # the position depends on the Elixir version (1.15 reports the end of the file)
     assert output() =~
-             "lib/broken.ex:2:8: unchecked [parse] this file could not be read as Elixir"
+             ~r"lib/broken.ex:\d+:\d+: unchecked \[parse\] this file could not be read as Elixir"
   end
 
   test "usage errors exit 3", %{root: root} do

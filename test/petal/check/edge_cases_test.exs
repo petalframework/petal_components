@@ -112,7 +112,9 @@ defmodule PetalComponents.Check.EdgeCasesTest do
 
       r = run_files(files, rules: [LiteralNeutral], strict: true)
       assert [a, b] = Enum.sort_by(r.unchecked, & &1.path)
-      assert {a.path, a.kind, a.line} == {"lib/a.ex", :parse, 2}
+      # Elixir 1.15 places this error a line later than 1.17 does
+      assert {a.path, a.kind} == {"lib/a.ex", :parse}
+      assert a.line in 2..3
       assert a.reason =~ "this file could not be read as Elixir: "
       assert {b.path, b.kind} == {"lib/b.ex", :parse}
       assert r.exit_status == 2
