@@ -90,7 +90,7 @@ config :petal_components, :error_translator_function, {MyAppWeb.CoreComponents, 
 
 ### 5. Register the JS hooks
 
-petal_components v4 ships a bundled JS hook set - toasts, the command palette and its trigger, the colour-scheme switch, carousel, charts, local time, sliders, OTP input, the chat family, popover, the combobox, the data table, the navigation menu's hover mode, the effects, and the enhanced inputs (everything else is CSS + LiveView.JS only). You never register hooks individually - spread the whole set once. Open `assets/js/app.js`, import the hooks, and merge them into your `LiveSocket`:
+petal_components v4 ships a bundled JS hook set that many components need: toasts, dropdowns and popovers, alert dialogs, the command palette, the combobox, the data table, the date picker and calendar, sliders, charts, the chat family, the enhanced inputs and more. Without the hooks those components still render, but their interactive behaviour is missing and the browser console reports an unknown hook. You never register hooks individually - spread the whole set once. Open `assets/js/app.js`, import the hooks, and merge them into your `LiveSocket`:
 
 ```js
 import PetalComponents from "../../deps/petal_components/assets/js/petal_components"
@@ -103,7 +103,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
 
 Phoenix 1.8 already passes `hooks: {...colocatedHooks}`; make it `hooks: {...colocatedHooks, ...PetalComponents}`.
 
-If the project has no `assets/js/app.js` (an API-only or minimal app), skip this — the hooks are only needed for those interactive components.
+If the project has no `assets/js/app.js` (an API-only or minimal app), skip this step: only the interactive components need the hooks.
 
 ### 5b. Charts (only if the app uses `<.chart>`)
 

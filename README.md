@@ -92,7 +92,7 @@ In `config/config.exs`, route form errors through your app's translator, so erro
 config :petal_components, :error_translator_function, {MyAppWeb.CoreComponents, :translate_error}
 ```
 
-Register the bundled JS hooks in `assets/js/app.js` (needed for the password/copyable/clearable inputs and the chat components — the rest of the library is CSS + LiveView.JS only):
+Register the bundled JS hooks in `assets/js/app.js`. Many components need them (toasts, dropdowns and popovers, alert dialogs, the combobox, the data table, the date picker, charts, the chat components, the enhanced inputs and more), so spread the whole set once:
 
 ```js
 import PetalComponents from "../../deps/petal_components/assets/js/petal_components"

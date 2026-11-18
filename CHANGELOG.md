@@ -27,14 +27,18 @@
   "has already been taken" error from `phx.gen.auth` rendered as
   "invalid value".
   The playground's Get code panel matches.
-- **Three `usage-rules.md` statements are accurate.** It said the
+- **Four `usage-rules.md` statements are accurate.** It said the
   library needs no extra deps besides `mdex`, but `<.qr_code>` needs
   the optional `eqrcode`. It said `use PetalComponents` imports every
   component, but it does not import the Chat family, and the modules it
   leaves out (the data table's filter editor, the old HeroiconsV1 sets,
   the Showcase and Svg helpers) are now named. And it never said that
   `<.prose>` needs the `@tailwindcss/typography` plugin, without which
-  it renders unstyled.
+  it renders unstyled. The JS hooks step listed only some of the
+  components that need the bundled hooks (the README named only the
+  enhanced inputs and chat); dropdowns, popovers, alert dialogs, the
+  date picker and others need them too, and the step now says what you
+  see when they are missing.
   The README says the same.
 - **Two `usage-rules.md` examples work when copied.** "Table with row
   actions" had no `rows`, so it rendered an empty table, and the
