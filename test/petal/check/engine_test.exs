@@ -78,6 +78,24 @@ defmodule PetalComponents.Check.EngineTest do
     assert [%{kind: :read}] = r.unchecked
   end
 
+  test "a .heex file whose module beside it is not valid UTF-8 is still checked, no crash" do
+    mod =
+      <<"defmodule Comp do\n  use PetalComponents\n  embed_templates \"*\"\n  def x, do: \"",
+        0xFF, "\"\nend\n">>
+
+    src = ~s(<p class="#{t()}"></p>\n)
+
+    r =
+      run_files(%{"lib/adv/comp.ex" => mod, "lib/adv/comp.html.heex" => src},
+        rules: @both,
+        strict: true
+      )
+
+    assert [%{kind: :read, path: "lib/adv/comp.ex"}] = r.unchecked
+    assert [%{rule: "literal-neutral", path: "lib/adv/comp.html.heex"}] = r.findings
+    assert r.exit_status == 1
+  end
+
   test "a rule that raises makes the file unchecked, the others still run, advisory stays 0" do
     src = ~s(<p class="#{t()}"></p>\n)
     r = run_files(%{"lib/a.html.heex" => src}, rules: [Raises, LiteralNeutral])

@@ -115,18 +115,28 @@ defmodule PetalComponents.Check do
         fn rel ->
           source = Source.read(Path.join(root, rel), rel, tok)
 
-          info = %{
-            names: names,
-            excepts: excepts,
-            defs: source.defs,
-            aliases: source.aliases,
-            hero_inline?: hero_inline?
-          }
+          try do
+            info = %{
+              names: names,
+              excepts: excepts,
+              defs: source.defs,
+              aliases: source.aliases,
+              hero_inline?: hero_inline?
+            }
 
-          {info, texts} = with_colocated(info, source, root)
-          info = Map.put(info, :scope, Scope.of(texts, index, petal))
-          {source, found} = run_source(source, per_source, info)
-          {%{source | units: [], tags: [], ast: nil, lines: nil}, found}
+            {info, texts} = with_colocated(info, source, root)
+            info = Map.put(info, :scope, Scope.of(texts, index, petal))
+            {source, found} = run_source(source, per_source, info)
+            {slim(source), found}
+          rescue
+            # Never a crash with no report: the file is unchecked instead.
+            e ->
+              reason =
+                "internal error while checking this file (please report): " <>
+                  first_line(Exception.message(e))
+
+              {slim(Source.unchecked(source, {1, 1}, reason, :internal)), []}
+          end
         end,
         ordered: true,
         timeout: :infinity,
@@ -208,6 +218,8 @@ defmodule PetalComponents.Check do
     }
     |> Report.finalize()
   end
+
+  defp slim(source), do: %{source | units: [], tags: [], ast: nil, lines: nil}
 
   defp tok_module({:ok, mod}), do: mod
   defp tok_module(_), do: nil
@@ -379,8 +391,10 @@ defmodule PetalComponents.Check do
       else: []
   end
 
+  # A colocated module that is missing, not valid UTF-8 or not valid Elixir
+  # gives nothing: the .heex file is still checked, with no module facts.
   defp colocated(rel, root) do
-    with {:ok, text} <- File.read(Path.join(root, rel)),
+    with text when is_binary(text) <- Scope.read(Path.join(root, rel)),
          {:ok, ast, _} <- ElixirAst.parse(text, rel) do
       info = ElixirAst.collect(ast, PetalComponents.Check.Pos.lines(text))
       %{defs: info.defs, aliases: info.aliases, text: text}
