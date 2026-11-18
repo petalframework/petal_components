@@ -119,6 +119,30 @@ defmodule PetalComponents.Check.DocsTest do
     end
   end
 
+  test "important-on-pc's note, guide row and the moduledoc name every warning family" do
+    {:docs_v1, _, _, _, %{"en" => doc}, _, _} = Code.fetch_docs(Mix.Tasks.Petal.Check)
+    note = Check.rule!("important-on-pc").note
+    {_, row} = guide_table()["important-on-pc"]
+
+    for text <- [note, row, String.replace(doc, ~r/\s+/, " ")],
+        family <-
+          ~w(margin flex overflow scroll z-index cursor user-select visibility opacity motion) do
+      assert text =~ family, "#{family} is not named in: #{String.slice(text, 0, 80)}"
+    end
+
+    {exact, prefix} = PetalComponents.Check.Rules.ImportantOnPc.warn_properties()
+    assert "margin" in exact and "z-index" in exact and "cursor" in exact
+    assert "overflow" in prefix and "flex" in prefix
+  end
+
+  test "the moduledoc's Errors and Warnings lists match the rules' severities" do
+    {:docs_v1, _, _, _, %{"en" => doc}, _, _} = Code.fetch_docs(Mix.Tasks.Petal.Check)
+    doc = String.replace(doc, ~r/\s+/, " ")
+    by = Check.rules() |> Enum.group_by(& &1.severity, & &1.id)
+    assert doc =~ "Errors: " <> Enum.join(by.error, ", ") <> "."
+    assert doc =~ "Warnings: " <> Enum.join(by.warning, ", ") <> "."
+  end
+
   defp guide_table do
     [_, block] = String.split(@guide, "### Run the machine checks first", parts: 2)
     [block | _] = String.split(block, "\n### ", parts: 2)

@@ -334,7 +334,7 @@ Write it down before the mechanical checks. Detector output anchors judgment, an
 |---|---|---|
 | `literal-neutral` | error | row 1 |
 | `bang-utility` | error | row 2: `!` utilities in the `class` of a petal_components call |
-| `important-on-pc` | error | row 2: `!important` on a `.pc-*` selector in app CSS. Sizes, positions, display, opacity and motion are warnings, because the library may set those inline |
+| `important-on-pc` | error | row 2: `!important` on a `.pc-*` selector in app CSS. Sizes, positions, margins, display, visibility, opacity, flex, overflow, scroll, z-index, cursor, user-select and motion are warnings, because the library may set those inline |
 | `pc-function-prefix` | error | row 4 |
 | `legacy-dropdown` | warning | row 5 |
 | `combobox-variant` | error | row 9 |

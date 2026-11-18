@@ -120,7 +120,8 @@ defmodule Mix.Tasks.Petal.Check do
   Errors: literal-neutral, bang-utility, important-on-pc, pc-function-prefix,
   combobox-variant, white-alpha-ghost, tilde-e-sigil, tailwind-v4-gate,
   dynamic-heroicon, ramp-complete. important-on-pc reports sizes,
-  positions, display, opacity and motion as warnings, since the library may
+  positions, margins, display, visibility, opacity, flex, overflow, scroll,
+  z-index, cursor, user-select and motion as warnings, since the library may
   set those inline.
 
   Warnings: legacy-dropdown, focus-ring, semantic-hue.

@@ -40,7 +40,8 @@ defmodule PetalComponents.Check.Rules.ImportantOnPc do
       why:
         "an app !important on a .pc-* selector fights the component's styling API; a plain rule already wins over @layer components",
       note:
-        "sizes, positions, display, opacity and motion are warnings, not errors: the library may set them " <>
+        "sizes, positions, margins, display, visibility, opacity, flex, overflow, scroll, z-index, cursor, " <>
+          "user-select and motion are warnings, not errors: the library may set them " <>
           "inline from a hook or pin them, so use the component's attrs there",
       examples: [
         {:bad, ".pc-button { color: var(--color-brand) !important; }"},
