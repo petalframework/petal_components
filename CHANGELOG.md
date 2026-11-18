@@ -2,6 +2,22 @@
 
 ### Unreleased
 
+#### Added
+
+- **`mix petal.check`** reads your app's templates and CSS and reports
+  design-system mistakes with the exact fix, one line each. Errors:
+  literal neutral palettes, white-alpha dark ghosts, `!` utilities on
+  component calls and `!important` on `pc-*` selectors, the `pc_`
+  prefix, `~E`, `variant` on a combobox field, runtime heroicon names,
+  Tailwind v3 directives and partial ramp remaps. Warnings: legacy
+  dropdown spellings, focus rings and literal hues that have a
+  semantic role. It never compiles your app. Plain runs only report;
+  `--strict` exits non-zero for CI and your agent, and `--changed`
+  checks only the files you touched. A baseline file and
+  `petal-check:ignore` comments handle existing code. `usage-rules.md`
+  gains a rule telling your agent to run it after UI changes, and
+  section 11 of the design guide says which review rows it covers.
+
 #### Fixed
 
 - **Installing into a fresh Phoenix 1.8 app works.** The library

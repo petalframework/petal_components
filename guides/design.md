@@ -326,6 +326,28 @@ Read the diff, the surrounding template and the page it renders. Before searchin
 
 Write it down before the mechanical checks. Detector output anchors judgment, and an anchored reviewer stops seeing what the searches cannot catch.
 
+### Run the machine checks first
+
+`mix petal.check` does the mechanical rows for you. It reads the app's `.ex`, `.heex` and `.css` files without compiling them and prints one line per problem: file, line, column, severity, rule id, what is wrong and the exact text to write instead. Plain runs only report. `mix petal.check --strict` exits non-zero on new errors, so use it in CI and after every UI change your agent makes. `mix petal.check --explain RULE` says what a rule checks and what it leaves alone.
+
+| Rule | Severity | Checks |
+|---|---|---|
+| `literal-neutral` | error | row 1 |
+| `bang-utility` | error | row 2: `!` utilities in the `class` of a petal_components call |
+| `important-on-pc` | error | row 2: `!important` on a `.pc-*` selector in app CSS. Sizes, positions, display, opacity and motion are warnings, because the library may set those inline |
+| `pc-function-prefix` | error | row 4 |
+| `legacy-dropdown` | warning | row 5 |
+| `combobox-variant` | error | row 9 |
+| `white-alpha-ghost` | error | row 10 |
+| `tilde-e-sigil` | error | row 11 |
+| `tailwind-v4-gate` | error | row 12 |
+| `dynamic-heroicon` | error | section 8: heroicon names built at runtime |
+| `ramp-complete` | error | section 9: an `@theme` block that remaps some stops of a ramp but not all eleven |
+| `focus-ring` | warning | section 6: `focus:` rings, ring offsets, `outline-none` with no replacement |
+| `semantic-hue` | warning | section 1: a literal red, green, emerald, yellow, amber or sky where a semantic role exists |
+
+Rows 3, 6, 7, 8 and 13 need judgment, so they stay hand checks below. For row 13, `mix compile --warnings-as-errors` catches unknown attrs with literal values. For the rows the command covers, its output is the finding; use the searches below only where it does not run.
+
 ### The checks
 
 Run each over the changed `.heex` and `.ex` files plus any touched CSS under `assets/`. Each row gives the thing to search for, why it matters and the fix.
@@ -339,7 +361,7 @@ Run each over the changed `.heex` and `.ex` files plus any touched CSS under `as
 7. **Raw HTML where a component exists.** Search for `<button`, `<table`, `<input`, `<select`, `<textarea` in app templates. Fix: swap to the component. Hidden and CSRF inputs and third-party embeds are fine.
 8. **Missing `dark:` pair.** Search for `bg-`, `text-` or `border-` with `white`, `black` or `gray-N` on lines with no `dark:`. Treat hits as candidates and finish with the dark-pair pass below; BEM class names that embed colour tokens are names, not utilities.
 9. **`variant` on a combobox field.** Search for `type="combobox"` alongside `variant=`. The field attr is `combo_variant` (`"input"` | `"trigger"`). Direct `<.combo_box>` calls take `variant` legitimately.
-10. **White-alpha ghost in dark variants.** Search for `dark:bg-white/N` and `dark:border-white/N`. The dark ghost material is gray-400 alpha: `dark:bg-gray-400/8` surface, `/17` hover and hairline border, `dark:border-gray-400/25` input border. White alpha glows and shifts hue. Deliberate white overlays on imagery or brand panels are the exception.
+10. **White-alpha ghost in dark variants.** Search for `dark:bg-white/N` and `dark:border-white/N`. The dark ghost material is gray-400 alpha: `dark:bg-gray-400/8` surface, `/17` hover and hairline border, `dark:border-gray-400/25` input border. White alpha glows and shifts hue. Deliberate white overlays on imagery or brand panels are the exception, and so is the muted fill from section 4: `/1` to `/6` and `/[0.03]` to `/[0.06]` on `dark:bg-white`.
 11. **`~E` sigil.** Search for `~E"`. HEEx only (`~H`); `~E` has no HTML-aware engine. Hard rule.
 12. **Tailwind v3 tells.** Search `assets/` for `@tailwind base`, `@tailwind components` or `@tailwind utilities`. v3 directives mean none of the token contract is loaded. Fix: `@import "tailwindcss";` plus `@theme` tokens per section 9.
 13. **Unknown attrs on component calls.** List every `<.name>` the diff touches and check each attr written against the real schema: the MCP server's `get_component`, or the `attr`/`slot` declarations in `deps/petal_components/lib/petal_components/*.ex`. An attr absent from the schema, or a value outside its enum (`color="prmary"`), is a major finding. Components that declare a `rest` attr legitimately accept `phx-*`, `data-*`, `aria-*`, `id` and other globals. Compile-time checks only catch literal values in compiled code; the review catches dynamic assigns and code nobody compiled yet.

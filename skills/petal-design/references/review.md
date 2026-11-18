@@ -31,6 +31,16 @@ and an anchored reviewer stops seeing what the greps cannot catch.
 
 ## 2. The grep table
 
+Run the machine check first. If `mix help petal.check` works in the project
+(petal_components 4.19 or later), run
+`mix petal.check --strict --format json --output petal-check.json` and report
+its findings for the rows it covers: 1, 2, 4, 5, 9, 10, 11 and 12, plus
+runtime heroicon names, partial ramp remaps, focus rings and literal semantic
+hues. Act on findings with `"status": "new"`. Each finding gives the file, line,
+rule id and the fix. Use the grep rows below only for rows 3, 6, 7, 8 and 13,
+or for every row on older versions. For unknown attrs with literal values,
+`mix compile --warnings-as-errors` is the check.
+
 Collect targets with `git diff --name-only` (or the files named in the
 request); keep `.heex` and `.ex`, plus any touched CSS under `assets/`. Run
 every row with `grep -nE` so findings carry line numbers.
