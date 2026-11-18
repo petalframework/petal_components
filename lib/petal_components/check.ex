@@ -123,7 +123,7 @@ defmodule PetalComponents.Check do
 
           info = with_colocated(info, source, root)
           {source, found} = run_source(source, per_source, info)
-          {%{source | units: [], tags: [], ast: nil}, found}
+          {%{source | units: [], tags: [], ast: nil, lines: nil}, found}
         end,
         ordered: true,
         timeout: :infinity,

@@ -343,8 +343,8 @@ Write it down before the mechanical checks. Detector output anchors judgment, an
 | `tailwind-v4-gate` | error | row 12 |
 | `dynamic-heroicon` | error | section 8: heroicon names built at runtime |
 | `ramp-complete` | error | section 9: an `@theme` block that remaps some stops of a ramp but not all eleven |
-| `focus-ring` | warning | section 6: `focus:` rings, ring offsets, `outline-none` with no replacement |
-| `semantic-hue` | warning | section 1: a literal red, green, emerald, yellow, amber or sky where a semantic role exists |
+| `focus-ring` | warning | section 6: `focus:` rings, focus ring offsets, `outline-none` with no replacement on an element that takes focus |
+| `semantic-hue` | warning | section 1: a literal red, green, emerald, yellow, amber or sky next to a word for its role (error, success, warning, info) |
 
 Rows 3, 6, 7, 8 and 13 need judgment, so they stay hand checks below. For row 13, `mix compile --warnings-as-errors` catches unknown attrs with literal values. For the rows the command covers, its output is the finding; use the searches below only where it does not run.
 

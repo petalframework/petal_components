@@ -60,7 +60,7 @@ defmodule PetalComponents.Check.SamplesTest do
 
   describe "must flag" do
     test "the same classes on a real element" do
-      src = ~s(<div class="#{zinc()} #{ghost()} text-red-500">real</div>\n)
+      src = ~s(<div class="#{zinc()} #{ghost()} text-red-500">Payment failed</div>\n)
       rules = run(:heex, src) |> Enum.map(& &1.rule) |> Enum.sort()
       assert rules == ["literal-neutral", "semantic-hue", "white-alpha-ghost"]
     end

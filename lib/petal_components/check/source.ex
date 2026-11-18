@@ -15,6 +15,8 @@ defmodule PetalComponents.Check.Source do
     :abs,
     :kind,
     :ast,
+    # the file's lines (Pos.lines/1), for rules that read the text around a finding
+    :lines,
     tags: [],
     units: [],
     statements: [],
@@ -61,7 +63,7 @@ defmodule PetalComponents.Check.Source do
   @doc "Reads source text that is already in memory."
   def from_string(%__MODULE__{} = source, src, tok) do
     if String.valid?(src),
-      do: parse(source, src, tok),
+      do: parse(%{source | lines: Pos.lines(src)}, src, tok),
       else: unchecked(source, {1, 1}, "this file is not valid UTF-8", :read)
   end
 
