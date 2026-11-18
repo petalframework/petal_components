@@ -10,8 +10,8 @@
   component calls and `!important` on `pc-*` selectors, the `pc_`
   prefix, `~E`, `variant` on a combobox field, runtime heroicon names,
   Tailwind v3 directives and partial ramp remaps. Warnings: legacy
-  dropdown spellings, focus rings and literal hues that have a
-  semantic role. It never compiles your app. Plain runs only report;
+  dropdown spellings, focus rings and literal hues next to a word for
+  their semantic role. It never compiles your app. Plain runs only report;
   `--strict` exits non-zero for CI and your agent, and `--changed`
   checks only the files you touched. A baseline file and
   `petal-check:ignore` comments handle existing code. `usage-rules.md`

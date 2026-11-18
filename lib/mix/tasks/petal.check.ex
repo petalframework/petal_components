@@ -65,6 +65,11 @@ defmodule Mix.Tasks.Petal.Check do
       --update-baseline     record every current finding in the baseline
       --prune-baseline      drop baseline entries that no longer match; never adds
 
+  The baseline records a count per rule, file and subject, with no line
+  number, so edits above a finding keep it baselined. When a file has more
+  copies of a subject than the baseline records, every copy is listed with
+  a note, because the baseline cannot tell which one is new.
+
   Anything that narrows a run (`--only`, `--except`, `--exclude`, path
   arguments, `--changed`) is named in the summary, and under `--strict` the
   last line prints the suppressed and excluded counts.
@@ -91,8 +96,10 @@ defmodule Mix.Tasks.Petal.Check do
 
   Class rules read string literals and attr values only, through the
   Elixir parser and LiveView's HEEx tokenizer, so comments, docs and prose
-  are never flagged. A file that cannot be parsed is reported as unchecked,
-  never as clean.
+  are never flagged. They also skip a string that holds markup (a code
+  sample), the value of a `code`, `source`, `snippet` or `example` attr,
+  and a string that reads as a sentence. A file that cannot be parsed, or
+  HEEx whose tags do not balance, is reported as unchecked, never as clean.
 
   ## Rules
 
