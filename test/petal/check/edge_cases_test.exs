@@ -103,6 +103,44 @@ defmodule PetalComponents.Check.EdgeCasesTest do
     end
   end
 
+  describe "unreadable input" do
+    test "Elixir that does not parse is unchecked with the parser's message" do
+      files = %{
+        "lib/a.ex" => "defmodule A do\n  def f(, do: 1\nend\n",
+        "lib/b.ex" => "defmodule B do\n  def f, do: \"x\nend\n"
+      }
+
+      r = run_files(files, rules: [LiteralNeutral], strict: true)
+      assert [a, b] = Enum.sort_by(r.unchecked, & &1.path)
+      assert {a.path, a.kind, a.line} == {"lib/a.ex", :parse, 2}
+      assert a.reason =~ "this file could not be read as Elixir: "
+      assert {b.path, b.kind} == {"lib/b.ex", :parse}
+      assert r.exit_status == 2
+    end
+
+    test "a failed tokenizer guard records one entry for a file with two ~H fragments" do
+      src = """
+      defmodule AppWeb.Two do
+        use Phoenix.Component
+        def a(assigns), do: ~H"<p>a</p>"
+        def b(assigns), do: ~H"<p>b</p>"
+      end
+      """
+
+      r = run_files(%{"lib/two.ex" => src}, tokenizer: {:error, "x"}, rules: [LiteralNeutral])
+      assert [%{kind: :tokenizer}] = r.unchecked
+    end
+
+    test "a component helper and a class parser corner" do
+      alias PetalComponents.Check.Classes
+      alias PetalComponents.Check.Components
+      alias PetalComponents.Check.Heex.Tag
+
+      assert Components.function_name(%Tag{kind: :tag, name: "div"}) == nil
+      assert Classes.parse("hover:!") == :error
+    end
+  end
+
   describe "CSS" do
     test "escaped quotes and comments inside a rule do not end it early" do
       css = """
