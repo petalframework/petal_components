@@ -10,10 +10,13 @@
 #      `mix deps.get`, so mix.lock holds what a new app really locks
 #   3. copies the files the Hex package ships into deps/petal_components and
 #      adds it as a path dependency, the layout a Hex install produces
-#   4. runs `mix deps.get` again WITHOUT unlocking anything: a library
-#      constraint that conflicts with a fresh app's lock fails here
+#   4. runs `mix deps.get` again WITHOUT unlocking anything, then fails if
+#      any version the fresh app had locked changed. (For a Hex dependency
+#      a conflicting constraint fails resolution outright. For a path
+#      dependency Mix quietly moves the locked version instead, so the
+#      lock comparison is what makes this step bite.)
 #   5. applies exactly the edits usage-rules.md describes (app.css, the web
-#      module's html_helpers, app.js, the two AGENTS.md lines)
+#      module's html_helpers, app.js, the AGENTS.md lines)
 #   6. adds a LiveView using <.button>, <.icon>, <.field>, <.table>, <.modal>
 #   7. `mix compile --warnings-as-errors`, then a LiveViewTest that asserts
 #      the library's markup rendered (with --warnings-as-errors)
@@ -106,6 +109,7 @@ for f in $PACKAGE_FILES; do
 done
 
 step "Step 1: add the dependency"
+cp mix.lock "$WORK/fresh.mix.lock"
 replace_once mix.exs '  defp deps do
     [
 ' '  defp deps do
@@ -117,6 +121,22 @@ step "Step 2: mix deps.get, with the fresh lock and nothing unlocked"
 if ! mix deps.get; then
   fail "mix deps.get failed in a fresh Phoenix app. A dependency petal_components declares conflicts with what phx.new locks."
 fi
+# A Hex install of the same constraint would fail resolution here.
+elixir -e '
+  [fresh, now] = Enum.map(System.argv(), fn path -> path |> File.read!() |> Code.eval_string() |> elem(0) end)
+  version = fn entry -> elem(entry, 2) end
+
+  moved =
+    for {name, entry} <- fresh, Map.has_key?(now, name), version.(entry) != version.(now[name]) do
+      "#{name} #{version.(entry)} => #{version.(now[name])}"
+    end
+
+  if moved != [] do
+    IO.puts(:stderr, "adding petal_components changed versions the fresh app had locked: " <> Enum.join(moved, ", "))
+    System.halt(1)
+  end
+' "$WORK/fresh.mix.lock" mix.lock ||
+  fail "a dependency petal_components declares conflicts with what phx.new locks. Installed from Hex, mix deps.get would fail on it."
 
 step "Step 3: Tailwind lines below the existing import"
 replace_once assets/css/app.css '@import "tailwindcss" source(none);
@@ -142,11 +162,30 @@ import PetalComponents from "../../deps/petal_components/assets/js/petal_compone
 '
 replace_once assets/js/app.js 'hooks: {...colocatedHooks},' 'hooks: {...colocatedHooks, ...PetalComponents},'
 
-step "Step 6: correct the two AGENTS.md lines phx.new wrote about <.icon> and <.input>"
+step "Step 6: correct the AGENTS.md lines phx.new wrote about the core <.icon> and <.input>"
 replace_once AGENTS.md '- Out of the box, `core_components.ex` imports an `<.icon name="hero-x-mark" class="w-5 h-5"/>` component for hero icons. **Always** use the `<.icon>` component for icons, **never** use `Heroicons` modules or similar' \
   '- `<.icon>` comes from petal_components (`use PetalComponents` in `html_helpers`). Use `<.icon name="hero-x-mark" class="w-5 h-5" />` for hero icons, **never** `Heroicons` modules or similar'
 replace_once AGENTS.md '- **Always** use the imported `<.input>` component for form inputs from `core_components.ex` when available. `<.input>` is imported and using it will save steps and prevent errors' \
   '- Form fields use petal_components `<.field field={@form[:name]} label="..." />` (label, input, errors and help text). `<.input>` is the petal_components bare input and renders no label'
+replace_once AGENTS.md '- If you override the default input classes (`<.input class="myclass px-2 py-1 rounded-lg">)`) class with your own values, no default classes are inherited, so your
+custom classes must fully style the input
+' ''
+replace_once AGENTS.md 'and the `<.input>` component in the template' 'and the `<.field>` component in the template'
+replace_once AGENTS.md '<.input field={@form[:field]} type="text" />
+    </.form>
+
+Always give' '<.field field={@form[:field]} type="text" />
+    </.form>
+
+Always give'
+replace_once AGENTS.md '<%!-- ALWAYS do this (valid) --%>
+    <.form for={@form} id="my-form">
+      <.input field=' '<%!-- ALWAYS do this (valid) --%>
+    <.form for={@form} id="my-form">
+      <.field field='
+replace_once AGENTS.md '<.input field={@changeset[:field]}' '<.field field={@changeset[:field]}'
+left=$(grep -c '<\.input field=' AGENTS.md || true)
+[ "$left" = 0 ] || fail "AGENTS.md still has $left <.input field= examples"
 
 step "Adding a LiveView that uses the components"
 mkdir -p "lib/${APP}_web/live" "test/${APP}_web/live"
