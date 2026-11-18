@@ -32,8 +32,9 @@
   the optional `eqrcode`. It said `use PetalComponents` imports every
   component, but it does not import the Chat family, and the modules it
   leaves out (the data table's filter editor, the old HeroiconsV1 sets,
-  the Showcase and Svg helpers) are now named. And it never said that `<.prose>` needs the
-  `@tailwindcss/typography` plugin, without which it renders unstyled.
+  the Showcase and Svg helpers) are now named. And it never said that
+  `<.prose>` needs the `@tailwindcss/typography` plugin, without which
+  it renders unstyled.
   The README says the same.
 - **Two `usage-rules.md` examples work when copied.** "Table with row
   actions" had no `rows`, so it rendered an empty table, and the
