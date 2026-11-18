@@ -135,8 +135,9 @@ defmodule PetalComponents.Check.Files do
   # petal_components' own source, and symlinked dirs (no loops).
   defp walk(ctx, rel, exts) do
     abs = Path.join(ctx.root, rel)
+    in_library? = Enum.any?(ctx.lib_dirs, &inside?(abs, &1))
 
-    case File.ls(abs) do
+    case if(in_library?, do: :skip, else: File.ls(abs)) do
       {:ok, names} ->
         names
         |> Enum.sort()
