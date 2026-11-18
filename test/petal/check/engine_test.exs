@@ -25,6 +25,22 @@ defmodule PetalComponents.Check.EngineTest do
     def check(_unit, _ctx), do: raise("boom")
   end
 
+  defmodule RaisesProject do
+    @behaviour Rule
+    def rule,
+      do: %Rule{
+        id: "raises-project",
+        severity: :error,
+        section: "9",
+        row_keyword: "x",
+        why: "x",
+        scope: :project
+      }
+
+    def collect(_source, _ctx), do: :ok
+    def finish(_collected, _ctx), do: raise("boom")
+  end
+
   defmodule Ramp do
     # A fake project rule: one finding per CSS file that defines --x-a,
     # but only when some file (anywhere under the roots) defines --x-b.
@@ -95,6 +111,17 @@ defmodule PetalComponents.Check.EngineTest do
     assert [%{kind: :read, path: "lib/adv/comp.ex"}] = r.unchecked
     assert [%{rule: "literal-neutral", path: "lib/adv/comp.html.heex"}] = r.findings
     assert r.exit_status == 1
+  end
+
+  test "an exception outside the rules makes the file unchecked, never a crash" do
+    # a petal_names that is not a MapSet breaks the scope step, before any rule
+    src = "defmodule A do\n  use PetalComponents\nend\n"
+    r = run_files(%{"lib/a.ex" => src}, rules: @both, petal_names: :not_a_set, strict: true)
+
+    assert [%{kind: :internal, reason: "internal error while checking this file" <> _}] =
+             r.unchecked
+
+    assert r.exit_status == 2
   end
 
   test "a rule that raises makes the file unchecked, the others still run, advisory stays 0" do
@@ -197,6 +224,14 @@ defmodule PetalComponents.Check.EngineTest do
       File.write!(Path.join(root, "assets/css/b.css"), ".y { color: red;\n")
       {:ok, r} = Check.run(root: root, rules: [Ramp], paths: ["assets/css/a.css"])
       assert r.findings == []
+    end
+
+    test "a project rule that raises is named as not run, and --strict exits 2", %{root: root} do
+      {:ok, r} = Check.run(root: root, rules: [RaisesProject], strict: true)
+      assert r.rules_not_run == [{"raises-project", "internal error (please report): boom"}]
+      assert r.exit_status == 2
+      text = Enum.join(PetalComponents.Check.Format.text(r), "\n")
+      assert text =~ "petal.check --strict failed: a rule could not run"
     end
 
     test "an unreadable .heex file does not stop the project rules", %{root: root} do

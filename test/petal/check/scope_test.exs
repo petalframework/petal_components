@@ -107,6 +107,11 @@ defmodule PetalComponents.Check.ScopeTest do
     assert Enum.sort(rules_hit(files)) == ["bang-utility", "pc-function-prefix"]
   end
 
+  test "import PetalComponents.X of a module that does not exist brings in nothing" do
+    files = %{"lib/app_web/page.ex" => page("  import PetalComponents.NoSuchModule")}
+    assert rules_hit(files) == []
+  end
+
   test "import PetalComponents.Button brings in button, not field" do
     files = %{"lib/app_web/page.ex" => page("  import PetalComponents.Button")}
     assert rules_hit(files) == ["bang-utility"]
