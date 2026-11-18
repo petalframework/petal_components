@@ -247,8 +247,10 @@ If the MCP is unavailable, the source of truth is https://hexdocs.pm/petal_compo
 
 ### Table with row actions
 
+`rows` is required in practice: without it the table renders headers and an empty body, with no warning.
+
 ```heex
-<.table>
+<.table id="users" rows={@users}>
   <:col :let={user} label="Name">{user.name}</:col>
   <:col :let={user} label="Email">{user.email}</:col>
   <:col :let={user} label="">
@@ -327,16 +329,19 @@ def handle_event("table", %{"op" => "move_column", "field" => f, "dir" => dir}, 
   {:noreply, update(socket, :column_order, &PetalComponents.DataTable.move_column(&1, fields, f, dir))}
 end
 
-# ONE identity function, used as both the component's row_id and
-# select_all's page sweep - they must never disagree
-defp row_key(row), do: to_string(row.id)
-
 def handle_event("table", params, socket) do
   state = State.handle_op(socket.assigns.table, params, fields: [:customer, :status, :amount])
   {rows, state} = Engine.List.run(all_orders(), state)
   {:noreply, assign(socket, rows: rows, table: state)}
 end
+
+# ONE identity function, used as both the component's row_id and
+# select_all's page sweep - they must never disagree. It goes after the last
+# handle_event/3 clause: a defp between clauses is a compiler warning.
+defp row_key(row), do: to_string(row.id)
 ```
+
+The snippet uses `State` and `Engine` unqualified, so the LiveView needs `alias PetalComponents.DataTable.{State, Engine}`.
 
 Selection and column visibility are UI state (the clauses above; move them to a separate `on_ui` event if you prefer) - keep them in assigns, never in URLs. For URL-driven tables pass `path` instead of `on_change`: every interaction becomes a patch URL and `State.from_params/2` in `handle_params` is the whole backend. `row_id` must uniquely identify records across all pages.
 
