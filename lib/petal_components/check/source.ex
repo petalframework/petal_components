@@ -40,14 +40,20 @@ defmodule PetalComponents.Check.Source do
         from_string(source, src, tok)
 
       {:error, reason} ->
-        unchecked(source, {1, 1}, "this file could not be read (#{:file.format_error(reason)})", :read)
+        unchecked(
+          source,
+          {1, 1},
+          "this file could not be read (#{:file.format_error(reason)})",
+          :read
+        )
     end
   rescue
     e ->
       unchecked(
         %__MODULE__{path: path, abs: abs, kind: kind(path)},
         {1, 1},
-        "internal error while reading this file (please report): " <> first_line(Exception.message(e)),
+        "internal error while reading this file (please report): " <>
+          first_line(Exception.message(e)),
         :internal
       )
   end

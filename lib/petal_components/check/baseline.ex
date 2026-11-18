@@ -25,8 +25,12 @@ defmodule PetalComponents.Check.Baseline do
     case File.read(abs) do
       {:ok, text} ->
         case decode(text) do
-          {:ok, entries} -> {:ok, entries, true}
-          :error -> {:error, "the baseline file #{abs} is not a petal.check baseline (expected {\"version\": 1, \"entries\": [...]})"}
+          {:ok, entries} ->
+            {:ok, entries, true}
+
+          :error ->
+            {:error,
+             "the baseline file #{abs} is not a petal.check baseline (expected {\"version\": 1, \"entries\": [...]})"}
         end
 
       {:error, :enoent} when not explicit? ->
@@ -38,7 +42,8 @@ defmodule PetalComponents.Check.Baseline do
   end
 
   defp decode(text) do
-    with {:ok, %{"version" => 1, "entries" => entries}} when is_list(entries) <- Jason.decode(text),
+    with {:ok, %{"version" => 1, "entries" => entries}} when is_list(entries) <-
+           Jason.decode(text),
          true <- Enum.all?(entries, &entry?/1) do
       {:ok,
        Enum.reduce(entries, %{}, fn e, acc ->
@@ -108,7 +113,12 @@ defmodule PetalComponents.Check.Baseline do
   dropping them would make every old finding new once the file parses again).
   """
   def updated(entries, findings, unchecked_paths) do
-    kept = for {{_, path, _} = k, n} <- entries, MapSet.member?(unchecked_paths, path), into: %{}, do: {k, n}
+    kept =
+      for {{_, path, _} = k, n} <- entries,
+          MapSet.member?(unchecked_paths, path),
+          into: %{},
+          do: {k, n}
+
     Map.merge(counts(findings), kept)
   end
 
@@ -117,7 +127,8 @@ defmodule PetalComponents.Check.Baseline do
     found = counts(findings)
 
     for {{_, path, _} = k, n} <- entries,
-        keep = if(MapSet.member?(unchecked_paths, path), do: n, else: min(n, Map.get(found, k, 0))),
+        keep =
+          if(MapSet.member?(unchecked_paths, path), do: n, else: min(n, Map.get(found, k, 0))),
         keep > 0,
         into: %{},
         do: {k, keep}
@@ -153,7 +164,11 @@ defmodule PetalComponents.Check.Baseline do
           "\"count\": #{n}, \"fingerprint\": #{j(Finding.fingerprint(rule, path, subject))}}"
       end)
 
-    body = if lines == [], do: "  \"entries\": []\n", else: "  \"entries\": [\n" <> Enum.join(lines, ",\n") <> "\n  ]\n"
+    body =
+      if lines == [],
+        do: "  \"entries\": []\n",
+        else: "  \"entries\": [\n" <> Enum.join(lines, ",\n") <> "\n  ]\n"
+
     "{\n  \"version\": 1,\n" <> body <> "}\n"
   end
 

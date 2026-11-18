@@ -45,7 +45,7 @@ defmodule PetalComponents.Check.Heex do
         {:error, "no HEEx tokenizer module found"}
 
       not (function_exported?(mod, :init, 4) and function_exported?(mod, :tokenize, 5) and
-               function_exported?(mod, :finalize, 4) and Code.ensure_loaded?(engine())) ->
+             function_exported?(mod, :finalize, 4) and Code.ensure_loaded?(engine())) ->
         {:error, "#{inspect(mod)} no longer has the functions this check calls"}
 
       true ->
@@ -79,7 +79,8 @@ defmodule PetalComponents.Check.Heex do
                  {"placement", {:string, "left", %{delimiter: ?"}}, %{line: 1, column: 12}},
                  {"class", {:expr, ~s(["a"]), %{line: 1, column: 36}}, %{line: 1, column: 29}}
                ], %{line: 1, column: 1}},
-              {:slot, "item", [{"class", {:string, "x", %{delimiter: ?"}}, %{line: 1, column: 50}}],
+              {:slot, "item",
+               [{"class", {:string, "x", %{delimiter: ?"}}, %{line: 1, column: 50}}],
                %{line: 1, column: 43}},
               {:close, :local_component, "dropdown", %{line: 1}}
             ],
@@ -183,7 +184,8 @@ defmodule PetalComponents.Check.Heex do
     {tags, units} =
       Enum.reduce(tokens, {[], []}, fn token, {tags, units} ->
         case token do
-          {kind, name, attrs, meta} when kind in @tag_kinds and is_binary(name) and is_list(attrs) ->
+          {kind, name, attrs, meta}
+          when kind in @tag_kinds and is_binary(name) and is_list(attrs) ->
             {tag, attr_units} = tag(kind, name, attrs, meta, lines, map)
             {[tag | tags], Enum.reverse(attr_units, units)}
 
@@ -203,7 +205,14 @@ defmodule PetalComponents.Check.Heex do
 
     eex_units =
       for {:eex_expr, marker, code, meta} <- extras,
-          unit = expr_unit(code, {meta.line, meta.column + 2 + String.length(marker)}, map, :heex_expr, []),
+          unit =
+            expr_unit(
+              code,
+              {meta.line, meta.column + 2 + String.length(marker)},
+              map,
+              :heex_expr,
+              []
+            ),
           do: unit
 
     comments =
@@ -252,7 +261,9 @@ defmodule PetalComponents.Check.Heex do
     tag = %Tag{kind: kind, name: name, line: line, column: column, attrs: attr_structs}
 
     units =
-      for {n, value, {l, c}, _} <- parsed, is_binary(n), unit = attr_unit(n, value, {l, c}, lines, map, tag),
+      for {n, value, {l, c}, _} <- parsed,
+          is_binary(n),
+          unit = attr_unit(n, value, {l, c}, lines, map, tag),
           do: unit
 
     {tag, units}
@@ -290,7 +301,9 @@ defmodule PetalComponents.Check.Heex do
   # The value starts after `name`, optional spaces, `=`, optional spaces and
   # the delimiter. Falls back to the usual `name="` width.
   defp string_value_start(n, delim, {l, c}, lines) do
-    rest = lines |> Pos.line(l) |> Kernel.||("") |> String.slice((c - 1 + String.length(n))..-1//1)
+    rest =
+      lines |> Pos.line(l) |> Kernel.||("") |> String.slice((c - 1 + String.length(n))..-1//1)
+
     d = <<delim::utf8>>
 
     case Regex.run(~r/^\s*=\s*#{Regex.escape(d)}/, rest) do
@@ -376,6 +389,7 @@ defmodule PetalComponents.Check.Heex do
         cond do
           heredoc? ->
             pre = String.length(rl) - String.length(cl)
+
             if String.ends_with?(rl, cl) and String.trim(String.slice(rl, 0, max(pre, 0))) == "",
               do: pre,
               else: if(cl == "", do: 0, else: nil)

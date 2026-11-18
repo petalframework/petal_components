@@ -113,7 +113,9 @@ defmodule PetalComponents.Check.Css do
   defp string(<<byte, rest::binary>>, q, l, c, acc),
     do: string(rest, q, l, c + 1, [<<byte>> | acc])
 
-  defp take_until_paren(")" <> _ = rest, acc), do: {acc |> Enum.reverse() |> IO.iodata_to_binary(), rest}
+  defp take_until_paren(")" <> _ = rest, acc),
+    do: {acc |> Enum.reverse() |> IO.iodata_to_binary(), rest}
+
   defp take_until_paren(<<>>, acc), do: {acc |> Enum.reverse() |> IO.iodata_to_binary(), <<>>}
 
   defp take_until_paren(<<ch::utf8, rest::binary>>, acc),
@@ -163,7 +165,8 @@ defmodule PetalComponents.Check.Css do
     end
   end
 
-  defp step("(" <> rest, l, c, st), do: step(rest, l, c + 1, %{push(st, "(", {l, c}) | paren: st.paren + 1})
+  defp step("(" <> rest, l, c, st),
+    do: step(rest, l, c + 1, %{push(st, "(", {l, c}) | paren: st.paren + 1})
 
   defp step(")" <> rest, l, c, st),
     do: step(rest, l, c + 1, %{push(st, ")", {l, c}) | paren: max(st.paren - 1, 0)})
@@ -217,7 +220,10 @@ defmodule PetalComponents.Check.Css do
         [lead] <- [Regex.run(~r/^@apply\s+/, text)] do
       args = binary_part(text, byte_size(lead), byte_size(text) - byte_size(lead))
       start = Pos.advance({l, c}, lead)
-      Unit.new(:css_apply, [%Part{text: args, locate: &Pos.advance(start, binary_part(args, 0, &1))}])
+
+      Unit.new(:css_apply, [
+        %Part{text: args, locate: &Pos.advance(start, binary_part(args, 0, &1))}
+      ])
     end
   end
 end

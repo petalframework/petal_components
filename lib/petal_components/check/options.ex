@@ -104,8 +104,12 @@ defmodule PetalComponents.Check.Options do
       |> Enum.reject(&(&1 == ""))
 
     case Enum.reject(given, &(&1 in known)) do
-      [] -> {:ok, Enum.uniq(given)}
-      bad -> {:error, "--#{key}: #{Enum.join(bad, ", ")} is not a rule. Rules: #{Enum.join(known, ", ")}"}
+      [] ->
+        {:ok, Enum.uniq(given)}
+
+      bad ->
+        {:error,
+         "--#{key}: #{Enum.join(bad, ", ")} is not a rule. Rules: #{Enum.join(known, ", ")}"}
     end
   end
 

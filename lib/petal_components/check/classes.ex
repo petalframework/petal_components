@@ -46,7 +46,9 @@ defmodule PetalComponents.Check.Classes do
       lead = lead or (variants_raw == [] and String.starts_with?(last, "!"))
       {inner, last} = inner_bang(last, variants_raw)
       {suffix, utility} = trailing_bang(last)
-      utility = if lead and variants_raw == [], do: String.trim_leading(utility, "!"), else: utility
+
+      utility =
+        if lead and variants_raw == [], do: String.trim_leading(utility, "!"), else: utility
 
       important =
         cond do
@@ -92,10 +94,17 @@ defmodule PetalComponents.Check.Classes do
 
   defp valid_utility?(%{utility: u, important: imp}) do
     cond do
-      u == "" -> false
-      String.contains?(u, "!") and not String.contains?(u, "[") -> false
-      imp != :none and not (String.contains?(u, "-") or String.contains?(u, "[") or u in @bare) -> false
-      true -> true
+      u == "" ->
+        false
+
+      String.contains?(u, "!") and not String.contains?(u, "[") ->
+        false
+
+      imp != :none and not (String.contains?(u, "-") or String.contains?(u, "[") or u in @bare) ->
+        false
+
+      true ->
+        true
     end
   end
 
@@ -112,7 +121,8 @@ defmodule PetalComponents.Check.Classes do
   defp chars_ok?([_ | t], depth) when depth > 0, do: chars_ok?(t, depth)
 
   defp chars_ok?([c | t], 0)
-       when c in ?a..?z or c in ?A..?Z or c in ?0..?9 or c in [?-, ?_, ?:, ?/, ?., ?!, ?%, ?#, ?@, ?*, ?&],
+       when c in ?a..?z or c in ?A..?Z or c in ?0..?9 or
+              c in [?-, ?_, ?:, ?/, ?., ?!, ?%, ?#, ?@, ?*, ?&],
        do: chars_ok?(t, 0)
 
   defp chars_ok?(_, _), do: false

@@ -15,8 +15,11 @@ defmodule PetalComponents.Check.Format do
     shown =
       r.findings
       |> Enum.filter(fn f ->
-        f.status == :new or (f.status == :baselined and opts[:show_baselined]) or
-          (f.status == :suppressed and opts[:show_suppressed])
+        case f.status do
+          :new -> true
+          :baselined -> !!opts[:show_baselined]
+          :suppressed -> !!opts[:show_suppressed]
+        end
       end)
 
     {errors, warnings} = Enum.split_with(shown, &(&1.severity == :error))
@@ -58,7 +61,10 @@ defmodule PetalComponents.Check.Format do
 
         list ->
           n = list |> Enum.map(& &1.path) |> Enum.uniq() |> length()
-          ["#{word} [tokenizer] HEEx in #{n} #{plural(n, "file")} not checked: #{trim_dot(r.tokenizer_error)}. fix: #{tokenizer_fix(r)}"]
+
+          [
+            "#{word} [tokenizer] HEEx in #{n} #{plural(n, "file")} not checked: #{trim_dot(r.tokenizer_error)}. fix: #{tokenizer_fix(r)}"
+          ]
       end
 
     plain ++ tok
@@ -71,10 +77,12 @@ defmodule PetalComponents.Check.Format do
       else: "fix the syntax error (mix compile shows it), then run mix petal.check again"
   end
 
-  def unchecked_fix(%{kind: :read}), do: "save the file as UTF-8 text, then run mix petal.check again"
+  def unchecked_fix(%{kind: :read}),
+    do: "save the file as UTF-8 text, then run mix petal.check again"
 
   def unchecked_fix(%{kind: :internal}),
-    do: "report it at https://github.com/petalframework/petal_components/issues; the other rules still checked this file"
+    do:
+      "report it at https://github.com/petalframework/petal_components/issues; the other rules still checked this file"
 
   def unchecked_fix(%{kind: :tokenizer}), do: "see the tokenizer line"
 
@@ -132,8 +140,10 @@ defmodule PetalComponents.Check.Format do
     parts =
       [
         n[:only] != [] && n[:only] && "only #{Enum.join(n.only, ", ")} (--only)",
-        n[:except] != [] && n[:except] && "rules skipped: #{Enum.join(n.except, ", ")} (--except)",
-        (n[:excluded] || 0) > 0 && "#{n.excluded} #{plural(n.excluded, "file")} excluded (--exclude)",
+        n[:except] != [] && n[:except] &&
+          "rules skipped: #{Enum.join(n.except, ", ")} (--except)",
+        (n[:excluded] || 0) > 0 &&
+          "#{n.excluded} #{plural(n.excluded, "file")} excluded (--exclude)",
         (n[:paths] || 0) > 0 && "#{n.paths} #{plural(n.paths, "path")} given",
         n[:changed] && "changed files against #{n.changed} (--changed)"
       ]
@@ -191,10 +201,21 @@ defmodule PetalComponents.Check.Format do
     unreadable = r |> Report.unreadable() |> Enum.map(& &1.path) |> Enum.uniq() |> length()
 
     case r.exit_status do
-      0 -> ["petal.check --strict passed #{counts}."]
-      1 -> ["petal.check --strict failed: #{errors} new #{plural(errors, "error")} #{counts}."]
-      2 -> ["petal.check --strict failed: #{unreadable} #{plural(unreadable, "file")} could not be checked #{counts}."]
-      4 -> ["petal.check --strict failed: HEEx could not be read with this phoenix_live_view #{counts}."]
+      0 ->
+        ["petal.check --strict passed #{counts}."]
+
+      1 ->
+        ["petal.check --strict failed: #{errors} new #{plural(errors, "error")} #{counts}."]
+
+      2 ->
+        [
+          "petal.check --strict failed: #{unreadable} #{plural(unreadable, "file")} could not be checked #{counts}."
+        ]
+
+      4 ->
+        [
+          "petal.check --strict failed: HEEx could not be read with this phoenix_live_view #{counts}."
+        ]
     end
   end
 
@@ -269,7 +290,8 @@ defmodule PetalComponents.Check.Format do
            {"fix", if(u.kind == :tokenizer, do: tokenizer_fix(r), else: unchecked_fix(u))}
          ])
        end)},
-      {"skipped", Enum.map(r.skipped, fn {p, why} -> OrderedObject.new([{"file", p}, {"reason", why}]) end)},
+      {"skipped",
+       Enum.map(r.skipped, fn {p, why} -> OrderedObject.new([{"file", p}, {"reason", why}]) end)},
       {"baseline_change", change_json(r.baseline_change)},
       {"not_checked", Enum.map(Check.not_checked(), fn {row, label} -> "#{row} #{label}" end)},
       {"exit_status", r.exit_status}
@@ -278,7 +300,10 @@ defmodule PetalComponents.Check.Format do
   end
 
   defp sort_all(fs) do
-    Enum.sort_by(fs, &{if(&1.severity == :error, do: 0, else: 1), &1.path, &1.line, &1.column, &1.rule})
+    Enum.sort_by(
+      fs,
+      &{if(&1.severity == :error, do: 0, else: 1), &1.path, &1.line, &1.column, &1.rule}
+    )
   end
 
   defp finding_json(f) do
@@ -334,13 +359,18 @@ defmodule PetalComponents.Check.Format do
   def explain_text(r) do
     ["#{r.id} (#{r.severity}, guide section #{r.section})", "", r.why] ++
       if(r.note, do: ["", r.note], else: []) ++
-      if(r.exemptions == [], do: [], else: ["", "Not flagged:" | Enum.map(r.exemptions, &("  - " <> &1))]) ++
+      if(r.exemptions == [],
+        do: [],
+        else: ["", "Not flagged:" | Enum.map(r.exemptions, &("  - " <> &1))]
+      ) ++
       if(r.examples == [],
         do: [],
         else: [
           "",
           "Examples:"
-          | Enum.map(r.examples, fn {kind, text} -> "  #{if kind == :bad, do: "flags:     ", else: "fine:      "}#{text}" end)
+          | Enum.map(r.examples, fn {kind, text} ->
+              "  #{if kind == :bad, do: "flags:     ", else: "fine:      "}#{text}"
+            end)
         ]
       ) ++ ["", "Suppress one case with a comment: petal-check:ignore #{r.id}: why this is fine"]
   end

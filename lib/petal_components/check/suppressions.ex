@@ -39,10 +39,16 @@ defmodule PetalComponents.Check.Suppressions do
           [_, ids | reason] ->
             reason = reason |> List.first() |> Kernel.||("") |> String.trim()
             rules = ids |> String.split(",") |> Enum.map(&String.trim/1)
-            %{kind: String.to_atom(kind), rules: rules, reason: if(reason == "", do: nil, else: reason)}
+
+            %{
+              kind: String.to_atom(kind),
+              rules: rules,
+              reason: if(reason == "", do: nil, else: reason)
+            }
 
           _ ->
-            {:invalid, "petal-check:#{kind} needs one or more rule ids, for example petal-check:#{kind} literal-neutral: why"}
+            {:invalid,
+             "petal-check:#{kind} needs one or more rule ids, for example petal-check:#{kind} literal-neutral: why"}
         end
 
       [_, kind, _] ->
@@ -98,11 +104,17 @@ defmodule PetalComponents.Check.Suppressions do
           f.meta ->
             {f, used}
 
-          hit = Enum.find(ignores, fn {_c, d, t} -> f.rule in d.rules and t in [f.line, f.tag_line] end) ->
+          hit =
+              Enum.find(ignores, fn {_c, d, t} ->
+                f.rule in d.rules and t in [f.line, f.tag_line]
+              end) ->
             {c, _, _} = hit
             {%{f | status: :suppressed}, MapSet.put(used, {c.line, c.column})}
 
-          hit = Enum.find(ranges, fn {_c, rule, from, to} -> f.rule == rule and f.line >= from and f.line <= to end) ->
+          hit =
+              Enum.find(ranges, fn {_c, rule, from, to} ->
+                f.rule == rule and f.line >= from and f.line <= to
+              end) ->
             {c, _, _, _} = hit
             {%{f | status: :suppressed}, MapSet.put(used, {c.line, c.column})}
 
@@ -115,6 +127,7 @@ defmodule PetalComponents.Check.Suppressions do
       if source.unchecked == [] do
         for {c, %{kind: k, rules: rules}} <- dirs,
             k in [:ignore, :disable],
+            rules != [],
             Enum.all?(rules, &(&1 in ran)),
             not MapSet.member?(used, {c.line, c.column}) do
           meta(
@@ -204,7 +217,8 @@ defmodule PetalComponents.Check.Suppressions do
          )}
       end
 
-    {closed ++ Enum.map(unclosed, &elem(&1, 0)), Enum.reverse(meta) ++ Enum.map(unclosed, &elem(&1, 1))}
+    {closed ++ Enum.map(unclosed, &elem(&1, 0)),
+     Enum.reverse(meta) ++ Enum.map(unclosed, &elem(&1, 1))}
   end
 
   defp meta(source, c, rule, message, fix) do

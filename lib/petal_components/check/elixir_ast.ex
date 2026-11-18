@@ -186,6 +186,7 @@ defmodule PetalComponents.Check.ElixirAst do
   # -- helpers ----------------------------------------------------------------
 
   defp def_name({:when, _, [head | _]}), do: def_name(head)
+
   defp def_name({name, _, args}) when is_atom(name) and (is_list(args) or is_nil(args)),
     do: Atom.to_string(name)
 

@@ -36,9 +36,14 @@ defmodule PetalComponents.Check.Files do
 
     picked =
       cond do
-        is_list(opts[:changed]) -> {:ok, changed(ctx, apps, opts[:changed]), []}
-        is_list(opts[:paths]) and opts[:paths] != [] -> explicit(ctx, opts[:paths], !!opts[:include_excluded])
-        true -> {:ok, default.lib ++ default.css, []}
+        is_list(opts[:changed]) ->
+          {:ok, changed(ctx, apps, opts[:changed]), []}
+
+        is_list(opts[:paths]) and opts[:paths] != [] ->
+          explicit(ctx, opts[:paths], !!opts[:include_excluded])
+
+        true ->
+          {:ok, default.lib ++ default.css, []}
       end
 
     with {:ok, files, skipped} <- picked do
@@ -110,10 +115,17 @@ defmodule PetalComponents.Check.Files do
     after_app = if match?(["apps", _ | _], segs), do: Enum.drop(segs, 2), else: segs
 
     cond do
-      Enum.any?(ctx.lib_dirs, &inside?(abs, &1)) -> "it is petal_components' own source"
-      Enum.any?(segs, &(&1 in @always)) -> "files under #{Enum.find(segs, &(&1 in @always))}/ are not checked"
-      match?([z | _] when z in @zones, after_app) -> "files under #{hd(after_app)}/ are not checked"
-      true -> nil
+      Enum.any?(ctx.lib_dirs, &inside?(abs, &1)) ->
+        "it is petal_components' own source"
+
+      Enum.any?(segs, &(&1 in @always)) ->
+        "files under #{Enum.find(segs, &(&1 in @always))}/ are not checked"
+
+      match?([z | _] when z in @zones, after_app) ->
+        "files under #{hd(after_app)}/ are not checked"
+
+      true ->
+        nil
     end
   end
 
@@ -140,7 +152,9 @@ defmodule PetalComponents.Check.Files do
               if Path.extname(name) in exts, do: [child_rel], else: []
 
             {:ok, %{type: :symlink}} ->
-              if File.regular?(child_abs) and Path.extname(name) in exts, do: [child_rel], else: []
+              if File.regular?(child_abs) and Path.extname(name) in exts,
+                do: [child_rel],
+                else: []
 
             _ ->
               []
