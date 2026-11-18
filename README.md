@@ -93,7 +93,9 @@ const liveSocket = new LiveSocket("/live", Socket, {
 })
 ```
 
-Run `mix deps.get`, then `mix compile --warnings-as-errors` to verify. With petal_components 4.18.0 or older, `mix deps.get` in a new Phoenix 1.8 app fails on `websock_adapter`; run `mix deps.unlock websock_adapter && mix deps.get`.
+Phoenix 1.8 already passes `hooks: {...colocatedHooks}`; make it `hooks: {...colocatedHooks, ...PetalComponents}`.
+
+Run `mix deps.get`, then `mix compile --warnings-as-errors` to verify, and check that a LiveView rendering a `<.button>` has `button.pc-button` in its HTML (with the import in `def html` instead of `html_helpers`, it would not). With petal_components 4.18.0 or older, `mix deps.get` in a new Phoenix 1.8 app fails on `websock_adapter`; run `mix deps.unlock websock_adapter && mix deps.get`.
 
 ## For AI coding tools
 

@@ -72,7 +72,7 @@ After this, `<.button>`, `<.icon>`, `<.input>` and `<.table>` everywhere in the 
 - `<.button variant="primary">` becomes `<.button>` (solid primary is the default). `<.button navigate={~p"/path"}>` becomes `<.button link_type="live_redirect" to={~p"/path"}>`.
 - `<.table>` has no `:action` slot. Move the row actions into a last `<:col :let={row} label="">`. `rows={@streams.items}` works as before.
 
-`mix compile --warnings-as-errors` lists every call site that still uses a CoreComponents attribute or slot. To keep one generated page exactly as generated instead, call the core component by its module: `<MyAppWeb.CoreComponents.input field={@form[:email]} label="Email" />`.
+`mix compile --warnings-as-errors` flags the `variant="primary"`, `navigate` and `:action` call sites. It does not flag `<.input label=...>`, which compiles and renders without its label, so search the templates for `<.input` and check each one by hand. To keep one generated page exactly as generated instead, call the core component by its module: `<MyAppWeb.CoreComponents.input field={@form[:email]} label="Email" />`.
 
 ### 5. Register the JS hooks
 
