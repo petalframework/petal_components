@@ -68,11 +68,23 @@ import MyAppWeb.CoreComponents, except: [button: 1, icon: 1, input: 1, table: 1]
 
 After this, `<.button>`, `<.icon>`, `<.input>` and `<.table>` everywhere in the app are the petal_components versions, which take different attributes from the CoreComponents ones. A fresh `phx.new` app compiles unchanged (its layouts only call `<.icon name="hero-...">`, which petal_components renders the same way). Pages written by `mix phx.gen.live` or `mix phx.gen.auth`, before or after the install, call the CoreComponents versions and need their call sites updated:
 
-- `<.input field={@form[:email]} type="email" label="Email" />` becomes `<.field field={@form[:email]} type="email" label="Email" />`. petal_components' `<.input>` is the bare control and renders no label, so keeping `<.input label=...>` silently drops the label.
-- `<.button variant="primary">` becomes `<.button>` (solid primary is the default). `<.button navigate={~p"/path"}>` becomes `<.button link_type="live_redirect" to={~p"/path"}>`.
-- `<.table>` has no `:action` slot. Move the row actions into a last `<:col :let={row} label="">`. `rows={@streams.items}` works as before.
+- `<.input field={@form[:email]} type="email" label="Email" />` becomes `<.field field={@form[:email]} type="email" label="Email" />`. petal_components' `<.input>` is the bare control and renders no label and no errors, so keeping `<.input label=...>` silently drops both.
+- `<.button variant="primary">` becomes `<.button>` (solid primary is the default). A `<.button>` with no `variant` was the CoreComponents soft style (Cancel buttons, for example); make it `<.button variant="soft">` so it does not turn solid. `<.button navigate={~p"/path"}>` becomes `<.button link_type="live_redirect" to={~p"/path"}>`.
+- Remove the daisyUI `btn`, `btn-primary`, `btn-soft` and other `btn-*` classes from a button's `class` (`phx.gen.auth` writes `class="btn btn-primary w-full"`). petal_components adds `class` to its own classes, so they would stack two button styles on one element. Keep layout classes such as `w-full`.
+- `<.table>` has no `:action` slot. Move the row actions into a last `<:col :let={row} label="">`. `rows={@streams.items}` works as before. With `row_click` set, petal_components puts the row click on every cell, so the actions cell gets it too; drop `row_click` if the row should not open the record.
+- Generated tests that match exact input HTML (for example `phx.gen.auth`'s login test asserting `~s(<input type="email" name="user[email]" ...)`) fail, because petal_components renders the attributes in a different order with its own classes. Rewrite them with `has_element?/2` and a selector.
 
-`mix compile --warnings-as-errors` flags the `variant="primary"`, `navigate` and `:action` call sites. It does not flag `<.input label=...>`, which compiles and renders without its label, so search the templates for `<.input` and check each one by hand. To keep one generated page exactly as generated instead, call the core component by its module: `<MyAppWeb.CoreComponents.input field={@form[:email]} label="Email" />`.
+`mix compile --warnings-as-errors` flags the `variant="primary"`, `navigate` and `:action` call sites. It does not flag `<.input label=...>` or the `btn-*` classes. A leftover `<.input label=...>` compiles and renders with no label and no errors; the generated LiveView tests catch it (their `can't be blank` assertions fail), so run `mix test` after the edits, and search the templates for `<.input` and `btn` as well. To keep one generated page exactly as generated instead, call the core component by its module: `<MyAppWeb.CoreComponents.input field={@form[:email]} label="Email" />`.
+
+### 4b. Route form errors through your app's translator
+
+In `config/config.exs`, add:
+
+```elixir
+config :petal_components, :error_translator_function, {MyAppWeb.CoreComponents, :translate_error}
+```
+
+(with your app's module name in place of `MyAppWeb`). Phoenix generates `translate_error/1` in `core_components.ex`, and it runs errors through Gettext. Without this line petal_components falls back to plain `%{key}` substitution, which cannot handle the list options some Ecto validations add: `unsafe_validate_unique` (used by `phx.gen.auth`) adds `fields: [:email]`, so "has already been taken" renders as "invalid value" and a warning is logged. If the app already sets `:error_translator_function`, skip this step.
 
 ### 5. Register the JS hooks
 
@@ -115,7 +127,7 @@ and replace the line that starts ``- **Always** use the imported `<.input>` comp
 - Form fields use petal_components `<.field field={@form[:name]} label="..." />` (label, input, errors and help text). `<.input>` is the petal_components bare input and renders no label
 ```
 
-Delete the line after them that starts ``- If you override the default input classes`` (and its continuation line): petal_components adds your `class` to its own classes rather than replacing them. Further down, in the form section, change ``and the `<.input>` component in the template`` to ``and the `<.field>` component in the template``, and in the form examples change every `<.input field=` to `<.field field=`. If the project keeps the same guidelines in `CLAUDE.md` or another rules file, make the same change there.
+Delete the line after them that starts ``- If you override the default input classes`` (and its continuation line): petal_components adds your `class` to its own classes rather than replacing them. Further down, in the form section, change ``and the `<.input>` component in the template`` to ``and the `<.field>` component in the template``, and in the form examples change every `<.input field=` to `<.field field=`. If the project keeps the same guidelines in `CLAUDE.md` or another rules file, make the same change there. If the project has no `AGENTS.md` and no such file (apps made with `mix phx.new --no-agents-md`, or by Phoenix before 1.8), skip this step.
 
 ### 7. Verify
 
@@ -123,14 +135,33 @@ Delete the line after them that starts ``- If you override the default input cla
 mix compile --warnings-as-errors
 ```
 
-It must finish with no warnings. Warnings printed while compiling `petal_components` itself about `MDEx` or `EQRCode` are about optional dependencies and do not fail the build. Then check that a LiveView renders the library's markup, not the CoreComponents markup. In a LiveView test:
+It must finish with no warnings. Warnings printed while compiling `petal_components` itself about `MDEx` or `EQRCode` are about optional dependencies and do not fail the build. Then check that a LiveView renders the library's markup, not the CoreComponents markup. A fresh `phx.new` app has no LiveView yet, so if the app has none that renders a `<.button>`, add a throwaway one:
 
 ```elixir
-{:ok, view, _html} = live(conn, ~p"/some-live-page")
-assert has_element?(view, "button.pc-button")
+# lib/my_app_web/live/install_check_live.ex
+defmodule MyAppWeb.InstallCheckLive do
+  use MyAppWeb, :live_view
+
+  def render(assigns), do: ~H"<.button>Hello</.button>"
+end
 ```
 
-where the page renders a `<.button>`. Finally run `mix assets.build` and confirm `priv/static/assets/css/app.css` contains `.pc-button`.
+with `live "/install-check", InstallCheckLive` in the router's `"/"` browser scope, and this test:
+
+```elixir
+# test/my_app_web/live/install_check_live_test.exs
+defmodule MyAppWeb.InstallCheckLiveTest do
+  use MyAppWeb.ConnCase, async: true
+  import Phoenix.LiveViewTest
+
+  test "renders petal_components", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/install-check")
+    assert has_element?(view, "button.pc-button")
+  end
+end
+```
+
+Run `mix test`, then delete the three throwaway pieces. Finally run `mix assets.build` and confirm `priv/static/assets/css/app.css` contains `.pc-button`.
 
 ### 8. Brand colours (optional)
 

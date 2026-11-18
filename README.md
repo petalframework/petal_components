@@ -80,7 +80,13 @@ use PetalComponents
 import MyAppWeb.CoreComponents, except: [button: 1, icon: 1, input: 1, table: 1]
 ```
 
-Phoenix 1.8's generated CoreComponents defines those four names too, and importing both makes the calls ambiguous. Pages from `mix phx.gen.live` and `mix phx.gen.auth` call the CoreComponents versions, so update their call sites: `<.input label=...>` becomes `<.field label=...>`, `<.button variant="primary">` becomes `<.button>`, and `<.table>` row actions move from the `:action` slot into a `<:col>`. [usage-rules.md](./usage-rules.md) has the full list, plus the two lines to change in the `AGENTS.md` that `phx.new` writes.
+Phoenix 1.8's generated CoreComponents defines those four names too, and importing both makes the calls ambiguous. Pages from `mix phx.gen.live` and `mix phx.gen.auth` call the CoreComponents versions, so update their call sites: `<.input label=...>` becomes `<.field label=...>`, `<.button variant="primary">` becomes `<.button>`, and `<.table>` row actions move from the `:action` slot into a `<:col>`. [usage-rules.md](./usage-rules.md) has the full list, plus the lines to correct in the `AGENTS.md` that `phx.new` writes.
+
+In `config/config.exs`, route form errors through your app's translator, so errors such as "has already been taken" from `phx.gen.auth` do not render as "invalid value":
+
+```elixir
+config :petal_components, :error_translator_function, {MyAppWeb.CoreComponents, :translate_error}
+```
 
 Register the bundled JS hooks in `assets/js/app.js` (needed for the password/copyable/clearable inputs and the chat components — the rest of the library is CSS + LiveView.JS only):
 

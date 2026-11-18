@@ -16,8 +16,12 @@
 #      dependency Mix quietly moves the locked version instead, so the
 #      lock comparison is what makes this step bite.)
 #   5. applies exactly the edits usage-rules.md describes (app.css, the web
-#      module's html_helpers, app.js, the AGENTS.md lines)
-#   6. adds a LiveView using <.button>, <.icon>, <.field>, <.table>, <.modal>
+#      module's html_helpers, the error translator config, app.js, the
+#      AGENTS.md lines)
+#   6. adds a LiveView using <.button>, <.icon>, <.field>, <.table>, <.modal>,
+#      including a field whose error carries a list option (as
+#      unsafe_validate_unique adds), which only the app's translator renders,
+#      plus the throwaway install-check LiveView step 7 of usage-rules.md shows
 #   7. `mix compile --warnings-as-errors`, then a LiveViewTest that asserts
 #      the library's markup rendered (with --warnings-as-errors)
 #   8. builds the assets and greps the CSS and JS for the library's output
@@ -155,6 +159,12 @@ replace_once "lib/${APP}_web.ex" "      import ${MOD}Web.CoreComponents
       import ${MOD}Web.CoreComponents, except: [button: 1, icon: 1, input: 1, table: 1]
 "
 
+step "Step 4b: route form errors through the app's translator"
+replace_once config/config.exs 'import_config "#{config_env()}.exs"' \
+  "config :petal_components, :error_translator_function, {${MOD}Web.CoreComponents, :translate_error}
+
+import_config \"#{config_env()}.exs\""
+
 step "Step 5: register the JS hooks"
 replace_once assets/js/app.js 'import {LiveSocket} from "phoenix_live_view"
 ' 'import {LiveSocket} from "phoenix_live_view"
@@ -197,6 +207,13 @@ defmodule ${MOD}Web.SmokeLive do
     {:ok,
      assign(socket,
        form: to_form(%{"email" => ""}, as: :signup),
+       # The error unsafe_validate_unique adds. The fallback translator
+       # cannot interpolate its list option and renders "invalid value".
+       taken_form:
+         to_form(%{"email" => "taken@example.com"},
+           as: :taken,
+           errors: [email: {"has already been taken", [validation: :unsafe_unique, fields: [:email]]}]
+         ),
        users: [%{id: 1, name: "Ada", email: "ada@example.com"}]
      )}
   end
@@ -209,6 +226,9 @@ defmodule ${MOD}Web.SmokeLive do
       </.button>
       <.form for={@form} id="signup-form" phx-submit="noop">
         <.field field={@form[:email]} type="email" label="Email address" />
+      </.form>
+      <.form for={@taken_form} id="taken-form" phx-submit="noop">
+        <.field field={@taken_form[:email]} type="email" label="Taken email" />
       </.form>
       <.table id="users" rows={@users}>
         <:col :let={user} label="Name">{user.name}</:col>
@@ -246,11 +266,36 @@ defmodule ${MOD}Web.SmokeLiveTest do
     assert has_element?(view, "input.pc-text-input[name='signup[email]']")
     assert has_element?(view, "table.pc-table--basic td", "ada@example.com")
     assert has_element?(view, "#smoke-modal")
+    assert has_element?(view, "#taken-form .pc-form-field-error", "has already been taken")
 
     # The generated CoreComponents versions must not be the ones that ran.
     refute has_element?(view, "button#save.btn")
     refute has_element?(view, "#signup-form .fieldset")
     refute has_element?(view, "table.table")
+  end
+end
+EOF
+
+step "Step 7: the throwaway install-check LiveView from usage-rules.md"
+cat >"lib/${APP}_web/live/install_check_live.ex" <<EOF
+defmodule ${MOD}Web.InstallCheckLive do
+  use ${MOD}Web, :live_view
+
+  def render(assigns), do: ~H"<.button>Hello</.button>"
+end
+EOF
+replace_once "lib/${APP}_web/router.ex" '    live "/smoke", SmokeLive
+' '    live "/smoke", SmokeLive
+    live "/install-check", InstallCheckLive
+'
+cat >"test/${APP}_web/live/install_check_live_test.exs" <<EOF
+defmodule ${MOD}Web.InstallCheckLiveTest do
+  use ${MOD}Web.ConnCase, async: true
+  import Phoenix.LiveViewTest
+
+  test "renders petal_components", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/install-check")
+    assert has_element?(view, "button.pc-button")
   end
 end
 EOF

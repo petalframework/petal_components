@@ -22,6 +22,10 @@
   the generated `AGENTS.md` to correct, how to end up with exactly
   one `@import "tailwindcss"`, and how to verify
   (`mix compile --warnings-as-errors` plus a LiveView render check).
+  A new step sets `:error_translator_function` to the app's
+  `CoreComponents.translate_error/1`; without it, the
+  "has already been taken" error from `phx.gen.auth` rendered as
+  "invalid value".
   The playground's Get code panel matches.
 - **Two `usage-rules.md` examples work when copied.** "Table with row
   actions" had no `rows`, so it rendered an empty table, and the
