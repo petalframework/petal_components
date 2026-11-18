@@ -50,6 +50,12 @@ defmodule PetalComponents.Check.Pos do
     end
   end
 
+  # A string line that ends in a backslash continues on the next line, so a
+  # token right after it starts there.
+  defp do_walk([], raw, l, c, ["\\"], :string, _indent) do
+    if line(raw, l + 1), do: {:ok, {l + 1, 1}}, else: {:ok, {l, c}}
+  end
+
   defp do_walk([], _raw, l, c, _rest, _mode, _indent), do: {:ok, {l, c}}
 
   defp do_walk([ch | t] = all, raw, l, c, rest, mode, indent) do

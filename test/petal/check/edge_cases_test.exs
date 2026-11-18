@@ -30,6 +30,20 @@ defmodule PetalComponents.Check.EdgeCasesTest do
       Enum.each(found, &assert_at(src, &1))
     end
 
+    test "a line continuation in a string and a backslash in ~S keep the column" do
+      src = """
+      defmodule AppWeb.Continued do
+        def a, do: "p-2 \\
+      #{t()}"
+        def b, do: ~S(a\\b #{t()})
+      end
+      """
+
+      found = findings(:ex, src, rules: [LiteralNeutral])
+      assert Enum.map(found, & &1.line) == [3, 4]
+      Enum.each(found, &assert_at(src, &1))
+    end
+
     test "a function with a guard and an alias group are known to the file" do
       src = """
       defmodule AppWeb.Guarded do
@@ -67,6 +81,14 @@ defmodule PetalComponents.Check.EdgeCasesTest do
       assert Enum.map(found, & &1.line) == [1, 2]
     end
 
+    test "a trailing bang after a bracket value on a component call" do
+      alias PetalComponents.Check.Rules.BangUtility
+      src = ~s(<.button class="w-[10px]! p-2">x</.button>\n)
+      assert [f] = findings(:heex, src, rules: [BangUtility])
+      assert f.subject == "w-[10px]!"
+      assert f.replacement == "w-[10px]"
+    end
+
     test "a ring offset of [0] or [0px] is a reset" do
       src = ~s(<a class="focus-visible:ring-2 ring-offset-[0] focus:ring-offset-[0px]">x</a>\n)
       assert findings(:heex, src, rules: [FocusRing]) == []
@@ -91,6 +113,22 @@ defmodule PetalComponents.Check.EdgeCasesTest do
       assert [f] = findings(:css, css, rules: [LiteralNeutral])
       assert f.line == 2
       assert_at(css, f)
+    end
+
+    test "url() values, quoted or not, are skipped over" do
+      css = """
+      .a { background: url("a).png") no-repeat; }
+      .b { background: url(data:image/png;base64,AAA=); @apply #{t()}; }
+      """
+
+      assert [f] = findings(:css, css, rules: [LiteralNeutral])
+      assert f.line == 2
+      assert_at(css, f)
+    end
+
+    test "a string still open at the end of the file makes it unchecked" do
+      r = run_files(%{"assets/css/app.css" => ".a { content: \"x"}, rules: [LiteralNeutral])
+      assert [%{kind: :parse}] = r.unchecked
     end
 
     test "a string that never closes makes the file unchecked" do
