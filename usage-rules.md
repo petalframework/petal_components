@@ -189,6 +189,24 @@ Self-hosting a face in Phoenix: fetch the variable woff2 into `priv/static/fonts
 5. **Components work in both live and dead views.** Interactivity is Phoenix.LiveView.JS only (no Alpine.js as of v4). Many components (toasts, command palette, colour scheme, carousel, charts, chat, combobox, data table, enhanced inputs and more) use bundled JS hooks — register the whole set once in your LiveSocket: `import PetalComponents from "../../deps/petal_components/assets/js/petal_components"` then `hooks: { ...PetalComponents }`.
 6. **Form inputs come in two layers, pick deliberately.** Use `<.field type="..." />` when you want label + input + error + help text bundled (the common case in form contexts). Use the standalone primitives (`<.text_input>`, `<.select>`, `<.checkbox>`, etc.) when composing your own field layout.
 
+## Design
+
+These rules apply to every line of custom markup and CSS you write next to the components (anything that is not a petal_components tag). They are the floor; the full doctrine is in the design guide named at the end of this section.
+
+- Gray is the neutral dial, not a palette. Write `bg-gray-100`, `border-gray-200`, `text-gray-700`: the app remaps the `gray` ramp. Never literal `slate-*`, `zinc-*`, `stone-*` or `neutral-*` in chrome.
+- Every light-mode colour class carries its `dark:` pair in the same class string. No unpaired colours.
+- Text sits on three tiers: headings `text-gray-900 dark:text-white`, body `text-gray-700 dark:text-gray-100`, muted `text-gray-500 dark:text-gray-400`.
+- Dark translucent chrome is alpha of gray-400, never white alpha and never opaque gray-800 on ghost surfaces: `dark:bg-gray-400/8` resting surface, `dark:hover:bg-gray-400/17` hover wash, `dark:border-gray-400/17` panel hairline, `dark:border-gray-400/25` input border and active wash.
+- Opaque panels: `bg-white dark:bg-gray-900`, hairline `border-gray-200 dark:border-gray-400/17`. `shadow-xs` resting, `shadow-lg` or `shadow-xl` for floating panels, no `shadow-md`.
+- Radius comes from one knob: `var(--pc-radius, 0.625rem)` on custom controls, clamped to `min(var(--pc-radius, 0.625rem), 1rem)` on anything that can grow past one line. Never hardcode `rounded-lg` or `rounded-xl` next to the components.
+- Focus is the house ring: `focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50`, plus `focus-visible:border-primary-500` on fields. Never `outline-none` without a visible replacement.
+- Solid fills walk the ramp: `bg-primary-600 hover:bg-primary-700 active:bg-primary-800`. Never `hover:opacity-90` or `hover:brightness-*` on solids.
+- Colour is an accent, not paint: a neutral surface, with the semantic hue arriving as an icon and a hairline rather than a tinted background flood.
+- Disabled is `disabled:opacity-50 disabled:cursor-not-allowed`. Transitions are `transition-colors duration-200 ease-out`.
+- Heroicon names must be source-literal: `name="hero-check-micro"` works, an interpolated name is purged by the Tailwind source scan.
+
+Before styling custom markup or theming the app, read `deps/petal_components/guides/design.md`. To review a diff, walk its section 11, "Reviewing a diff by hand".
+
 ## Discovering components
 
 ### Recommended: the MCP server
