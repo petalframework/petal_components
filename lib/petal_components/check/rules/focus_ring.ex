@@ -1,7 +1,7 @@
 defmodule PetalComponents.Check.Rules.FocusRing do
   @moduledoc false
   # Guide section 6. The house ring is focus-visible, with no offset, and
-  # outline-none never stands alone. Three cases under one id, each its own
+  # an outline reset (outline none) never stands alone. Three cases under one id, each its own
   # finding:
   #
   #   a. a ring with a plain focus: variant (shows on mouse clicks too);
@@ -9,7 +9,7 @@ defmodule PetalComponents.Check.Rules.FocusRing do
   #      ring on :focus, so focus-visible: would only change its colour back
   #   b. a ring offset width other than 0, when it offsets a focus ring (it
   #      has a focus variant, or the string has a focus ring)
-  #   c. outline-none, plain or on focus:/focus-visible:, with no
+  #   c. outline none, plain or on focus:/focus-visible:, with no
   #      focus-state replacement in the same string, on an element that
   #      takes keyboard focus (a button, link, form control, summary, a
   #      tabindex of 0 or more, or a component call). A string outside a
@@ -25,6 +25,8 @@ defmodule PetalComponents.Check.Rules.FocusRing do
 
   import Rule, only: [cls: 1]
 
+  @outline_none cls(["outline", "none"])
+
   @focus_family ~w(focus focus-visible focus-within peer-focus peer-focus-visible
                    peer-focus-within group-focus group-focus-visible group-focus-within)
 
@@ -37,18 +39,19 @@ defmodule PetalComponents.Check.Rules.FocusRing do
       row_keyword: "focus",
       scope: :class_unit,
       why:
-        "the house ring is focus-visible with no offset; focus: rings show on mouse clicks, and outline-none alone removes focus",
+        "the house ring is focus-visible with no offset; focus: rings show on mouse clicks, and #{@outline_none} alone removes focus",
       examples: [
-        {:bad, ~s(<a class="focus:outline-none focus:ring-2 focus:ring-offset-2">)},
+        {:bad,
+         ~s(<a class="focus:#{cls(["outline", "none"])} focus:#{cls(["ring", "2"])} focus:#{cls(["ring", "offset", "2"])}">)},
         {:good, ~s(<a class="#{house()}">)}
       ],
       exemptions: [
-        "focus:ring-0 and ring-offset-0, which reset a ring",
+        "focus:#{cls(["ring", "0"])} and ring-offset-0, which reset a ring",
         "a ring on a checkbox or radio, which the forms plugin styles on :focus",
         "a ring offset with no focus ring, such as a selected swatch",
-        "outline-none on an element that does not take keyboard focus (a div with no tabindex, a menu panel, a tabindex of -1)",
-        "outline-none under any other variant, such as focus-within:",
-        "outline-none next to any focus-state replacement in the same string: a ring, an outline, a border, a background, a shadow, an underline or a text colour",
+        "#{@outline_none} on an element that does not take keyboard focus (a div with no tabindex, a menu panel, a tabindex of -1)",
+        "#{@outline_none} under any other variant, such as focus-within:",
+        "#{@outline_none} next to any focus-state replacement in the same string: a ring, an outline, a border, a background, a shadow, an underline or a text colour",
         "ring-offset colours with no width"
       ]
     }
@@ -56,7 +59,7 @@ defmodule PetalComponents.Check.Rules.FocusRing do
 
   @doc false
   def house do
-    "focus:outline-hidden focus-visible:ring-2 focus-visible:" <>
+    "focus:#{cls(["outline", "hidden"])} focus-visible:#{cls(["ring", "2"])} focus-visible:" <>
       cls(["ring", "primary", "500/50"])
   end
 
@@ -104,7 +107,7 @@ defmodule PetalComponents.Check.Rules.FocusRing do
           )
         ]
 
-      u == "outline-none" and Enum.all?(p.variants, &(&1 in ["focus", "focus-visible"])) and
+      u == @outline_none and Enum.all?(p.variants, &(&1 in ["focus", "focus-visible"])) and
         ctx.focusable? and not ctx.replaced? ->
         [
           finding(
@@ -160,7 +163,15 @@ defmodule PetalComponents.Check.Rules.FocusRing do
 
   defp ring?(u), do: u == "ring" or (String.starts_with?(u, "ring-") and not offset?(u))
   defp offset?(u), do: String.starts_with?(u, "ring-offset-")
-  defp reset?(u), do: u in ["ring-0", "ring-transparent"]
+  @resets [cls(["ring", "0"]), cls(["ring", "transparent"])]
+  @outline_offs [
+    cls(["outline", "none"]),
+    cls(["outline", "hidden"]),
+    cls(["outline", "0"]),
+    cls(["shadow", "none"])
+  ]
+
+  defp reset?(u), do: u in @resets
 
   defp offset_width?(u) do
     case Regex.run(~r/^ring-offset-(\d+|\[[^\]]+\])$/, u) do
@@ -179,7 +190,7 @@ defmodule PetalComponents.Check.Rules.FocusRing do
         ~r/^(ring|outline|border|bg|shadow|underline|decoration|text|inset-ring)(-|$)/,
         u
       ) and
-      not reset?(u) and u not in ["outline-none", "outline-hidden", "outline-0", "shadow-none"]
+      not reset?(u) and u not in @outline_offs
   end
 
   defp rebuild_variants(p, variants) do

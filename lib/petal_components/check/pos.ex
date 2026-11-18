@@ -112,7 +112,7 @@ defmodule PetalComponents.Check.Pos do
   defp escape(["u" | r], :string), do: hex(r, 4, 1)
   defp escape([_ | r], :string), do: {:consumed, 1, r}
 
-  # In an uppercase sigil only the closing delimiter is escaped.
+  # In an upper-case sigil only the closing delimiter is escaped.
   defp escape([closing | r], {:sigil, closing}), do: {:consumed, 1, r}
   defp escape(_, {:sigil, _}), do: :literal
 

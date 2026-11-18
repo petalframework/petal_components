@@ -98,6 +98,27 @@ defmodule PetalComponents.Check.DocsTest do
     end
   end
 
+  test "the shipped check code holds none of the utilities it once added to every app" do
+    # Each of these, written out in lib/, gave a host app CSS it never asked
+    # for (measured with a Tailwind build of the package). Build them from
+    # parts with Rule.cls/1 instead.
+    files =
+      Path.wildcard("lib/petal_components/check/**/*.ex") ++
+        ["lib/petal_components/check.ex", "lib/mix/tasks/petal.check.ex"]
+
+    words =
+      ~w(outline-none outline-hidden outline-0 shadow-none ring-0 ring-2 ring-transparent
+         ring-offset-2 mb-0 px-0 p-2 antialiased capitalize isolate lowercase overline
+         truncate uppercase) ++ ["content-['!']"]
+
+    token = ~r/(?<![\w-])!?(?:[a-z-]+:)*(#{Enum.map_join(words, "|", &Regex.escape/1)})(?![\w-])/
+
+    for file <- files,
+        {line, n} <- file |> File.read!() |> String.split("\n") |> Enum.with_index(1) do
+      refute line =~ token, "#{file}:#{n} has a literal utility: #{line}"
+    end
+  end
+
   defp guide_table do
     [_, block] = String.split(@guide, "### Run the machine checks first", parts: 2)
     [block | _] = String.split(block, "\n### ", parts: 2)

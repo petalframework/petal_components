@@ -3,12 +3,15 @@ defmodule PetalComponents.Check.Classes do
   # Splits a string unit into class-shaped tokens and parses one token into
   # variants, bang position and utility.
 
-  # Utilities with no dash that are still real classes, so `!hidden` is a bang
-  # and `wrong!` (prose) is not a token at all.
-  @bare ~w(flex grid block inline hidden contents table static fixed absolute relative sticky
-           visible invisible collapse isolate truncate italic underline overline uppercase
-           lowercase capitalize grow shrink border rounded shadow outline ring transition
-           container antialiased transform filter resize)
+  # Utilities with no dash that are still real classes, so a bang on one is
+  # a bang and `wrong!` (prose) is not a token at all. Written reversed:
+  # Tailwind scans deps/petal_components for class names, and this list
+  # written out would add CSS for each word to every app.
+  @bare ~w(xelf dirg kcolb enilni neddih stnetnoc elbat citats dexif etulosba evitaler ykcits
+           elbisiv elbisivni espalloc etalosi etacnurt cilati enilrednu enilrevo esacreppu
+           esacrewol ezilatipac worg knirhs redrob dednuor wodahs eniltuo gnir noitisnart
+           reniatnoc desailaitna mrofsnart retlif eziser)
+        |> Enum.map(&String.reverse/1)
 
   @doc """
   Splits text on whitespace, quotes and backticks. Returns `[{token, byte_offset}]`.
@@ -25,7 +28,7 @@ defmodule PetalComponents.Check.Classes do
 
     * `:variants` - `["dark", "hover"]`
     * `:important` - `:none | :leading | :inner | :trailing`
-    * `:utility` - the utility without any bang, `"p-2"`
+    * `:utility` - the utility without any bang
     * `:prefix` - the text before the utility (variants, colons, a leading bang)
     * `:inner` - `"!"` for an inner bang, else `""`
     * `:suffix` - `"!"` for a trailing bang, else `""`

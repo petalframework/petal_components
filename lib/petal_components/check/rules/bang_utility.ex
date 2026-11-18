@@ -15,6 +15,8 @@ defmodule PetalComponents.Check.Rules.BangUtility do
   alias PetalComponents.Check.Rule
   alias PetalComponents.Check.Unit
 
+  import Rule, only: [cls: 1]
+
   @headings ~w(h1 h2 h3 h4 h5)
 
   @impl true
@@ -31,13 +33,13 @@ defmodule PetalComponents.Check.Rules.BangUtility do
         "petal_components styles sit in @layer components, so try the plain utility first; " <>
           "if it does not apply (the library pins some sizes), use the component's attr instead",
       examples: [
-        {:bad, ~s(<.button class="!px-0" label="Save" />)},
-        {:good, ~s(<.button class="px-0" label="Save" />)}
+        {:bad, ~s(<.button class="!#{cls(["px", "0"])}" label="Save" />)},
+        {:good, ~s(<.button class="#{cls(["px", "0"])}" label="Save" />)}
       ],
       exemptions: [
-        ~s(a ! on a raw element, <div class="!mb-0">, or on the app's own component),
+        ~s(a ! on a raw element, <div class="!#{cls(["mb", "0"])}">, or on the app's own component),
         ~s(Elixir negation in a class expression: class={if !@open, do: "hidden"}),
-        ~s(a ! inside brackets: content-['!']),
+        ~s(a ! inside brackets: #{cls(["content", "['!']"])}),
         "class attrs other than class (*_class) and slot class attrs (wave 2)"
       ]
     }
@@ -64,7 +66,7 @@ defmodule PetalComponents.Check.Rules.BangUtility do
     plain = String.replace_prefix(parsed.prefix, "!", "") <> parsed.utility
 
     fields =
-      if name in @headings and parsed.utility == "mb-0" and parsed.variants == [] do
+      if name in @headings and parsed.utility == cls(["mb", "0"]) and parsed.variants == [] do
         [
           replacement: "",
           add_attr: "no_margin",
