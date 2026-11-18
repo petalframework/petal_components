@@ -64,7 +64,8 @@ defmodule PetalComponents.Check.Rules.ComboboxVariantTest do
     end
 
     test "radio-card variant" do
-      assert run(:heex, ~s(<.field type="radio-card" variant="outline" field={@f[:plan]} />\n)) == []
+      assert run(:heex, ~s(<.field type="radio-card" variant="outline" field={@f[:plan]} />\n)) ==
+               []
     end
 
     test "a type that is not a literal" do
@@ -106,17 +107,21 @@ defmodule PetalComponents.Check.Rules.ComboboxVariantTest do
 
     test "the except import is found even when only the template is checked" do
       files = %{
-        "lib/app_web/components.ex" => "defmodule C do\n  import PetalComponents.Field, except: [field: 1]\nend\n",
+        "lib/app_web/components.ex" =>
+          "defmodule C do\n  import PetalComponents.Field, except: [field: 1]\nend\n",
         "lib/app_web/page.html.heex" => ~s(<.field type="combobox" variant="trigger" />\n)
       }
 
-      assert run_files(files, rules: [ComboboxVariant], paths: ["lib/app_web/page.html.heex"]).findings == []
+      assert run_files(files, rules: [ComboboxVariant], paths: ["lib/app_web/page.html.heex"]).findings ==
+               []
     end
 
     test "a .heex template whose module defines field/1" do
       files = %{
-        "lib/app_web/live/page_live.ex" => "defmodule P do\n  def field(assigns), do: assigns\nend\n",
-        "lib/app_web/live/page_live.html.heex" => ~s(<.field type="combobox" variant="trigger" />\n)
+        "lib/app_web/live/page_live.ex" =>
+          "defmodule P do\n  def field(assigns), do: assigns\nend\n",
+        "lib/app_web/live/page_live.html.heex" =>
+          ~s(<.field type="combobox" variant="trigger" />\n)
       }
 
       assert run_files_(files) == []

@@ -60,7 +60,10 @@ defmodule PetalComponents.Check.Rules.LiteralNeutralTest do
 
   describe "must not flag" do
     test "a theme remap in CSS" do
-      assert run(:css, "@theme {\n  --color-gray-500: var(--color-#{c("x", "slate", "500") |> String.trim_leading("x-")});\n}\n") == []
+      assert run(
+               :css,
+               "@theme {\n  --color-gray-500: var(--color-#{c("x", "slate", "500") |> String.trim_leading("x-")});\n}\n"
+             ) == []
     end
 
     test "a text node" do
@@ -101,9 +104,11 @@ defmodule PetalComponents.Check.Rules.LiteralNeutralTest do
 
   test "every replacement is pasteable: applied, the rule finds nothing" do
     samples = [
-      {:heex, ~s(<p class="mt-2 #{c("text", "slate", "500")} dark:#{c("bg", "zinc", "900")}">x</p>\n)},
+      {:heex,
+       ~s(<p class="mt-2 #{c("text", "slate", "500")} dark:#{c("bg", "zinc", "900")}">x</p>\n)},
       {:ex, in_module(~s(<div class={["a", @x && "#{c("ring", "stone", "300")}/40"]}></div>))},
-      {:ex, "defmodule A do\n  def x, do: \"p-1 \\\"q\\\" #{c("border", "slate", "100")}\"\nend\n"},
+      {:ex,
+       "defmodule A do\n  def x, do: \"p-1 \\\"q\\\" #{c("border", "slate", "100")}\"\nend\n"},
       {:css, ".x {\n  @apply #{c("text", "neutral", "700")} hover:#{c("bg", "zinc", "50")};\n}\n"}
     ]
 
