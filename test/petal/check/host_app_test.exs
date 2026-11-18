@@ -56,7 +56,9 @@ defmodule PetalComponents.Check.HostAppTest do
     assert File.read!(Path.join(root, "probe_ran")) == "yes",
            "the alias stopped after petal.check"
 
-    refute File.exists?(Path.join(root, "_build/dev/lib/host")), "the host app was compiled"
+    # Mix may leave a .mix/compile.lock dir for the host; no ebin means no compile
+    refute File.exists?(Path.join(root, "_build/dev/lib/host/ebin")), "the host app was compiled"
+    assert File.exists?(Path.join(root, "_build/dev/lib/petal_components/ebin"))
 
     {_out, status} =
       System.cmd("mix", ["petal.check", "--strict"], cd: root, env: env, stderr_to_stdout: true)
