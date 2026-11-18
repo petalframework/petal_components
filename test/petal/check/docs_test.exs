@@ -163,6 +163,12 @@ defmodule PetalComponents.Check.DocsTest do
     end
   end
 
+  test "the jason requirement admits no version without Jason.OrderedObject (1.3)" do
+    req = Mix.Project.config()[:deps] |> Enum.find(&(elem(&1, 0) == :jason)) |> elem(1)
+    refute Version.match?("1.2.4", req)
+    assert Version.match?("1.3.0", req)
+  end
+
   describe "behaviour the rules rely on" do
     test "bang-utility: h1 to h5 have the no_margin attr its fix names" do
       for name <- ~w(h1 h2 h3 h4 h5)a do

@@ -61,7 +61,8 @@ defmodule PetalComponents.MixProject do
       # highlights chat code blocks; optional for consumers (chat falls back to
       # plain rendering without it).
       {:lumis, "~> 0.6", optional: true},
-      {:jason, "~> 1.2"},
+      # 1.3 added Jason.OrderedObject, which the petal.check JSON report uses
+      {:jason, "~> 1.3"},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:phoenix_ecto, "~> 4.4"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
