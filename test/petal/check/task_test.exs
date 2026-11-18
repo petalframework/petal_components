@@ -130,6 +130,12 @@ defmodule Mix.Tasks.Petal.CheckTest do
     assert output() =~ IO.ANSI.red() <> "error" <> IO.ANSI.reset()
   end
 
+  test "no capture with a call for its module (Elixir 1.19 warns on &Mix.shell().info/1)" do
+    for path <- Path.wildcard("lib/**/*.ex") do
+      refute File.read!(path) =~ ~r/&[A-Z][\w.]*\(\)\.\w+\/\d/, "#{path} captures a call's result"
+    end
+  end
+
   test "--help, --rules and --explain", %{root: root} do
     in_app(root, ["--help"])
     assert output() =~ "## For your agent"

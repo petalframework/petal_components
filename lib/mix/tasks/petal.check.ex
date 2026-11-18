@@ -156,15 +156,19 @@ defmodule Mix.Tasks.Petal.Check do
         Mix.shell().info(@moduledoc)
 
       :rules ->
-        Enum.each(Format.rules_text(Check.rules()), &Mix.shell().info/1)
+        Enum.each(Format.rules_text(Check.rules()), &info/1)
 
       :explain ->
-        Enum.each(Format.explain_text(Check.rule!(opts.explain)), &Mix.shell().info/1)
+        Enum.each(Format.explain_text(Check.rule!(opts.explain)), &info/1)
 
       :check ->
         check(opts)
     end
   end
+
+  # A named function, not a capture of Mix.shell().info: Elixir 1.19 warns when a
+  # capture's module is a call.
+  defp info(line), do: Mix.shell().info(line)
 
   defp check(%Options{} = opts) do
     Mix.Task.run("loadpaths")
