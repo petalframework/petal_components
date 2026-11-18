@@ -357,7 +357,7 @@ defmodule PetalComponents.Check.Format do
   end
 
   def explain_text(r) do
-    ["#{r.id} (#{r.severity}, guide section #{r.section})", "", r.why] ++
+    ["#{r.id} (#{r.severity})", "", r.why, "", "Guide: " <> guide_ref(r.section)] ++
       if(r.note, do: ["", r.note], else: []) ++
       if(r.exemptions == [],
         do: [],
@@ -373,5 +373,14 @@ defmodule PetalComponents.Check.Format do
             end)
         ]
       ) ++ ["", "Suppress one case with a comment: petal-check:ignore #{r.id}: why this is fine"]
+  end
+
+  @doc "Where a rule's section lives: `11.10` is row 10 of section 11."
+  def guide_ref(section) do
+    case String.split(section, ".") do
+      ["11", row] -> "guides/design.md section 11, row #{row}"
+      [n] -> "guides/design.md section #{n}"
+      _ -> "guides/design.md section #{section}"
+    end
   end
 end

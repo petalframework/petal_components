@@ -138,7 +138,9 @@ defmodule Mix.Tasks.Petal.CheckTest do
     assert out =~ ~r/^combobox-variant\s+error\s+section 11\.9/m
     assert out =~ "literal-neutral"
     in_app(root, ["--explain", "combobox-variant"])
-    assert output() =~ "combobox-variant (error, guide section 11.9)"
+    out = output()
+    assert out =~ "combobox-variant (error)"
+    assert out =~ "Guide: guides/design.md section 11, row 9"
   end
 
   test "narrowing is named in the summary", %{root: root} do

@@ -98,7 +98,80 @@ defmodule PetalComponents.Check.DocsTest do
     end
   end
 
+  defp guide_table do
+    [_, block] = String.split(@guide, "### Run the machine checks first", parts: 2)
+    [block | _] = String.split(block, "\n### ", parts: 2)
+
+    for [_, id, sev, checks] <-
+          Regex.scan(~r/^\| `([a-z0-9-]+)` \| (error|warning) \| (.+) \|$/m, block),
+        into: %{} do
+      {id, {String.to_atom(sev), checks}}
+    end
+  end
+
+  test "the guide's rule table lists every rule with its severity and section" do
+    table = guide_table()
+    assert Enum.sort(Map.keys(table)) == Enum.sort(Check.rule_ids())
+
+    for rule <- Check.rules() do
+      {sev, checks} = Map.fetch!(table, rule.id)
+      assert sev == rule.severity, "#{rule.id}: the guide says #{sev}, the code #{rule.severity}"
+
+      expected =
+        case String.split(rule.section, ".") do
+          ["11", row] -> "row #{row}"
+          [n] -> "section #{n}"
+        end
+
+      assert String.starts_with?(checks, expected), "#{rule.id}: the guide says #{checks}"
+    end
+  end
+
+  test "the guide names exactly the rows the command leaves to a person" do
+    rows = for {"11." <> n, _} <- Check.not_checked(), do: n
+
+    assert @guide =~
+             "Rows #{Enum.join(Enum.drop(rows, -1), ", ")} and #{List.last(rows)} need judgment"
+  end
+
+  test "--explain names the guide section of every rule" do
+    for rule <- Check.rules() do
+      text = Enum.join(PetalComponents.Check.Format.explain_text(rule), "\n")
+      assert text =~ "Guide: guides/design.md section "
+      assert text =~ "#{rule.id} (#{rule.severity})"
+    end
+
+    assert PetalComponents.Check.Format.guide_ref("11.10") ==
+             "guides/design.md section 11, row 10"
+
+    assert PetalComponents.Check.Format.guide_ref("8") == "guides/design.md section 8"
+  end
+
+  test "the usage rules and the skill's review playbook tell your agent to run it" do
+    rules = File.read!("usage-rules.md")
+    assert rules =~ "Run `mix petal.check --strict --changed` after you change templates or CSS."
+    assert File.read!("skills/petal-design/references/review.md") =~ "mix petal.check --strict"
+    assert File.read!("README.md") =~ "## Check your markup"
+  end
+
   describe "behaviour the rules rely on" do
+    test "bang-utility: h1 to h5 have the no_margin attr its fix names" do
+      for name <- ~w(h1 h2 h3 h4 h5)a do
+        attrs = PetalComponents.Typography.__components__()[name].attrs
+        assert Enum.any?(attrs, &(&1.name == :no_margin)), "#{name} has no no_margin attr"
+      end
+    end
+
+    test "legacy-dropdown: its fixes are the ones the dropdown docs give" do
+      attrs = PetalComponents.Dropdown.__components__()[:dropdown].attrs
+      doc = fn name -> Enum.find(attrs, &(&1.name == name)).doc end
+
+      for {{old, value}, {new, new_value}} <- PetalComponents.Check.Rules.LegacyDropdown.mapping() do
+        assert doc.(String.to_atom(old)) =~ ~s("#{value}" is #{new}="#{new_value}"),
+               "the #{old} doc no longer says #{value} is #{new}=#{new_value}"
+      end
+    end
+
     test "combobox-variant: variant does nothing on <.field type=\"combobox\">" do
       assigns = %{form: Phoenix.Component.to_form(%{"city" => "syd"}, as: :user)}
 

@@ -18,6 +18,9 @@ defmodule PetalComponents.Check.Rules.LegacyDropdown do
     {"direction", "down"} => {"side", "bottom"}
   }
 
+  @doc false
+  def mapping, do: @map
+
   @impl true
   def rule do
     %Rule{
