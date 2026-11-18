@@ -56,6 +56,18 @@ defmodule PetalComponents.Check.HeexTest do
     assert r.unchecked |> Enum.map(& &1.path) |> Enum.sort() == ["lib/a.html.heex", "lib/b.ex"]
     assert Enum.all?(r.unchecked, &(&1.kind == :tokenizer))
     assert r.exit_status == 4
+
+    text = Enum.join(PetalComponents.Check.Format.text(r), "\n")
+
+    assert text =~
+             "unchecked [tokenizer] HEEx in 2 files not checked: the canary did not match. fix: this petal_components cannot read HEEx with phoenix_live_view "
+
+    assert text =~ "run mix deps.update petal_components, or pin phoenix_live_view below "
+
+    assert text =~
+             "petal.check --strict failed: HEEx could not be read with this phoenix_live_view"
+
+    refute text =~ "lib/a.html.heex:1:1: unchecked"
   end
 
   test "string units in Elixir and CSS still run when the guard fails" do
