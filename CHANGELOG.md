@@ -27,6 +27,13 @@
   "has already been taken" error from `phx.gen.auth` rendered as
   "invalid value".
   The playground's Get code panel matches.
+- **Three `usage-rules.md` statements are accurate.** It said the
+  library needs no extra deps besides `mdex`, but `<.qr_code>` needs
+  the optional `eqrcode`. It said `use PetalComponents` imports every
+  component, but the Chat family and the data table's filter editor are
+  not imported. And it never said that `<.prose>` needs the
+  `@tailwindcss/typography` plugin, without which it renders unstyled.
+  The README says the same.
 - **Two `usage-rules.md` examples work when copied.** "Table with row
   actions" had no `rows`, so it rendered an empty table, and the
   data_table handler snippet put a `defp` between `handle_event/3`

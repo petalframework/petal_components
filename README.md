@@ -58,8 +58,10 @@ If you'd rather install yourself, in `mix.exs`:
 def deps do
   [
     {:petal_components, "~> 4.18"},
-    # optional — only needed for the chat markdown components (<Chat.markdown>, <Chat.rich_text>)
-    {:mdex, "~> 0.12"}
+    # optional - only needed for the chat markdown components (<Chat.markdown>, <Chat.rich_text>)
+    {:mdex, "~> 0.12"},
+    # optional - only needed for <.qr_code>
+    {:eqrcode, "~> 0.2"}
   ]
 end
 ```
@@ -72,6 +74,8 @@ In `assets/css/app.css`, directly below the existing `@import "tailwindcss"` lin
 @import "../../deps/petal_components/assets/default.css";
 @plugin "@tailwindcss/forms";
 ```
+
+If you use `<.prose>`, also add `@plugin "@tailwindcss/typography";`. Its styles come from that plugin, which the standalone Tailwind CLI already includes.
 
 In your `MyAppWeb` module, inside `defp html_helpers` (LiveViews get their imports from there, not from `def html`), replace `import MyAppWeb.CoreComponents` with:
 
