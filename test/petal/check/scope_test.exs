@@ -107,6 +107,42 @@ defmodule PetalComponents.Check.ScopeTest do
     assert Enum.sort(rules_hit(files)) == ["bang-utility", "pc-function-prefix"]
   end
 
+  # `mix format` moves a long option list to the next line, which is what the
+  # documented CoreComponents import becomes for a long app name or a fifth
+  # excepted name. Read as "no list", every CoreComponents name would count
+  # as the app's own and <.button> would never be checked.
+  test "an except: list that mix format wrapped onto the next line is still read" do
+    for wrapped <- [
+          "import AppWeb.Core,\n          except: [button: 1, pc_badge: 1]",
+          "import AppWeb.Core,\n          except: [\n            button: 1,\n            pc_badge: 1\n          ]"
+        ] do
+      web =
+        String.replace(@web, "use PetalComponents", "use PetalComponents\n        " <> wrapped)
+
+      files = %{"lib/app_web.ex" => web, "lib/app_web/core.ex" => @core}
+      files = Map.put(files, "lib/app_web/page.ex", page("  use AppWeb, :html"))
+      assert Enum.sort(rules_hit(files)) == ["bang-utility", "pc-function-prefix"]
+    end
+  end
+
+  test "an only: list wrapped onto the next line limits what the app import shadows" do
+    web =
+      String.replace(
+        @web,
+        "use PetalComponents",
+        "use PetalComponents\n        import AppWeb.Core,\n          only: [pc_badge: 1]"
+      )
+
+    files = %{"lib/app_web.ex" => web, "lib/app_web/core.ex" => @core}
+    files = Map.put(files, "lib/app_web/page.ex", page("  use AppWeb, :html"))
+    assert Enum.sort(rules_hit(files)) == ["bang-utility", "combobox-variant"]
+  end
+
+  test "import PetalComponents.{Button, Field} brings in both modules" do
+    files = %{"lib/app_web/page.ex" => page("  import PetalComponents.{Button, Field}")}
+    assert Enum.sort(rules_hit(files)) == ["bang-utility", "combobox-variant"]
+  end
+
   test "import PetalComponents.X of a module that does not exist brings in nothing" do
     files = %{"lib/app_web/page.ex" => page("  import PetalComponents.NoSuchModule")}
     assert rules_hit(files) == []

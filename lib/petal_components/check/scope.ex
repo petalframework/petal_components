@@ -12,9 +12,24 @@ defmodule PetalComponents.Check.Scope do
   # Read with line-anchored regexes over the text, like the except scan: a
   # project index of every .ex file under the default roots, and the file
   # itself (or, for a .heex file, the module beside it).
+  #
+  # Known limit: `use MyAppWeb, :html` counts everything MyAppWeb's file uses
+  # and imports, whichever function (`html`, `live_view`, `admin`) the atom
+  # names. For the app's own modules that only skips more calls. A false
+  # alarm needs a web module where one function uses PetalComponents and
+  # another imports a same-named component from a dependency (whose
+  # functions this index cannot see), and a file that uses the second.
 
   @module_re ~r/^\s*defmodule\s+([A-Z][\w.]*)\s+do\b/m
-  @directive_re ~r/^\s*(use|import)\s+([A-Z][\w.]*)([^\n]*)/m
+
+  # One `use` or `import`: its module (or `Base.{A, B}`), then, when one
+  # follows, its `only:` or `except:` list. `\s` crosses line ends, so a list
+  # that `mix format` moved to the next lines is still the directive's own:
+  # the documented `import MyAppWeb.CoreComponents, except: [...]` wraps for
+  # a long app name. Only simple `key: value,` options may sit before the
+  # list, so the match can never run on into the next statement.
+  @directive_re ~r/^[ \t]*(use|import)\s+([A-Z][\w.]*)(?:\{([^}]*)\})?(?:\s*,(?:\s*\w+:\s*[\w:.]+\s*,)*\s*(only|except):\s*\[([^\]]*)\])?/m
+
   @def_re ~r/^\s*def(?:macro)?\s+([a-z_]\w*[?!]?)/m
 
   defstruct names: MapSet.new(), shadow: MapSet.new()
@@ -96,23 +111,33 @@ defmodule PetalComponents.Check.Scope do
   defp limit(names, nil), do: names
 
   defp directives(text) do
-    for [_, kind, mod, rest] <- Regex.scan(@directive_re, text) do
-      {if(kind == "use", do: :use, else: :import), mod, filter(rest)}
+    for [_, kind, base | rest] <- Regex.scan(@directive_re, text),
+        # Regex.scan leaves out trailing groups that did not match.
+        [braces, filter_kind, list] = Enum.take(rest ++ ["", "", ""], 3),
+        mod <- modules(base, braces) do
+      {if(kind == "use", do: :use, else: :import), mod, filter(filter_kind, list)}
     end
   end
 
-  # `only: [...]` or `except: [...]` on the directive's own line. A list
-  # spread over several lines is not read: for an app import that leaves
-  # every name shadowed, which skips calls rather than misreading them.
-  defp filter(rest) do
-    case Regex.run(~r/\b(only|except):\s*\[([^\]]*)\]/, rest) do
-      [_, kind, list] ->
-        names = for [_, n] <- Regex.scan(~r/(\w+[?!]?)\s*:/, list), into: MapSet.new(), do: n
-        {if(kind == "only", do: :only, else: :except), names}
+  # `import PetalComponents.{Button, Card}` is one directive per name.
+  defp modules(base, ""), do: [base]
 
-      _ ->
-        nil
-    end
+  defp modules(base, braces) do
+    for name <- String.split(braces, ","),
+        name = String.trim(name),
+        name =~ ~r/^[A-Z][\w.]*$/,
+        do: base <> name
+  end
+
+  # The names of an `only: [...]` or `except: [...]` list. A list the regex
+  # could not read (a comment inside the directive, say) gives nil: for an app
+  # import that leaves every name shadowed, which skips calls rather than
+  # misreading them.
+  defp filter("", _list), do: nil
+
+  defp filter(kind, list) do
+    names = for [_, n] <- Regex.scan(~r/(\w+[?!]?)\s*:/, list), into: MapSet.new(), do: n
+    {if(kind == "only", do: :only, else: :except), names}
   end
 
   defp defs(text), do: for([_, n] <- Regex.scan(@def_re, text), into: MapSet.new(), do: n)
