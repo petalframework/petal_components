@@ -50,6 +50,31 @@ defmodule PetalComponents.Check.Unit do
     }
   end
 
+  # Attrs that hold a code sample to show, not classes to apply.
+  @sample_attrs ~w(code source snippet example)
+
+  # Words that never are a class but are common in a sentence.
+  @prose_words ~w(an and are for in instead is it of or the this to use with you your)
+
+  @doc """
+  True when a unit is a code sample or a sentence, not a class list. No
+  class rule reads such a unit:
+
+    * it holds markup (`<div`, `<.button`), as a code sample does
+    * it is the value of a `code`, `source`, `snippet` or `example` attr
+    * it reads as prose: a capitalised word, a word ending in punctuation,
+      or a common English word such as "with" or "your"
+  """
+  def sample?(%__MODULE__{} = unit) do
+    Enum.any?(unit.parts, &(&1.text =~ ~r/<[a-z.:]/)) or
+      (unit.origin == :heex_attr and unit.attr in @sample_attrs) or
+      Enum.any?(unit.tokens, &prose_word?(&1.text))
+  end
+
+  defp prose_word?(text) do
+    text in @prose_words or text =~ ~r/^[A-Z][a-z]+[.,;:!?)]*$/ or text =~ ~r/^[a-z]+[.,;!?]$/
+  end
+
   @doc "The file {line, column} of a token."
   def position(%__MODULE__{parts: parts}, %Token{part: i, offset: off}) do
     part = Enum.at(parts, i)

@@ -47,29 +47,22 @@ defmodule PetalComponents.Check.Rules.LiteralNeutral do
 
   @impl true
   def check(%Unit{} = unit, _ctx) do
-    if markup?(unit) do
-      []
-    else
-      for tok <- unit.tokens,
-          %{} = parsed <- [Classes.parse(tok.text)],
-          [_, prop, _family, stop, alpha] <- [Regex.run(utility_re(), parsed.utility)] do
-        replacement = Classes.rebuild(parsed, "#{prop}-gray-#{stop}#{alpha}")
-        {line, column} = Unit.position(unit, tok)
+    for tok <- unit.tokens,
+        %{} = parsed <- [Classes.parse(tok.text)],
+        [_, prop, _family, stop, alpha] <- [Regex.run(utility_re(), parsed.utility)] do
+      replacement = Classes.rebuild(parsed, "#{prop}-gray-#{stop}#{alpha}")
+      {line, column} = Unit.position(unit, tok)
 
-        Rule.finding(rule(),
-          line: line,
-          column: column,
-          subject: tok.text,
-          message:
-            "#{tok.text} is a literal neutral palette; use the gray ramp, which the app remaps in @theme",
-          replacement: replacement,
-          fix: "replace #{tok.text} with #{replacement}",
-          tag_line: unit.tag && unit.tag.line
-        )
-      end
+      Rule.finding(rule(),
+        line: line,
+        column: column,
+        subject: tok.text,
+        message:
+          "#{tok.text} is a literal neutral palette; use the gray ramp, which the app remaps in @theme",
+        replacement: replacement,
+        fix: "replace #{tok.text} with #{replacement}",
+        tag_line: unit.tag && unit.tag.line
+      )
     end
   end
-
-  # A unit that holds markup is a code sample, not a class list.
-  defp markup?(%Unit{parts: parts}), do: Enum.any?(parts, &(&1.text =~ ~r/<[a-z.:]/))
 end

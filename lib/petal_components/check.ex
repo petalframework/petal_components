@@ -14,6 +14,7 @@ defmodule PetalComponents.Check do
   alias PetalComponents.Check.Rules
   alias PetalComponents.Check.Source
   alias PetalComponents.Check.Suppressions
+  alias PetalComponents.Check.Unit
 
   # In the order of the guide's section 11 rows, then the rules from other
   # sections of the guide.
@@ -256,7 +257,8 @@ defmodule PetalComponents.Check do
   end
 
   defp items(%Rule{scope: :component}, s), do: s.tags
-  defp items(%Rule{scope: :class_unit}, s), do: s.units
+  # A code sample or a sentence in a string is not a class list.
+  defp items(%Rule{scope: :class_unit}, s), do: Enum.reject(s.units, &Unit.sample?/1)
   defp items(%Rule{scope: :css}, s), do: if(s.kind == :css, do: s.statements, else: [])
   defp items(%Rule{scope: :elixir_ast}, s), do: if(s.ast, do: [s.ast], else: [])
 
