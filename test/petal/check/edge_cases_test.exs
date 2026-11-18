@@ -118,6 +118,25 @@ defmodule PetalComponents.Check.EdgeCasesTest do
       assert r.exit_status == 2
     end
 
+    test "a file that cannot be opened is unchecked, never clean" do
+      root = tmp_root()
+      on_exit(fn -> File.rm_rf!(root) end)
+      write_files(root, %{"lib/locked.html.heex" => "<p>x</p>\n"})
+      path = Path.join(root, "lib/locked.html.heex")
+      File.chmod!(path, 0o000)
+
+      # Root can read any file, so there is nothing to prove there.
+      if File.read(path) == {:error, :eacces} do
+        {:ok, r} = Check.run(root: root, no_baseline: true, rules: [LiteralNeutral], strict: true)
+        File.chmod!(path, 0o644)
+        assert [%{kind: :read, reason: reason}] = r.unchecked
+        assert reason =~ "this file could not be read (permission denied)"
+        assert r.exit_status == 2
+      else
+        File.chmod!(path, 0o644)
+      end
+    end
+
     test "a failed tokenizer guard records one entry for a file with two ~H fragments" do
       src = """
       defmodule AppWeb.Two do
