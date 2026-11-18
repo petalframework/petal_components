@@ -115,7 +115,7 @@ and replace the line that starts ``- **Always** use the imported `<.input>` comp
 - Form fields use petal_components `<.field field={@form[:name]} label="..." />` (label, input, errors and help text). `<.input>` is the petal_components bare input and renders no label
 ```
 
-The form examples further down `AGENTS.md` use `<.input field={@form[:field]} type="text" />`; in this app write `<.field>` there instead. If the project keeps the same guidelines in `CLAUDE.md` or another rules file, make the same change there.
+Delete the line after them that starts ``- If you override the default input classes`` (and its continuation line): petal_components adds your `class` to its own classes rather than replacing them. Further down, in the form section, change ``and the `<.input>` component in the template`` to ``and the `<.field>` component in the template``, and in the form examples change every `<.input field=` to `<.field field=`. If the project keeps the same guidelines in `CLAUDE.md` or another rules file, make the same change there.
 
 ### 7. Verify
 
