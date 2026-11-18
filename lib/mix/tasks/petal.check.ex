@@ -27,6 +27,11 @@ defmodule Mix.Tasks.Petal.Check do
     * Exit 4: this petal_components cannot read HEEx with the installed
       phoenix_live_view. Tell the user; the line printed says what to update.
 
+  In an umbrella, run it from the umbrella root. Run from a child app, Mix
+  first compiles the sibling apps that child depends on, and one that does
+  not compile stops the task with exit 1 and a `could not compile dependency`
+  line: that is a build failure, not new findings.
+
   Warnings never change the exit code. Fix the ones on lines you wrote if the
   suggestion fits. The baseline flags, `--exclude`, `--except` and
   `petal-check` comments are for the app's owner: do not use them unless the

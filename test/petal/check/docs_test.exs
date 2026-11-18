@@ -154,6 +154,15 @@ defmodule PetalComponents.Check.DocsTest do
     assert File.read!("README.md") =~ "## Check your markup"
   end
 
+  test "both agent instructions say to run it from an umbrella root" do
+    {:docs_v1, _, _, _, %{"en" => doc}, _, _} = Code.fetch_docs(Mix.Tasks.Petal.Check)
+
+    for text <- [doc, File.read!("usage-rules.md")] do
+      assert text =~ "run it from the umbrella root"
+      assert text =~ "could not compile dependency"
+    end
+  end
+
   describe "behaviour the rules rely on" do
     test "bang-utility: h1 to h5 have the no_margin attr its fix names" do
       for name <- ~w(h1 h2 h3 h4 h5)a do
