@@ -198,6 +198,10 @@ defmodule Mix.Tasks.Petal.Check do
       Mix.shell().info(
         "petal.check: no changed .ex, .heex or .css files under lib/ or assets/ against #{opts.changed}."
       )
+
+      # An --output file from an earlier run must not survive as this run's
+      # result: write the empty report over it.
+      if opts.output, do: report(opts, root, []), else: :ok
     else
       report(opts, root, changed)
     end

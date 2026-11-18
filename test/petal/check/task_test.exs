@@ -191,6 +191,13 @@ defmodule Mix.Tasks.Petal.CheckTest do
     files = json["findings"] |> Enum.map(& &1["file"]) |> Enum.uniq() |> Enum.sort()
     assert files == ["lib/app_web/edited.html.heex", "lib/app_web/new.html.heex"]
     assert json["options"]["changed_against"] == "HEAD"
+
+    # once nothing differs, the same command rewrites o.json as a clean report
+    git.(["add", "."])
+    git.(["commit", "-q", "-m", "more"])
+    assert in_app(root, ["--changed", "--strict", "--format", "json", "--output", "o.json"]) == :ok
+    json = root |> Path.join("o.json") |> File.read!() |> Jason.decode!()
+    assert {json["findings"], json["exit_status"], json["summary"]["errors"]} == {[], 0, 0}
   end
 
   test "--since never hands git an option, so it cannot write a file", %{root: root} do
