@@ -1,10 +1,11 @@
 defmodule PetalComponents.Check.PerformanceTest do
-  use PetalComponents.CheckCase, async: true
+  use PetalComponents.CheckCase, async: false
 
   alias PetalComponents.Check
 
   # About three times Petal Pro's HEEx volume. The bound is loose on purpose
-  # (shared CI runners); the measured time is printed.
+  # (shared CI runners); the measured time is printed. Not async: run beside
+  # the async suite, it timed the other tests too (5.8 s once on CI).
   test "400 files in well under five seconds" do
     root = tmp_root()
     on_exit(fn -> File.rm_rf!(root) end)
