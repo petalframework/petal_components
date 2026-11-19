@@ -68,6 +68,23 @@
   actions" had no `rows`, so it rendered an empty table, and the
   data_table handler snippet put a `defp` between `handle_event/3`
   clauses, a compiler warning.
+- **Plain utilities work on `carousel`, `toast_group` and `filters`.**
+  Their rules in `default.css` sat outside `@layer components`.
+  Unlayered CSS beats every layer, utilities
+  included, so `<.carousel class="h-64">` stayed 240px high and
+  `<.filters class="gap-4">` did nothing; only a `!` got through. The
+  rules are inside the layer now, like every other component's, so the
+  plain utility wins and a `!` you added for these three can go. The
+  library's own examples render the same: computed styles and boxes of
+  every element were compared before and after in light, dark, reduced
+  motion and a 390px viewport, at rest and with each control hovered,
+  focused and pressed, and nothing changed. One thing to check in your
+  app: your own CSS outside any layer now beats these three components'
+  rules, as it already did every other component's. `mix petal.check`
+  reports a `!` on these three like on any other component, and a test
+  fails if a `pc-*` rule ever lands outside the layer again (the
+  reduced-motion overrides and the Firefox date-input fix stay outside
+  on purpose, and the file now says why).
 
 #### Added
 
