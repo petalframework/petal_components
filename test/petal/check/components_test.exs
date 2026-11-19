@@ -3,6 +3,7 @@ defmodule PetalComponents.Check.ComponentsTest do
   use PetalComponents.CheckCase, async: true
 
   alias PetalComponents.Check.Components
+  alias PetalComponents.Check.Css
   alias PetalComponents.Check.Rules.BangUtility
   alias PetalComponents.Check.Rules.PcFunctionPrefix
 
@@ -41,6 +42,33 @@ defmodule PetalComponents.Check.ComponentsTest do
 
     src = in_module(~s(<.bar class="!h-4" />\n<.day class="!p-0" />\n<.pc_bar />))
     assert findings(:ex, src, rules: [BangUtility, PcFunctionPrefix]) == []
+  end
+
+  # bang-utility says "drop the !", which is only true where the library's
+  # styles sit in @layer components: an unlayered rule beats every utility,
+  # so there a ! can be the only way. This reads default.css and keeps
+  # Components.unlayered_modules/0 equal to the components whose rules sit
+  # outside every at-rule. When that CSS moves into the layer this fails,
+  # and the module then comes out of the list.
+  test "unlayered_modules/0 names exactly the components styled outside @layer components" do
+    {:ok, %{statements: statements}} = Css.parse(File.read!("assets/default.css"))
+
+    roots =
+      for st <- statements,
+          Css.at_rules(st) == [],
+          sel <- Css.selectors(st),
+          [_, root] <- Regex.scan(~r/\.pc-([a-z0-9]+)/, sel),
+          uniq: true,
+          do: root
+
+    expected =
+      for mod <- Components.unlayered_modules(),
+          do: mod |> Module.split() |> List.last() |> Macro.underscore()
+
+    assert Enum.sort(roots) == Enum.sort(expected)
+
+    assert Components.unlayered_names() ==
+             MapSet.new(~w(carousel filters toast_group))
   end
 
   test "a PetalComponents module that defines no components brings in no names" do

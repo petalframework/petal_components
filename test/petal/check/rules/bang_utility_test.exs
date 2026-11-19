@@ -54,6 +54,20 @@ defmodule PetalComponents.Check.Rules.BangUtilityTest do
   end
 
   describe "must not flag" do
+    # Their styles sit outside @layer components in default.css today, so a
+    # plain utility loses to them and a ! can be the only way to size them.
+    test "carousel, filters and toast_group, whose library styles are not layered yet" do
+      src =
+        ~s(<.carousel id="c" class="!h-64" slides={[]} />\n<.filters class="!gap-4" />\n) <>
+          ~s(<.toast_group class="!w-80" flash={@flash} />\n<.button class="!px-1" />\n)
+
+      assert [f] = run(:heex, src)
+      assert f.message =~ "<.button>"
+
+      remote = ~s(<PetalComponents.Carousel.carousel id="c" class="!h-64" slides={[]} />)
+      assert run(:ex, in_module(remote)) == []
+    end
+
     test "Elixir negation in a class expression" do
       src = in_module(~s(<.button class={if !@open, do: "hidden"} label="x" />))
       assert run(:ex, src) == []

@@ -15,6 +15,24 @@ defmodule PetalComponents.Check.Components do
   @doc false
   def undeclared, do: @undeclared
 
+  # Modules whose styles sit outside `@layer components` in default.css. An
+  # unlayered rule beats every utility, so on these components a plain
+  # utility can lose and a ! can be the only way: telling the reader to drop
+  # it would be wrong. Their calls are left alone by bang-utility until the
+  # CSS moves into the layer. A test reads default.css and fails when this
+  # list and the file disagree, in either direction.
+  @unlayered_modules [PetalComponents.Carousel, PetalComponents.Filters, PetalComponents.Toast]
+
+  @doc false
+  def unlayered_modules, do: @unlayered_modules
+
+  @doc "The component names of the modules whose styles are not layered."
+  def unlayered_names do
+    for mod <- @unlayered_modules, reduce: MapSet.new() do
+      acc -> MapSet.union(acc, module_names(mod))
+    end
+  end
+
   @doc """
   The names `use PetalComponents` brings into scope. Built from the same
   module list as `__using__`, so the Chat family and Showcase (which it does
