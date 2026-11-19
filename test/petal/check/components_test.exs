@@ -43,13 +43,13 @@ defmodule PetalComponents.Check.ComponentsTest do
     assert findings(:ex, src, rules: [BangUtility, PcFunctionPrefix]) == []
   end
 
-  # bang-utility says "drop the !". On a component that declares no class
-  # attr that is advice about a class that may never reach the page: the
-  # compiler rejects it, or it travels through :global and can come out as
-  # a second class attribute that the browser ignores (toast_group). The
-  # set is read from the attr declarations, so a component that gains a
-  # class attr leaves it by itself.
-  test "classless_names/0 is the components that declare no class attr" do
+  # bang-utility says "drop the !". On a component that takes no class that
+  # is advice about a class that never reaches the page: it is not rendered
+  # (the compiler warns about an undefined attribute), or it travels through
+  # :global and comes out as a second class attribute, which the browser
+  # ignores (toast_group). The set is read from the attr declarations, so a
+  # component that gains a class attr leaves it by itself.
+  test "classless_names/0 is the components that take no class" do
     names = Components.classless_names()
 
     assert "toast_group" in names
@@ -63,7 +63,37 @@ defmodule PetalComponents.Check.ComponentsTest do
     # not in __components__/0. It does take a class, and must stay checked.
     refute "icon" in names
 
+    # These two declare no class attr but pass one on to their input.
+    refute "form_field" in names
+    refute "hidden_input" in names
+
     assert MapSet.subset?(names, Components.petal_names())
+  end
+
+  # The split above, shown by rendering: how many class attributes the tag
+  # that received the caller's class ends up with. One means the class
+  # reaches the page. Two means the browser keeps the first, the library's
+  # own, and drops the caller's.
+  test "which components drop a caller's class, by rendering them" do
+    form = Phoenix.Component.to_form(%{}, as: :user)
+
+    class_attrs = fn rendered ->
+      html = Phoenix.LiveViewTest.rendered_to_string(rendered)
+
+      for [tag] <- Regex.scan(~r/<[a-z][^>]*petal-probe[^>]*>/, html),
+          do: length(Regex.scan(~r/\sclass=/, tag))
+    end
+
+    given = %{class: "petal-probe", __changed__: nil}
+
+    field = Map.merge(given, %{form: form, field: :name})
+    assert class_attrs.(PetalComponents.Form.form_field(field)) == [1]
+    assert class_attrs.(PetalComponents.Form.hidden_input(field)) == [1]
+
+    assert class_attrs.(PetalComponents.Toast.toast_group(given)) == [2]
+    assert class_attrs.(PetalComponents.Confetti.confetti(Map.put(given, :id, "c"))) == [2]
+
+    assert Enum.sort(Components.class_reaches_page()) == [:form_field, :hidden_input]
   end
 
   test "a PetalComponents module that defines no components brings in no names" do

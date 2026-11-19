@@ -15,19 +15,30 @@ defmodule PetalComponents.Check.Components do
   @doc false
   def undeclared, do: @undeclared
 
+  # Components that declare no class attr, yet a class passed to them does
+  # reach the page: they hand their :global attrs, class included, to an
+  # input that takes one. A ! there is worth reporting, so they stay
+  # checked. A test renders each one.
+  @class_reaches_page [:form_field, :hidden_input]
+
+  @doc false
+  def class_reaches_page, do: @class_reaches_page
+
   @doc """
-  The names of the components that declare no `class` attr. A class passed
-  to one of them is rejected by the compiler, or travels through `:global`,
-  where it can come out as a second class attribute that the browser drops
-  (`<.toast_group>` does this). bang-utility leaves those calls alone:
-  "drop the !" would be advice about a class that may never reach the page.
-  Read from the components' own attr declarations.
+  The names of the components that declare no `class` attr and do not pass
+  one on. A class given to one of them is not rendered (the compiler warns
+  about an undefined attribute), or travels through `:global` and comes out
+  as a second class attribute, which the browser drops (`<.toast_group>`
+  does this). bang-utility leaves those calls alone: "drop the !" would be
+  advice about a class that never reaches the page. Read from the
+  components' own attr declarations.
   """
   def classless_names do
     for mod <- PetalComponents.imported_modules(),
         Code.ensure_loaded?(mod) and function_exported?(mod, :__components__, 0),
         {name, %{attrs: attrs}} <- mod.__components__(),
         function_exported?(mod, name, 1),
+        name not in @class_reaches_page,
         not Enum.any?(attrs, &(&1.name == :class)),
         into: MapSet.new(),
         do: Atom.to_string(name)

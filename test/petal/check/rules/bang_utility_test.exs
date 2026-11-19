@@ -62,6 +62,16 @@ defmodule PetalComponents.Check.Rules.BangUtilityTest do
       assert r.replacement == "h-64"
     end
 
+    # form_field declares no class attr, but hands the class to its input,
+    # where a plain utility wins over the layered pc-text-input.
+    test "form_field, whose class reaches its input" do
+      src = ~s(<.form_field form={@form} field={:name} class="!w-full" />\n)
+
+      assert [f] = run(:heex, src)
+      assert f.message =~ "<.form_field>"
+      assert f.replacement == "w-full"
+    end
+
     test "a remote call and a multi-line tag" do
       src = in_module(~s(<PetalComponents.Button.button\n  label="x"\n  class="!px-0"\n/>))
       assert [f] = run(:ex, src)
