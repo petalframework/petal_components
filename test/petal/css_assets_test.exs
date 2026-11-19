@@ -30,29 +30,48 @@ defmodule PetalComponents.CssAssetsTest do
   # Unlayered author CSS beats every layer, utilities included, so one rule
   # outside the layer silently breaks that promise for its component (the
   # carousel, toast and filters rules sat outside it for months, and
-  # `class="h-64"` on a carousel did nothing). The only rules allowed out
-  # are two top-level reduced-motion blocks, which have to beat a caller's
-  # animate-* utility, and the Firefox-only @-moz-document fix.
+  # `class="h-64"` on a carousel did nothing).
+  #
+  # These are the rules outside the layer today, and the test fails on any
+  # other, in either direction: a new exception is added here by hand or
+  # not at all. The reduced-motion ones have to beat a caller's animate-*
+  # utility. The Firefox-only date input ones are older than the contract.
+  @outside_the_layer [
+    {"@media (prefers-reduced-motion: reduce)",
+     ".pc-chat__typing > span, .pc-chat__caret, .pc-chat__tool-spinner"},
+    {"@-moz-document url-prefix()", ".pc-date-input"},
+    {"@-moz-document url-prefix()", ~s(input.pc-date-input[type="time"])},
+    {"@-moz-document url-prefix()", ".pc-date-input-icon"},
+    {"@media (prefers-reduced-motion: reduce)", ".pc-border-beam__beam, .pc-meteor"},
+    {"@media (prefers-reduced-motion: reduce)",
+     ".pc-gradient-text, .pc-shimmer-text, .pc-typing-effect__cursor"},
+    {"@media (prefers-reduced-motion: reduce)", ".pc-word-rotate__word"}
+  ]
+
   test "every pc-* rule in default.css sits inside @layer components" do
     css = File.read!(Path.join(@app_root, "assets/default.css"))
     {:ok, %{statements: statements}} = PetalComponents.Check.Css.parse(css)
 
     outside =
       for st <- statements,
-          sel = Enum.join(PetalComponents.Check.Css.selectors(st), " "),
-          sel =~ ".pc-",
-          at = PetalComponents.Check.Css.at_rules(st),
-          not layered_or_allowed?(at),
+          selector =
+            st
+            |> PetalComponents.Check.Css.selectors()
+            |> Enum.join(" ")
+            |> String.replace(~r/\s+/, " ")
+            |> String.trim(),
+          selector =~ ".pc-",
+          at_rules = PetalComponents.Check.Css.at_rules(st),
+          not match?(["@layer components" | _], at_rules),
           uniq: true,
-          do: "line #{st.line}: #{inspect(at)} #{sel}"
+          do: {List.first(at_rules), selector}
 
-    assert outside == [], "pc-* rules outside @layer components:\n" <> Enum.join(outside, "\n")
+    assert outside -- @outside_the_layer == [],
+           "pc-* rules outside @layer components: #{inspect(outside -- @outside_the_layer)}"
+
+    assert @outside_the_layer -- outside == [],
+           "listed as outside the layer, but not there: #{inspect(@outside_the_layer -- outside)}"
   end
-
-  defp layered_or_allowed?(["@layer components" | _]), do: true
-  defp layered_or_allowed?(["@media (prefers-reduced-motion: reduce)" | _]), do: true
-  defp layered_or_allowed?(["@-moz-document url-prefix()" | _]), do: true
-  defp layered_or_allowed?(_), do: false
 
   # The icon sizing contract (default.css, at the pagination previous
   # chevron): in every phx.new app the heroicons plugin emits hero-* into
@@ -67,26 +86,29 @@ defmodule PetalComponents.CssAssetsTest do
                      pc-toast__close-icon pc-toast__icon)
 
     # A new icon in one of these three has to be named above, and the next
-    # test then holds it to the contract.
+    # test then holds it to the contract. Found three ways: an <.icon> call
+    # with a pc-* class, any class string that holds both a hero-* name and
+    # a pc-* class, and, in the hook, any class of these components that
+    # ends in "icon" (the toast's kind icon gets its hero-* name at run
+    # time, so no one string holds both names).
     test "every pc-* class they put on a hero-* span is listed" do
       heex =
         for file <- ~w(carousel filters toast),
             source = File.read!(Path.join(@app_root, "lib/petal_components/#{file}.ex")),
-            [tag] <- Regex.scan(~r/<\.icon\b.*?\/>/s, source),
-            [class] <- Regex.scan(~r/pc-[a-z0-9_-]+/, tag),
+            [text] <-
+              Regex.scan(~r/<\.icon\b.*?\/>/s, source) ++
+                Regex.scan(~r/class="[^"]*hero-[^"]*"/, source),
+            [class] <- Regex.scan(~r/pc-[a-z0-9_-]+/, text),
             do: class
 
       js = File.read!(Path.join(@app_root, "assets/js/petal_components.js"))
 
       hook =
-        for [literal] <- Regex.scan(~r/["'][^"'\n]*hero-[^"'\n]*["']/, js),
-            [class] <- Regex.scan(~r/pc-(?:carousel|filters|toast)[a-z0-9_-]*/, literal),
+        for [class] <-
+              Regex.scan(~r/pc-(?:carousel|filters|toast)[a-z0-9_-]*icon(?![a-z0-9_-])/, js),
             do: class
 
-      # The toast's kind icon gets its hero-* name at run time (iconFor in
-      # the hook), so no one string holds both names: it is added by hand.
-      found = Enum.uniq(heex ++ hook ++ ["pc-toast__icon"])
-      assert Enum.sort(found) == @icon_classes
+      assert Enum.sort(Enum.uniq(heex ++ hook)) == @icon_classes
     end
 
     test "each is sized by a doubled selector and !important, and by nothing else" do
