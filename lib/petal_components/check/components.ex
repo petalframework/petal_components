@@ -29,8 +29,14 @@ defmodule PetalComponents.Check.Components do
   @doc "The component names one PetalComponents module exports."
   def module_names(mod) do
     if Code.ensure_loaded?(mod) and function_exported?(mod, :__components__, 0) do
+      # `__components__/0` lists `defp` components too (Progress has a private
+      # `bar`, Calendar a private `day`). No caller can reach those, so an
+      # app's `<.bar>` is another library's and must not count as petal's.
       declared =
-        for {name, _} <- mod.__components__(), into: MapSet.new(), do: Atom.to_string(name)
+        for {name, _} <- mod.__components__(),
+            function_exported?(mod, name, 1),
+            into: MapSet.new(),
+            do: Atom.to_string(name)
 
       for name <- @undeclared,
           function_exported?(mod, name, 1),

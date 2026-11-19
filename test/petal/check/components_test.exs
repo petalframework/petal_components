@@ -21,6 +21,28 @@ defmodule PetalComponents.Check.ComponentsTest do
            ]
   end
 
+  # A `defp` component with attrs is in `__components__/0` too, but no caller
+  # can reach it: `<.bar>` in an app is some other library's `bar`, and
+  # reporting it as petal's would be a false alarm.
+  test "private components are not petal names" do
+    names = Components.petal_names()
+
+    for name <- ~w(bar day heroicon sort_icon spin_button editor_form) do
+      refute MapSet.member?(names, name), "#{name} is a private component"
+    end
+
+    for name <- names do
+      assert Enum.any?(PetalComponents.imported_modules(), fn mod ->
+               Code.ensure_loaded?(mod) and
+                 function_exported?(mod, String.to_existing_atom(name), 1)
+             end),
+             "#{name} is in petal_names but no imported module exports #{name}/1"
+    end
+
+    src = in_module(~s(<.bar class="!h-4" />\n<.day class="!p-0" />\n<.pc_bar />))
+    assert findings(:ex, src, rules: [BangUtility, PcFunctionPrefix]) == []
+  end
+
   test "a PetalComponents module that defines no components brings in no names" do
     assert Components.module_names(PetalComponents.Check) == MapSet.new()
     assert Components.module_names(PetalComponents.NoSuchModule) == MapSet.new()
