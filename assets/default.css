@@ -8592,7 +8592,12 @@
   }
 
   .pc-toast__icon {
-    @apply w-5 h-5 shrink-0 mt-0.5;
+    @apply shrink-0 mt-0.5;
+  }
+  /* Doubled selector + !important: icon sizing contract (see pagination
+     previous chevron). The hook puts a hero-* class on this span. */
+  .pc-toast__icon.pc-toast__icon {
+    @apply w-5! h-5!;
   }
 
   .pc-toast__icon--info {
@@ -8646,8 +8651,9 @@
     @apply absolute -inset-2;
   }
 
-  .pc-toast__close-icon {
-    @apply w-4 h-4;
+  /* Doubled selector + !important: icon sizing contract (see pagination previous chevron). */
+  .pc-toast__close-icon.pc-toast__close-icon {
+    @apply w-4! h-4!;
   }
 
   .pc-toast__progress {

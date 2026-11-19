@@ -53,6 +53,68 @@ defmodule PetalComponents.CssAssetsTest do
   defp layered_or_allowed?(["@-moz-document url-prefix()" | _]), do: true
   defp layered_or_allowed?(_), do: false
 
+  # The icon sizing contract (default.css, at the pagination previous
+  # chevron): in every phx.new app the heroicons plugin emits hero-* into
+  # the utilities layer, which beats any components-layer rule, so a pc-*
+  # class that sizes a hero-* span needs a doubled selector and !important.
+  # The toast's two icons had a plain `w-5 h-5` and `w-4 h-4`. That held
+  # only while the toast's rules sat outside the layer: once layered, the
+  # icons grew from 20px and 16px to 24px in Petal Pro and petal.build,
+  # and the playground (hero-* in the base layer there) showed no change.
+  describe "carousel, toast and filters icons" do
+    @icon_classes ~w(pc-filters__add-icon pc-filters__back-icon pc-filters__chip-remove-icon
+                     pc-toast__close-icon pc-toast__icon)
+
+    # A new icon in one of these three has to be named above, and the next
+    # test then holds it to the contract.
+    test "every pc-* class they put on a hero-* span is listed" do
+      heex =
+        for file <- ~w(carousel filters toast),
+            source = File.read!(Path.join(@app_root, "lib/petal_components/#{file}.ex")),
+            [tag] <- Regex.scan(~r/<\.icon\b.*?\/>/s, source),
+            [class] <- Regex.scan(~r/pc-[a-z0-9_-]+/, tag),
+            do: class
+
+      js = File.read!(Path.join(@app_root, "assets/js/petal_components.js"))
+
+      hook =
+        for [literal] <- Regex.scan(~r/["'][^"'\n]*hero-[^"'\n]*["']/, js),
+            [class] <- Regex.scan(~r/pc-(?:carousel|filters|toast)[a-z0-9_-]*/, literal),
+            do: class
+
+      # The toast's kind icon gets its hero-* name at run time (iconFor in
+      # the hook), so no one string holds both names: it is added by hand.
+      found = Enum.uniq(heex ++ hook ++ ["pc-toast__icon"])
+      assert Enum.sort(found) == @icon_classes
+    end
+
+    test "each is sized by a doubled selector and !important, and by nothing else" do
+      css = File.read!(Path.join(@app_root, "assets/default.css"))
+
+      for class <- @icon_classes do
+        sized = rule_body(css, ".#{class}.#{class}")
+        assert sized =~ ~r/\bw-[\d.]+!/, ".#{class}.#{class} must set an important width"
+        assert sized =~ ~r/\bh-[\d.]+!/, ".#{class}.#{class} must set an important height"
+
+        # A size utility with no `!` (also behind a variant, `md:w-6`), or a
+        # width or height declaration with no !important, in any rule that
+        # names the class.
+        plain =
+          for [_, selector, body] <-
+                Regex.scan(~r/([^{}]*\.#{class}(?![\w-])[^{}]*)\{([^{}]*)\}/, css),
+              [token] <-
+                Regex.scan(
+                  ~r/(?<![\w!-])(?:w|h|size)-[\w.\/\[\]]+(?!!)(?![\w.\/\]!])|(?<![\w-])(?:width|height)\s*:(?![^;}]*!important)/,
+                  body
+                ),
+              do: {String.trim(selector), token}
+
+        assert plain == [],
+               "a plain size on .#{class} loses to hero-* in a real app: #{inspect(plain)}"
+      end
+    end
+  end
+
   describe "badge status dot" do
     # The dot's colour lives entirely in CSS - the markup is one class on
     # every colour x variant combination - so this is the only place the
