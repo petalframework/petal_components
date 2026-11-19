@@ -24,6 +24,35 @@ defmodule PetalComponents.CssAssetsTest do
     end
   end
 
+  # The styling contract (guides/design.md): every pc-* rule sits in
+  # @layer components, so a plain utility on a component call wins.
+  # Unlayered author CSS beats every layer, utilities included, so one rule
+  # outside the layer silently breaks that promise for its component (the
+  # carousel, toast and filters rules sat outside it for months, and
+  # `class="h-64"` on a carousel did nothing). The only rules allowed out
+  # are the deliberate ones that must beat utilities: reduced-motion
+  # overrides and the Firefox-only @-moz-document fix.
+  test "every pc-* rule in default.css sits inside @layer components" do
+    css = File.read!(Path.join(@app_root, "assets/default.css"))
+    {:ok, %{statements: statements}} = PetalComponents.Check.Css.parse(css)
+
+    outside =
+      for st <- statements,
+          sel = Enum.join(PetalComponents.Check.Css.selectors(st), " "),
+          sel =~ ".pc-",
+          at = PetalComponents.Check.Css.at_rules(st),
+          not layered_or_allowed?(at),
+          uniq: true,
+          do: "line #{st.line}: #{inspect(at)} #{sel}"
+
+    assert outside == [], "pc-* rules outside @layer components:\n" <> Enum.join(outside, "\n")
+  end
+
+  defp layered_or_allowed?(["@layer components" | _]), do: true
+  defp layered_or_allowed?(["@media (prefers-reduced-motion: reduce)" | _]), do: true
+  defp layered_or_allowed?(["@-moz-document url-prefix()" | _]), do: true
+  defp layered_or_allowed?(_), do: false
+
   describe "badge status dot" do
     # The dot's colour lives entirely in CSS - the markup is one class on
     # every colour x variant combination - so this is the only place the
