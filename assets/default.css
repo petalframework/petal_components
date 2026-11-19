@@ -5936,7 +5936,12 @@
   }
 }
 
-/* Respect users who prefer reduced motion: keep the chat indicators static. */
+/* Respect users who prefer reduced motion: keep the chat indicators static.
+   Outside @layer components on purpose, like the decorative-motion block
+   further down: unlayered rules beat every layer, utilities included, so a
+   reduced-motion reader stays still even when a caller adds an animate-*
+   utility. These blocks and the Firefox-only @-moz-document below are the
+   only pc-* rules outside the layer; everything else stays inside it. */
 @media (prefers-reduced-motion: reduce) {
   .pc-chat__typing > span,
   .pc-chat__caret,
@@ -8113,6 +8118,7 @@
   }
 }
 
+@layer components {
   /* Carousel - ported from petal_marketing; material pass to follow */
   .pc-carousel-wrapper {
     @apply relative w-full;
@@ -8684,6 +8690,7 @@
       transition-duration: 1ms;
     }
   }
+}
 
 /* Empty state: media, title, description, actions, trailing line.
    Wrapped in its own layer: appended rules after the last @layer block
@@ -11104,6 +11111,7 @@
   }
 }
 
+@layer components {
   /* Filters: the standalone filter bar (chips + add-filter popover).
      Shares the data table's editor form styling (pc-data-table__filter-*),
      because the editor markup itself is shared - one home for the operator
@@ -11195,6 +11203,7 @@
       transition-duration: 1ms;
     }
   }
+}
 
 /* Resizable - split panes with draggable, keyboard-operable separators.
  * The painted divider is a hairline; the hit area around it is much larger,
