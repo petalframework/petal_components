@@ -2,6 +2,7 @@ defmodule PetalComponents.Check.PerformanceTest do
   use PetalComponents.CheckCase, async: false
 
   alias PetalComponents.Check
+  alias PetalComponents.Check.Scope
 
   # About three times Petal Pro's HEEx volume. The bound is loose on purpose
   # (shared CI runners); the measured time is printed. Not async: run beside
@@ -43,6 +44,21 @@ defmodule PetalComponents.Check.PerformanceTest do
     assert report.files == 400
     assert report.unchecked == []
     assert us < 5_000_000
+  end
+
+  # The directive regex once scanned to the end of the file for every
+  # unclosed `{` or `[`: 18 s for 50,000 `import A.{B` lines. Such a file
+  # cannot compile, but the check must still answer. Both classes are capped.
+  test "many unclosed import lists do not make the scope scan crawl" do
+    braces = String.duplicate("import A.{B\n", 20_000)
+    lists = String.duplicate("import A, except: [a: 1\n", 20_000)
+
+    {us, scope} =
+      :timer.tc(fn -> Scope.of([braces, lists], %{}, fn _ -> MapSet.new() end) end)
+
+    IO.puts("petal.check scope scan: 40,000 unclosed directives in #{div(us, 1000)} ms")
+    assert scope.names == MapSet.new()
+    assert us < 3_000_000
   end
 
   defp indent(text),

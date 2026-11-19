@@ -107,10 +107,11 @@ defmodule PetalComponents.Check.ScopeTest do
     assert Enum.sort(rules_hit(files)) == ["bang-utility", "pc-function-prefix"]
   end
 
-  # `mix format` moves a long option list to the next line, which is what the
-  # documented CoreComponents import becomes for a long app name or a fifth
-  # excepted name. Read as "no list", every CoreComponents name would count
-  # as the app's own and <.button> would never be checked.
+  # `mix format` moves a long option list to the next line. The documented
+  # CoreComponents import is 86 characters for MyAppWeb, so it wraps for a
+  # web module name of 21 characters or more, or a couple more excepted
+  # names. Read as "no list", every CoreComponents name would count as the
+  # app's own and <.button> would never be checked.
   test "an except: list that mix format wrapped onto the next line is still read" do
     for wrapped <- [
           "import AppWeb.Core,\n          except: [button: 1, pc_badge: 1]",

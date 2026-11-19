@@ -27,8 +27,11 @@ defmodule PetalComponents.Check.Scope do
   # that `mix format` moved to the next lines is still the directive's own:
   # the documented `import MyAppWeb.CoreComponents, except: [...]` wraps for
   # a long app name. Only simple `key: value,` options may sit before the
-  # list, so the match can never run on into the next statement.
-  @directive_re ~r/^[ \t]*(use|import)\s+([A-Z][\w.]*)(?:\{([^}]*)\})?(?:\s*,(?:\s*\w+:\s*[\w:.]+\s*,)*\s*(only|except):\s*\[([^\]]*)\])?/m
+  # list, so the match can never run on into the next statement. The brace
+  # and list bodies are capped: with no cap, a file of unclosed `{` or `[`
+  # (invalid code, but the check must still answer) is rescanned to its end
+  # for every directive, 18 s for 50,000 lines.
+  @directive_re ~r/^[ \t]*(use|import)\s+([A-Z][\w.]*)(?:\{([^}]{0,2000})\})?(?:\s*,(?:\s*\w+:\s*[\w:.]+\s*,)*\s*(only|except):\s*\[([^\]]{0,4000})\])?/m
 
   @def_re ~r/^\s*def(?:macro)?\s+([a-z_]\w*[?!]?)/m
 
