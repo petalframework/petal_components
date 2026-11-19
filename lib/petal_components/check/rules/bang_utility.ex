@@ -40,6 +40,8 @@ defmodule PetalComponents.Check.Rules.BangUtility do
         ~s(a ! on a raw element, <div class="!#{cls(["mb", "0"])}">, or on the app's own component),
         ~s(Elixir negation in a class expression: class={if !@open, do: "hidden"}),
         ~s(a ! inside brackets: #{cls(["content", "['!']"])}),
+        "a call to a component that declares no class attr, such as <.toast_group>: " <>
+          "its class may never reach the page",
         "class attrs other than class (*_class) and slot class attrs (wave 2)"
       ]
     }
@@ -47,7 +49,7 @@ defmodule PetalComponents.Check.Rules.BangUtility do
 
   @impl true
   def check(%Unit{attr: "class", tag: %Tag{} = tag} = unit, ctx) do
-    if ctx.petal?.(tag) and not MapSet.member?(ctx.unlayered, Components.function_name(tag)) do
+    if ctx.petal?.(tag) and not MapSet.member?(ctx.classless, Components.function_name(tag)) do
       for tok <- unit.tokens,
           %{important: imp} = parsed when imp != :none <- [Classes.parse(tok.text)],
           do: finding(unit, tok, parsed, tag)

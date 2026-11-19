@@ -43,18 +43,18 @@ defmodule PetalComponents.Check.Rules.BangUtilityTest do
       assert_at(src, f)
     end
 
-    # Their styles sat outside @layer components until the layer fix, and
-    # bang-utility left them alone. Now a plain utility wins on them too.
-    test "carousel, filters and toast_group, like any other component" do
+    # Their styles sat outside @layer components until the layer fix, where
+    # a plain utility lost and a ! could be the only way, so bang-utility
+    # left them alone. Now a plain utility wins on them too.
+    test "carousel and filters, like any other component" do
       src =
         ~s(<.carousel id="c" class="!h-64" slides={[]} />\n<.filters class="!gap-4" />\n) <>
-          ~s(<.toast_group class="!w-80" flash={@flash} />\n<.button class="!px-1" />\n)
+          ~s(<.button class="!px-1" />\n)
 
-      assert [c, f, t, b] = run(:heex, src)
+      assert [c, f, b] = run(:heex, src)
       assert c.message == "!h-64 on <.carousel> forces a utility over the component's own styles"
-      assert {c.replacement, f.replacement, t.replacement} == {"h-64", "gap-4", "w-80"}
+      assert {c.replacement, f.replacement} == {"h-64", "gap-4"}
       assert f.message =~ "<.filters>"
-      assert t.message =~ "<.toast_group>"
       assert b.message =~ "<.button>"
 
       remote = ~s(<PetalComponents.Carousel.carousel id="c" class="!h-64" slides={[]} />)
@@ -73,6 +73,18 @@ defmodule PetalComponents.Check.Rules.BangUtilityTest do
   end
 
   describe "must not flag" do
+    # toast_group declares no class attr: the class goes through :global and
+    # comes out as a second class attribute, which the browser drops.
+    # vertical_menu has no :global either, so the compiler rejects it. "Drop
+    # the !" would be advice about a class that never reaches the page.
+    test "a component that takes no class" do
+      src =
+        ~s(<.toast_group class="!w-80" flash={@flash} />\n<.vertical_menu class="!w-80" />\n) <>
+          ~s(<PetalComponents.Toast.toast_group class="!w-80" flash={@flash} />\n)
+
+      assert run(:heex, src) == []
+    end
+
     test "Elixir negation in a class expression" do
       src = in_module(~s(<.button class={if !@open, do: "hidden"} label="x" />))
       assert run(:ex, src) == []

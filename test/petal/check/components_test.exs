@@ -3,7 +3,6 @@ defmodule PetalComponents.Check.ComponentsTest do
   use PetalComponents.CheckCase, async: true
 
   alias PetalComponents.Check.Components
-  alias PetalComponents.Check.Css
   alias PetalComponents.Check.Rules.BangUtility
   alias PetalComponents.Check.Rules.PcFunctionPrefix
 
@@ -44,33 +43,27 @@ defmodule PetalComponents.Check.ComponentsTest do
     assert findings(:ex, src, rules: [BangUtility, PcFunctionPrefix]) == []
   end
 
-  # bang-utility says "drop the !", which is only true where the library's
-  # styles sit in @layer components: an unlayered rule beats every utility,
-  # so there a ! can be the only way. This reads default.css and keeps
-  # Components.unlayered_modules/0 equal to the components whose rules sit
-  # outside every at-rule. Every component is layered now, so both sides are
-  # empty: a pc-* rule appended after the last layer closes fails here, and
-  # the fix is to move it into the layer (or, if it truly must stay out, to
-  # name its module in the list so bang-utility stops telling people to drop
-  # a ! that is needed).
-  test "unlayered_modules/0 names exactly the components styled outside @layer components" do
-    {:ok, %{statements: statements}} = Css.parse(File.read!("assets/default.css"))
+  # bang-utility says "drop the !". On a component that declares no class
+  # attr that is advice about a class that may never reach the page: the
+  # compiler rejects it, or it travels through :global and can come out as
+  # a second class attribute that the browser ignores (toast_group). The
+  # set is read from the attr declarations, so a component that gains a
+  # class attr leaves it by itself.
+  test "classless_names/0 is the components that declare no class attr" do
+    names = Components.classless_names()
 
-    roots =
-      for st <- statements,
-          Css.at_rules(st) == [],
-          sel <- Css.selectors(st),
-          [_, root] <- Regex.scan(~r/\.pc-([a-z0-9]+)/, sel),
-          uniq: true,
-          do: root
+    assert "toast_group" in names
+    assert "vertical_menu" in names
 
-    expected =
-      for mod <- Components.unlayered_modules(),
-          do: mod |> Module.split() |> List.last() |> Macro.underscore()
+    for name <- ~w(button carousel filters modal) do
+      refute name in names, "#{name} declares a class attr"
+    end
 
-    assert roots == [], "pc-* rules outside every at-rule: #{Enum.join(roots, ", ")}"
-    assert Enum.sort(roots) == Enum.sort(expected)
-    assert Components.unlayered_names() == MapSet.new()
+    # icon declares no attrs at all when heroicons is installed, so it is
+    # not in __components__/0. It does take a class, and must stay checked.
+    refute "icon" in names
+
+    assert MapSet.subset?(names, Components.petal_names())
   end
 
   test "a PetalComponents module that defines no components brings in no names" do

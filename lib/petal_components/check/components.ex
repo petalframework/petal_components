@@ -15,23 +15,22 @@ defmodule PetalComponents.Check.Components do
   @doc false
   def undeclared, do: @undeclared
 
-  # Modules whose styles sit outside `@layer components` in default.css. An
-  # unlayered rule beats every utility, so on such a component a plain
-  # utility can lose and a ! can be the only way: telling the reader to drop
-  # it would be wrong, and bang-utility leaves its calls alone. The list is
-  # empty because every component's rules are layered. A test reads
-  # default.css and fails when an unlayered pc-* rule appears, so the list
-  # stays true: fix the CSS, or name the module here.
-  @unlayered_modules []
-
-  @doc false
-  def unlayered_modules, do: @unlayered_modules
-
-  @doc "The component names of the modules whose styles are not layered."
-  def unlayered_names do
-    for mod <- @unlayered_modules, reduce: MapSet.new() do
-      acc -> MapSet.union(acc, module_names(mod))
-    end
+  @doc """
+  The names of the components that declare no `class` attr. A class passed
+  to one of them is rejected by the compiler, or travels through `:global`,
+  where it can come out as a second class attribute that the browser drops
+  (`<.toast_group>` does this). bang-utility leaves those calls alone:
+  "drop the !" would be advice about a class that may never reach the page.
+  Read from the components' own attr declarations.
+  """
+  def classless_names do
+    for mod <- PetalComponents.imported_modules(),
+        Code.ensure_loaded?(mod) and function_exported?(mod, :__components__, 0),
+        {name, %{attrs: attrs}} <- mod.__components__(),
+        function_exported?(mod, name, 1),
+        not Enum.any?(attrs, &(&1.name == :class)),
+        into: MapSet.new(),
+        do: Atom.to_string(name)
   end
 
   @doc """
