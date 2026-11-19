@@ -24,14 +24,15 @@ defmodule PetalComponents.CssAssetsTest do
     end
   end
 
-  # The styling contract (guides/design.md): every pc-* rule sits in
-  # @layer components, so a plain utility on a component call wins.
+  # The styling contract: every pc-* rule sits in @layer components, so a
+  # plain utility on a component call wins (`mix petal.check` tells people
+  # to drop a ! on the strength of it, guides/design.md section 11 row 2).
   # Unlayered author CSS beats every layer, utilities included, so one rule
   # outside the layer silently breaks that promise for its component (the
   # carousel, toast and filters rules sat outside it for months, and
   # `class="h-64"` on a carousel did nothing). The only rules allowed out
-  # are the deliberate ones that must beat utilities: reduced-motion
-  # overrides and the Firefox-only @-moz-document fix.
+  # are two top-level reduced-motion blocks, which have to beat a caller's
+  # animate-* utility, and the Firefox-only @-moz-document fix.
   test "every pc-* rule in default.css sits inside @layer components" do
     css = File.read!(Path.join(@app_root, "assets/default.css"))
     {:ok, %{statements: statements}} = PetalComponents.Check.Css.parse(css)

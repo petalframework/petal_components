@@ -5937,11 +5937,12 @@
 }
 
 /* Respect users who prefer reduced motion: keep the chat indicators static.
-   Outside @layer components on purpose, like the decorative-motion block
-   further down: unlayered rules beat every layer, utilities included, so a
-   reduced-motion reader stays still even when a caller adds an animate-*
-   utility. These blocks and the Firefox-only @-moz-document below are the
-   only pc-* rules outside the layer; everything else stays inside it. */
+   This block, the decorative-motion block further down and the Firefox-only
+   @-moz-document below are the only pc-* rules outside @layer components,
+   and a test allows these three and nothing else. Outside the layer they
+   beat every utility, so a caller's animate-* utility cannot switch the
+   motion back on. Everything else stays inside the layer, including the
+   reduced-motion blocks nested in a component's own rules. */
 @media (prefers-reduced-motion: reduce) {
   .pc-chat__typing > span,
   .pc-chat__caret,
