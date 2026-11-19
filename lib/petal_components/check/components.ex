@@ -16,12 +16,13 @@ defmodule PetalComponents.Check.Components do
   def undeclared, do: @undeclared
 
   # Modules whose styles sit outside `@layer components` in default.css. An
-  # unlayered rule beats every utility, so on these components a plain
+  # unlayered rule beats every utility, so on such a component a plain
   # utility can lose and a ! can be the only way: telling the reader to drop
-  # it would be wrong. Their calls are left alone by bang-utility until the
-  # CSS moves into the layer. A test reads default.css and fails when this
-  # list and the file disagree, in either direction.
-  @unlayered_modules [PetalComponents.Carousel, PetalComponents.Filters, PetalComponents.Toast]
+  # it would be wrong, and bang-utility leaves its calls alone. The list is
+  # empty because every component's rules are layered. A test reads
+  # default.css and fails when an unlayered pc-* rule appears, so the list
+  # stays true: fix the CSS, or name the module here.
+  @unlayered_modules []
 
   @doc false
   def unlayered_modules, do: @unlayered_modules

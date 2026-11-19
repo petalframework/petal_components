@@ -40,8 +40,6 @@ defmodule PetalComponents.Check.Rules.BangUtility do
         ~s(a ! on a raw element, <div class="!#{cls(["mb", "0"])}">, or on the app's own component),
         ~s(Elixir negation in a class expression: class={if !@open, do: "hidden"}),
         ~s(a ! inside brackets: #{cls(["content", "['!']"])}),
-        "a call to carousel, filters or toast_group: their library styles are not in " <>
-          "@layer components yet, so a plain utility can lose to them and a ! can be the only way",
         "class attrs other than class (*_class) and slot class attrs (wave 2)"
       ]
     }

@@ -48,8 +48,11 @@ defmodule PetalComponents.Check.ComponentsTest do
   # styles sit in @layer components: an unlayered rule beats every utility,
   # so there a ! can be the only way. This reads default.css and keeps
   # Components.unlayered_modules/0 equal to the components whose rules sit
-  # outside every at-rule. When that CSS moves into the layer this fails,
-  # and the module then comes out of the list.
+  # outside every at-rule. Every component is layered now, so both sides are
+  # empty: a pc-* rule appended after the last layer closes fails here, and
+  # the fix is to move it into the layer (or, if it truly must stay out, to
+  # name its module in the list so bang-utility stops telling people to drop
+  # a ! that is needed).
   test "unlayered_modules/0 names exactly the components styled outside @layer components" do
     {:ok, %{statements: statements}} = Css.parse(File.read!("assets/default.css"))
 
@@ -65,10 +68,9 @@ defmodule PetalComponents.Check.ComponentsTest do
       for mod <- Components.unlayered_modules(),
           do: mod |> Module.split() |> List.last() |> Macro.underscore()
 
+    assert roots == [], "pc-* rules outside every at-rule: #{Enum.join(roots, ", ")}"
     assert Enum.sort(roots) == Enum.sort(expected)
-
-    assert Components.unlayered_names() ==
-             MapSet.new(~w(carousel filters toast_group))
+    assert Components.unlayered_names() == MapSet.new()
   end
 
   test "a PetalComponents module that defines no components brings in no names" do

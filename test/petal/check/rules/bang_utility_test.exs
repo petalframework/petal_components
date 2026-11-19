@@ -43,6 +43,25 @@ defmodule PetalComponents.Check.Rules.BangUtilityTest do
       assert_at(src, f)
     end
 
+    # Their styles sat outside @layer components until the layer fix, and
+    # bang-utility left them alone. Now a plain utility wins on them too.
+    test "carousel, filters and toast_group, like any other component" do
+      src =
+        ~s(<.carousel id="c" class="!h-64" slides={[]} />\n<.filters class="!gap-4" />\n) <>
+          ~s(<.toast_group class="!w-80" flash={@flash} />\n<.button class="!px-1" />\n)
+
+      assert [c, f, t, b] = run(:heex, src)
+      assert c.message == "!h-64 on <.carousel> forces a utility over the component's own styles"
+      assert {c.replacement, f.replacement, t.replacement} == {"h-64", "gap-4", "w-80"}
+      assert f.message =~ "<.filters>"
+      assert t.message =~ "<.toast_group>"
+      assert b.message =~ "<.button>"
+
+      remote = ~s(<PetalComponents.Carousel.carousel id="c" class="!h-64" slides={[]} />)
+      assert [r] = run(:ex, in_module(remote))
+      assert r.replacement == "h-64"
+    end
+
     test "a remote call and a multi-line tag" do
       src = in_module(~s(<PetalComponents.Button.button\n  label="x"\n  class="!px-0"\n/>))
       assert [f] = run(:ex, src)
@@ -54,20 +73,6 @@ defmodule PetalComponents.Check.Rules.BangUtilityTest do
   end
 
   describe "must not flag" do
-    # Their styles sit outside @layer components in default.css today, so a
-    # plain utility loses to them and a ! can be the only way to size them.
-    test "carousel, filters and toast_group, whose library styles are not layered yet" do
-      src =
-        ~s(<.carousel id="c" class="!h-64" slides={[]} />\n<.filters class="!gap-4" />\n) <>
-          ~s(<.toast_group class="!w-80" flash={@flash} />\n<.button class="!px-1" />\n)
-
-      assert [f] = run(:heex, src)
-      assert f.message =~ "<.button>"
-
-      remote = ~s(<PetalComponents.Carousel.carousel id="c" class="!h-64" slides={[]} />)
-      assert run(:ex, in_module(remote)) == []
-    end
-
     test "Elixir negation in a class expression" do
       src = in_module(~s(<.button class={if !@open, do: "hidden"} label="x" />))
       assert run(:ex, src) == []
