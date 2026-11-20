@@ -1,6 +1,6 @@
 # Changelog
 
-### Unreleased
+### 4.18.1 - 2026-11-20
 
 #### Fixed
 
@@ -44,6 +44,18 @@
   actions" had no `rows`, so it rendered an empty table, and the
   data_table handler snippet put a `defp` between `handle_event/3`
   clauses, a compiler warning.
+- **Clicking an option in a `combo_box` inside a focusable element
+  selects it.** When any ancestor was focusable (a `<div tabindex="0">`,
+  a wrapping `<button>`, or `scroll_area`, which renders `tabindex="0"`),
+  a click on an option closed the panel and selected nothing. Keyboard
+  selection was not affected. Controls in the `:header` and `:footer`
+  slots still take their own presses (#726, reported in #725).
+- **`date_picker` with `label=""` renders no label.** It rendered an
+  empty `<label>`, and with `required` a lone asterisk. `label` now has
+  three stated cases: text renders that text; left unset, a form field
+  gets a label from its name (`:due_on` becomes "Due on") and a bare
+  `name` gets none; `""` means no label, even on a form field. Thanks
+  to mogadget for the pull request (#720).
 
 #### Added
 
@@ -51,7 +63,7 @@
   before writing custom markup next to the components (the gray dial,
   `dark:` pairs, text tiers, the dark ghost material, radius, focus,
   solid fills), with a pointer to `guides/design.md` and its review
-  checklist. A test keeps every value it quotes identical to the guide.
+  checklist. A test fails if it quotes a value the guide does not have.
 - **CI installs the library into a fresh Phoenix 1.8 app on every pull
   request.** `scripts/install_smoke.sh` generates an app, follows the
   install steps, fails if that moved any version the fresh app had
