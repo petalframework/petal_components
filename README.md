@@ -57,35 +57,42 @@ If you'd rather install yourself, in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:petal_components, "~> 4.0"},
-    # optional — only needed for the chat markdown components (<Chat.markdown>, <Chat.rich_text>)
-    {:mdex, "~> 0.12"}
+    {:petal_components, "~> 4.18"},
+    # optional - only needed for the chat markdown components (<Chat.markdown>, <Chat.rich_text>)
+    {:mdex, "~> 0.12"},
+    # optional - only needed for <.qr_code>
+    {:eqrcode, "~> 0.2"}
   ]
 end
 ```
 
-In `assets/css/app.css`:
+In `assets/css/app.css`, directly below the existing `@import "tailwindcss"` line (Phoenix 1.8 writes `@import "tailwindcss" source(none);`; keep it and do not add a second one):
 
 ```css
-@import "tailwindcss";
 @source "../../deps/petal_components/**/*.*ex";
 @source not "../../deps/petal_components/lib/petal_components/showcase";
 @import "../../deps/petal_components/assets/default.css";
 @plugin "@tailwindcss/forms";
 ```
 
-In your `MyAppWeb` module:
+If you use `<.prose>`, also add `@plugin "@tailwindcss/typography";`. Its styles come from that plugin, which the standalone Tailwind CLI already includes.
+
+In your `MyAppWeb` module, inside `defp html_helpers` (LiveViews get their imports from there, not from `def html`), replace `import MyAppWeb.CoreComponents` with:
 
 ```elixir
-def html do
-  quote do
-    use PetalComponents
-    # ... your other imports
-  end
-end
+use PetalComponents
+import MyAppWeb.CoreComponents, except: [button: 1, icon: 1, input: 1, table: 1]
 ```
 
-Register the bundled JS hooks in `assets/js/app.js` (needed for the password/copyable/clearable inputs and the chat components — the rest of the library is CSS + LiveView.JS only):
+Phoenix 1.8's generated CoreComponents defines those four names too, and importing both makes the calls ambiguous. Pages from `mix phx.gen.live` and `mix phx.gen.auth` call the CoreComponents versions, so update their call sites: `<.input label=...>` becomes `<.field label=...>`, `<.button variant="primary">` becomes `<.button>`, and `<.table>` row actions move from the `:action` slot into a `<:col>`. [usage-rules.md](./usage-rules.md) has the full list, plus the lines to correct in the `AGENTS.md` that `phx.new` writes.
+
+In `config/config.exs`, route form errors through your app's translator, so errors such as "has already been taken" from `phx.gen.auth` do not render as "invalid value":
+
+```elixir
+config :petal_components, :error_translator_function, {MyAppWeb.CoreComponents, :translate_error}
+```
+
+Register the bundled JS hooks in `assets/js/app.js`. Many components need them (toasts, dropdowns and popovers, alert dialogs, the combobox, the data table, the date picker, charts, the chat components, the enhanced inputs and more), so spread the whole set once:
 
 ```js
 import PetalComponents from "../../deps/petal_components/assets/js/petal_components"
@@ -96,7 +103,9 @@ const liveSocket = new LiveSocket("/live", Socket, {
 })
 ```
 
-Run `mix deps.get`, then `mix compile` to verify.
+Phoenix 1.8 already passes `hooks: {...colocatedHooks}`; make it `hooks: {...colocatedHooks, ...PetalComponents}`.
+
+Run `mix deps.get`, then `mix compile --warnings-as-errors` to verify, and check that a LiveView rendering a `<.button>` has `button.pc-button` in its HTML (with the import in `def html` instead of `html_helpers`, it would not). With petal_components 4.18.0 or older, `mix deps.get` in a new Phoenix 1.8 app fails on `websock_adapter`; run `mix deps.unlock websock_adapter && mix deps.get`.
 
 ## For AI coding tools
 

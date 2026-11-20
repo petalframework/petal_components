@@ -13,10 +13,10 @@ When the user says "install petal_components" (or you're starting in a Phoenix p
 Open `mix.exs`. In the `deps/0` function, add this line if it's not already there:
 
 ```elixir
-{:petal_components, "~> 4.0"}
+{:petal_components, "~> 4.18"}
 ```
 
-If the user wants the chat components (`PetalComponents.Chat` — `<Chat.conversation>`, `<Chat.markdown>`, `<Chat.rich_text>`, …), also add the optional `{:mdex, "~> 0.12"}`. The rest of the library needs no extra deps. Note the `Chat` family is not pulled in by `use PetalComponents` — `alias PetalComponents.Chat` and call it namespaced.
+If the user wants the chat components (`PetalComponents.Chat`: `<Chat.conversation>`, `<Chat.markdown>`, `<Chat.rich_text>` and the rest), also add the optional `{:mdex, "~> 0.12"}`. If the user wants `<.qr_code>`, also add the optional `{:eqrcode, "~> 0.2"}`; without it, rendering a QR code raises an error that says to add it. The other components need no extra deps. The Chat family is not pulled in by `use PetalComponents`: add `alias PetalComponents.Chat` and call it namespaced.
 
 ### 2. Fetch dependencies
 
@@ -24,45 +24,73 @@ If the user wants the chat components (`PetalComponents.Chat` — `<Chat.convers
 mix deps.get
 ```
 
+Releases up to and including 4.18.0 declared `websock_adapter ~> 0.5.7`, which a new Phoenix 1.8 app's `mix.lock` (websock_adapter 0.7.x) does not satisfy, so resolution fails with a message naming `websock_adapter`. Later releases do not declare it. If you see that failure, run `mix deps.unlock websock_adapter && mix deps.get`.
+
 ### 3. Configure Tailwind CSS
 
-Open `assets/css/app.css`. Find the `@import "tailwindcss"` line (Phoenix 1.8 writes it as `@import "tailwindcss" source(none);`) and add these lines below it:
+Open `assets/css/app.css` and find the existing `@import "tailwindcss"` line (Phoenix 1.8 writes it as `@import "tailwindcss" source(none);`). Leave that line exactly as it is and do not add a second `@import "tailwindcss"`. Directly below it, add these four lines:
 
 ```css
-@import "tailwindcss";
 @source "../../deps/petal_components/**/*.*ex";
 @source not "../../deps/petal_components/lib/petal_components/showcase";
 @import "../../deps/petal_components/assets/default.css";
 @plugin "@tailwindcss/forms";
 ```
 
+When you are done, `app.css` contains exactly one `@import "tailwindcss"` line.
+
 The `@source` line tells Tailwind to scan petal_components source for class usage. The `@source not` line skips the `showcase/` example modules - those power petal.build's own docs, not your app, so scanning them would only add unused utility classes to your CSS. (`@source not` needs Tailwind v4.1+. On v4.0 it's harmless to drop the line; you just get a little extra CSS.) The `@import` line brings in the default component styles (the `pc-*` CSS prefix).
 
 The `@plugin` line loads `@tailwindcss/forms`. The form components are styled on top of it: the plugin sets the border width and padding on text inputs, selects and textareas, and resets the native look of checkboxes and selects. Without it, Tailwind's preflight leaves inputs with no border and no padding. Skip the line if the app already loads the plugin. The `tailwind` Hex package that Phoenix uses runs the standalone Tailwind CLI, which already includes the plugin, so there is nothing to install. If the app builds Tailwind through Node instead, run `npm install -D @tailwindcss/forms` in `assets/`.
+
+`<.prose>` renders Tailwind's `prose` classes, which come from the `@tailwindcss/typography` plugin. Without the plugin the content inside `<.prose>` has no typography styles at all. If the app uses `<.prose>`, add `@plugin "@tailwindcss/typography";` below the forms line, unless the app already loads it. The standalone Tailwind CLI includes this plugin too, so there is nothing to install; with a Node build, run `npm install -D @tailwindcss/typography` in `assets/`.
 
 If there is no `@import "tailwindcss"` line, the project is on Tailwind v3 and petal_components 4.x will not work. Tell the user to upgrade to Tailwind v4, or pin to `petal_components ~> 1.0` for Tailwind v3 support.
 
 ### 4. Import the components in your web module
 
-Find `lib/<your_app>_web.ex`. In umbrella apps it lives at `apps/<your_app>_web/lib/<your_app>_web.ex`. The file defines macros like `def html`, `def controller`, `def live_view`.
+Find `lib/<your_app>_web.ex`. In umbrella apps it lives at `apps/<your_app>_web/lib/<your_app>_web.ex`. The file defines `def html`, `def live_view`, `def live_component` and a private `defp html_helpers`. All three of the public ones `unquote(html_helpers())`, but `def live_view` does not go through `def html`, so an import placed in `def html` never reaches a LiveView. Put it in `html_helpers`.
 
-Inside `def html`, locate the `quote do` block and add `use PetalComponents`:
+Phoenix 1.8's generated `core_components.ex` defines `button/1`, `icon/1`, `input/1` and `table/1`, the same names petal_components exports. Importing both makes every call to those four ambiguous, and the app stops compiling (`function icon/1 imported from both <YourApp>Web.CoreComponents and PetalComponents.Icon, call is ambiguous`, first in the generated `Layouts`). So exclude those four from the CoreComponents import. Inside `defp html_helpers`, change the generated line
 
 ```elixir
-def html do
-  quote do
-    use Phoenix.Component
-    use PetalComponents
-    # ... existing imports
-  end
-end
+import MyAppWeb.CoreComponents
 ```
 
-`use PetalComponents` imports every component so you can call them as `<.button>`, `<.modal>`, etc. without explicit aliases. If a `use PetalComponents` line is already present, skip this step.
+to these two lines:
+
+```elixir
+use PetalComponents
+import MyAppWeb.CoreComponents, except: [button: 1, icon: 1, input: 1, table: 1]
+```
+
+(with your app's module name in place of `MyAppWeb`). The rest of CoreComponents (`flash/1`, `header/1`, `list/1` and the others) stays imported. If the compiler reports another `call is ambiguous` name (apps generated by older Phoenix versions also define `modal/1`, for example), add it to the `except:` list the same way. If `use PetalComponents` is already in `html_helpers`, skip this step; if it is in `def html`, move it.
+
+`use PetalComponents` imports the components so you can call them as `<.button>`, `<.modal>`, etc. without explicit aliases. The one component family it does not import is Chat (`PetalComponents.Chat`, see step 1), which you alias and call as `<Chat.markdown>` and so on. The other modules it leaves out are not meant to be called from your templates: `PetalComponents.DataTable.FilterEditor`, which `<.data_table>` and `<.filters>` render for you; the old `HeroiconsV1` icon sets, which it aliases as `HeroiconsV1` (use `<.icon name="hero-...">` instead); and the `Showcase` and `Svg` helpers the library uses for its own docs and icons.
+
+After this, `<.button>`, `<.icon>`, `<.input>` and `<.table>` everywhere in the app are the petal_components versions, which take different attributes from the CoreComponents ones. A fresh `phx.new` app compiles unchanged (its layouts only call `<.icon name="hero-...">`, which petal_components renders the same way). Pages written by `mix phx.gen.live` or `mix phx.gen.auth`, before or after the install, call the CoreComponents versions and need their call sites updated:
+
+- `<.input field={@form[:email]} type="email" label="Email" />` becomes `<.field field={@form[:email]} type="email" label="Email" />`. petal_components' `<.input>` is the bare control and renders no label and no errors, so keeping `<.input label=...>` silently drops both.
+- `<.button variant="primary">` becomes `<.button>` (solid primary is the default). A `<.button>` with no `variant` was the CoreComponents soft style (Cancel buttons, for example); make it `<.button variant="soft">` so it does not turn solid. `<.button navigate={~p"/path"}>` becomes `<.button link_type="live_redirect" to={~p"/path"}>`.
+- Remove the daisyUI `btn`, `btn-primary`, `btn-soft` and other `btn-*` classes from a button's `class` (`phx.gen.auth` writes `class="btn btn-primary w-full"`). petal_components adds `class` to its own classes, so they would stack two button styles on one element. Keep layout classes such as `w-full`.
+- `<.table>` has no `:action` slot. Move the row actions into a last `<:col :let={row} label="">`. `rows={@streams.items}` works as before. With `row_click` set, petal_components puts the row click on every cell, so the actions cell gets it too; drop `row_click` if the row should not open the record.
+- Generated tests that match exact input HTML (for example `phx.gen.auth`'s login test asserting `~s(<input type="email" name="user[email]" ...)`) fail, because petal_components renders the attributes in a different order with its own classes. Rewrite them with `has_element?/2` and a selector.
+
+`mix compile --warnings-as-errors` flags the `variant="primary"`, `navigate` and `:action` call sites. It does not flag `<.input label=...>` or the `btn-*` classes. A leftover `<.input label=...>` compiles and renders with no label and no errors; the generated LiveView tests catch it (their `can't be blank` assertions fail), so run `mix test` after the edits, and search the templates for `<.input` and `btn` as well. To keep one generated page exactly as generated instead, call the core component by its module: `<MyAppWeb.CoreComponents.input field={@form[:email]} label="Email" />`.
+
+### 4b. Route form errors through your app's translator
+
+In `config/config.exs`, add:
+
+```elixir
+config :petal_components, :error_translator_function, {MyAppWeb.CoreComponents, :translate_error}
+```
+
+(with your app's module name in place of `MyAppWeb`). Phoenix generates `translate_error/1` in `core_components.ex`, and it runs errors through Gettext. Without this line petal_components falls back to plain `%{key}` substitution, which cannot handle the list options some Ecto validations add: `unsafe_validate_unique` (used by `phx.gen.auth`) adds `fields: [:email]`, so "has already been taken" renders as "invalid value" and a warning is logged. If the app already sets `:error_translator_function`, skip this step.
 
 ### 5. Register the JS hooks
 
-petal_components v4 ships a bundled JS hook set - toasts, the command palette and its trigger, the colour-scheme switch, carousel, charts, local time, sliders, OTP input, the chat family, popover, the combobox, the data table, the navigation menu's hover mode, the effects, and the enhanced inputs (everything else is CSS + LiveView.JS only). You never register hooks individually - spread the whole set once. Open `assets/js/app.js`, import the hooks, and merge them into your `LiveSocket`:
+petal_components v4 ships a bundled JS hook set that many components need: toasts, dropdowns and popovers, alert dialogs, the command palette, the combobox, the data table, the date picker and calendar, sliders, charts, the chat family, the enhanced inputs and more. Without the hooks those components still render, but their interactive behaviour is missing and the browser console reports an unknown hook. You never register hooks individually - spread the whole set once. Open `assets/js/app.js`, import the hooks, and merge them into your `LiveSocket`:
 
 ```js
 import PetalComponents from "../../deps/petal_components/assets/js/petal_components"
@@ -73,7 +101,9 @@ const liveSocket = new LiveSocket("/live", Socket, {
 })
 ```
 
-If the project has no `assets/js/app.js` (an API-only or minimal app), skip this — the hooks are only needed for those interactive components.
+Phoenix 1.8 already passes `hooks: {...colocatedHooks}`; make it `hooks: {...colocatedHooks, ...PetalComponents}`.
+
+If the project has no `assets/js/app.js` (an API-only or minimal app), skip this step: only the interactive components need the hooks.
 
 ### 5b. Charts (only if the app uses `<.chart>`)
 
@@ -85,15 +115,57 @@ The `<.chart>` component drives Apache ECharts but does not bundle it — the en
 
 or `npm i echarts` plus `import * as echarts from "echarts"; window.echarts = echarts;` in `app.js`. The `PetalChart` hook picks it up from `window.echarts` and warns in the console if it's missing (the chart area renders empty). `<.sparkline>` is pure server-rendered SVG and needs nothing.
 
-### 6. Verify
+### 6. Update the project's agent instructions
 
-```sh
-mix compile
+`mix phx.new` writes an `AGENTS.md` whose Phoenix guidelines tell an agent to always use the `<.icon>` and `<.input>` components from `core_components.ex`. After step 4 those two lines are wrong for this app. In `AGENTS.md`, replace the line that starts ``- Out of the box, `core_components.ex` imports an `<.icon`` with:
+
+```text
+- `<.icon>` comes from petal_components (`use PetalComponents` in `html_helpers`). Use `<.icon name="hero-x-mark" class="w-5 h-5" />` for hero icons, **never** `Heroicons` modules or similar
 ```
 
-Should compile cleanly. To smoke test, drop `<.button>Hello</.button>` in any HEEx template.
+and replace the line that starts ``- **Always** use the imported `<.input>` component`` with:
 
-### 7. Brand colours (optional)
+```text
+- Form fields use petal_components `<.field field={@form[:name]} label="..." />` (label, input, errors and help text). `<.input>` is the petal_components bare input and renders no label
+```
+
+Delete the line after them that starts ``- If you override the default input classes`` (and its continuation line): petal_components adds your `class` to its own classes rather than replacing them. Further down, in the form section, change ``and the `<.input>` component in the template`` to ``and the `<.field>` component in the template``, and in the form examples change every `<.input field=` to `<.field field=`. If the project keeps the same guidelines in `CLAUDE.md` or another rules file, make the same change there. If the project has no `AGENTS.md` and no such file (apps made with `mix phx.new --no-agents-md`, or by Phoenix before 1.8), skip this step.
+
+### 7. Verify
+
+```sh
+mix compile --warnings-as-errors
+```
+
+It must finish with no warnings. Warnings printed while compiling `petal_components` itself about `MDEx` or `EQRCode` are about optional dependencies and do not fail the build. Then check that a LiveView renders the library's markup, not the CoreComponents markup. A fresh `phx.new` app has no LiveView yet, so if the app has none that renders a `<.button>`, add a throwaway one:
+
+```elixir
+# lib/my_app_web/live/install_check_live.ex
+defmodule MyAppWeb.InstallCheckLive do
+  use MyAppWeb, :live_view
+
+  def render(assigns), do: ~H"<.button>Hello</.button>"
+end
+```
+
+with `live "/install-check", InstallCheckLive` in the router's `"/"` browser scope, and this test:
+
+```elixir
+# test/my_app_web/live/install_check_live_test.exs
+defmodule MyAppWeb.InstallCheckLiveTest do
+  use MyAppWeb.ConnCase, async: true
+  import Phoenix.LiveViewTest
+
+  test "renders petal_components", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/install-check")
+    assert has_element?(view, "button.pc-button")
+  end
+end
+```
+
+Run `mix test`, then delete the three throwaway pieces. Finally run `mix assets.build` and confirm `priv/static/assets/css/app.css` contains `.pc-button`.
+
+### 8. Brand colours (optional)
 
 Components work out of the box: petal_components ships default colour ramps (blue `primary`, pink `secondary`, semantic hues, zinc `gray`). They are soft defaults (`@theme default`), so a plain `@theme` block in the project's `app.css` wins no matter where it sits relative to the import:
 
@@ -115,7 +187,7 @@ One deliberate choice to know about: the `gray` role ships Tailwind's **zinc** v
 @import "../../deps/petal_components/assets/tailwind-gray.css";
 ```
 
-### 8. Type (optional)
+### 9. Type (optional)
 
 Components inherit the host app's font stack - that is the default and it stays. Three opt-in tokens exist for when a design wants distinct faces; the package only READS them (never defines them), so an app that sets nothing changes nothing:
 
@@ -149,6 +221,24 @@ Self-hosting a face in Phoenix: fetch the variable woff2 into `priv/static/fonts
 4. **Call components as plain HEEx tags after `use PetalComponents`.** `<.button>`, `<.modal>`, `<.table>`, `<.card>`, etc. If you have not imported, qualify with the module: `<PetalComponents.Button.button />`. Note: the `pc-*` prefix you see in source is the CSS class prefix for styling, not part of the function name.
 5. **Components work in both live and dead views.** Interactivity is Phoenix.LiveView.JS only (no Alpine.js as of v4). Many components (toasts, command palette, colour scheme, carousel, charts, chat, combobox, data table, enhanced inputs and more) use bundled JS hooks — register the whole set once in your LiveSocket: `import PetalComponents from "../../deps/petal_components/assets/js/petal_components"` then `hooks: { ...PetalComponents }`.
 6. **Form inputs come in two layers, pick deliberately.** Use `<.field type="..." />` when you want label + input + error + help text bundled (the common case in form contexts). Use the standalone primitives (`<.text_input>`, `<.select>`, `<.checkbox>`, etc.) when composing your own field layout.
+
+## Design
+
+These rules apply to every line of custom markup and CSS you write next to the components (anything that is not a petal_components tag). They are the floor; the full doctrine is in the design guide named at the end of this section.
+
+- Gray is the neutral dial, not a palette. Write `bg-gray-100`, `border-gray-200`, `text-gray-700`: the app remaps the `gray` ramp. Never literal `slate-*`, `zinc-*`, `stone-*` or `neutral-*` in chrome.
+- Every light-mode colour class carries its `dark:` pair in the same class string. No unpaired colours.
+- Text sits on three tiers: headings `text-gray-900 dark:text-white`, body `text-gray-700 dark:text-gray-100`, muted `text-gray-500 dark:text-gray-400`.
+- Dark translucent chrome is alpha of gray-400, never white alpha and never opaque gray-800 on ghost surfaces: `dark:bg-gray-400/8` resting surface, `dark:hover:bg-gray-400/17` hover wash, `dark:border-gray-400/17` panel hairline, `dark:border-gray-400/25` input border and active wash.
+- Opaque panels: `bg-white dark:bg-gray-900`, hairline `border-gray-200 dark:border-gray-400/17`. `shadow-xs` resting, `shadow-lg` or `shadow-xl` for floating panels, no `shadow-md`.
+- Radius comes from one knob: `var(--pc-radius, 0.625rem)` on custom controls, clamped to `min(var(--pc-radius, 0.625rem), 1rem)` on anything that can grow past one line. Never hardcode `rounded-lg` or `rounded-xl` next to the components.
+- Focus is the house ring: `focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50`, plus `focus-visible:border-primary-500` on fields. Never `outline-none` without a visible replacement.
+- Solid fills walk the ramp: `bg-primary-600 hover:bg-primary-700 active:bg-primary-800`. Never `hover:opacity-90` or `hover:brightness-*` on solids.
+- Colour is an accent, not paint: a neutral surface, with the semantic hue arriving as an icon and a hairline rather than a tinted background flood.
+- Disabled is `disabled:opacity-50 disabled:cursor-not-allowed`. Transitions are `transition-colors duration-200 ease-out`.
+- Heroicon names must be source-literal: `name="hero-check-micro"` works, an interpolated name is purged by the Tailwind source scan.
+
+Before styling custom markup or theming the app, read `deps/petal_components/guides/design.md`. To review a diff, walk its section 11, "Reviewing a diff by hand".
 
 ## Discovering components
 
@@ -208,8 +298,10 @@ If the MCP is unavailable, the source of truth is https://hexdocs.pm/petal_compo
 
 ### Table with row actions
 
+`rows` is required in practice: without it the table renders headers and an empty body, with no warning.
+
 ```heex
-<.table>
+<.table id="users" rows={@users}>
   <:col :let={user} label="Name">{user.name}</:col>
   <:col :let={user} label="Email">{user.email}</:col>
   <:col :let={user} label="">
@@ -288,16 +380,19 @@ def handle_event("table", %{"op" => "move_column", "field" => f, "dir" => dir}, 
   {:noreply, update(socket, :column_order, &PetalComponents.DataTable.move_column(&1, fields, f, dir))}
 end
 
-# ONE identity function, used as both the component's row_id and
-# select_all's page sweep - they must never disagree
-defp row_key(row), do: to_string(row.id)
-
 def handle_event("table", params, socket) do
   state = State.handle_op(socket.assigns.table, params, fields: [:customer, :status, :amount])
   {rows, state} = Engine.List.run(all_orders(), state)
   {:noreply, assign(socket, rows: rows, table: state)}
 end
+
+# ONE identity function, used as both the component's row_id and
+# select_all's page sweep - they must never disagree. It goes after the last
+# handle_event/3 clause: a defp between clauses is a compiler warning.
+defp row_key(row), do: to_string(row.id)
 ```
+
+The snippet uses `State` and `Engine` unqualified, so the LiveView needs `alias PetalComponents.DataTable.{State, Engine}`.
 
 Selection and column visibility are UI state (the clauses above; move them to a separate `on_ui` event if you prefer) - keep them in assigns, never in URLs. For URL-driven tables pass `path` instead of `on_change`: every interaction becomes a patch URL and `State.from_params/2` in `handle_params` is the whole backend. `row_id` must uniquely identify records across all pages.
 

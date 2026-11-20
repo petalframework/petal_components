@@ -77,3 +77,21 @@ jobs:
         run: mix deps.clean mdex --build
       - name: Compile without :mdex (must succeed)
         run: mix compile --force
+
+  # Installs this checkout into a fresh Phoenix 1.8 app by following the
+  # steps in usage-rules.md, then compiles with --warnings-as-errors, renders
+  # the components in a LiveView test and builds the assets. Every install
+  # bug so far (CSS paths, the forms plugin, a dependency that a new app's
+  # lock rejects, imports LiveViews never saw) was found by a person. This
+  # job finds that class instead. The script pins the phx_new version.
+  install-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v3
+      - uses: erlef/setup-beam@v1
+        with:
+          version-type: strict
+          version-file: .tool-versions
+      - name: Install into a fresh Phoenix app and render it
+        run: scripts/install_smoke.sh "$GITHUB_WORKSPACE" "$RUNNER_TEMP/install-smoke"

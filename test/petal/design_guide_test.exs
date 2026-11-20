@@ -90,6 +90,50 @@ defmodule PetalComponents.DesignGuideTest do
            "guides/design.md has language-less code fences (ex_doc highlights them as Elixir) at lines #{Enum.join(bare, ", ")}"
   end
 
+  describe "the Design section of usage-rules.md" do
+    # usage-rules.md is what `mix usage_rules.sync` copies into a project's
+    # CLAUDE.md or AGENTS.md, so its Design section is often the only design
+    # copy an agent reads. Every value it quotes must be one the guide quotes.
+    setup do
+      section =
+        @root
+        |> Path.join("usage-rules.md")
+        |> File.read!()
+        |> String.split(~r/^## /m)
+        |> Enum.find(&String.starts_with?(&1, "Design\n"))
+
+      assert section, "usage-rules.md has no \"## Design\" section"
+      %{section: section}
+    end
+
+    test "quotes only values the guide quotes", %{section: section, guide: guide} do
+      pointer = "deps/petal_components/guides/design.md"
+
+      quoted =
+        ~r/`([^`]+)`/
+        |> Regex.scan(section, capture: :all_but_first)
+        |> List.flatten()
+        |> Enum.reject(&(&1 == pointer))
+        |> Enum.uniq()
+
+      assert length(quoted) >= 25, "the Design section quotes almost nothing - was it cut?"
+
+      missing = Enum.reject(quoted, &String.contains?(guide, &1))
+
+      assert missing == [],
+             "usage-rules.md's Design section quotes values guides/design.md does not: #{inspect(missing)}"
+    end
+
+    test "points at the shipped guide and its review section", %{section: section, guide: guide} do
+      assert section =~ "`deps/petal_components/guides/design.md`"
+      assert section =~ ~s(section 11, "Reviewing a diff by hand")
+      assert guide =~ "## 11. Reviewing a diff by hand"
+
+      assert "guides" in Mix.Project.config()[:package][:files],
+             "guides/ no longer ships in the Hex package, so the pointer is dead"
+    end
+  end
+
   test "each copy points at the other" do
     assert File.read!(@guide_md) =~ "skills/petal-design/"
 

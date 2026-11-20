@@ -1,5 +1,63 @@
 # Changelog
 
+### Unreleased
+
+#### Fixed
+
+- **Installing into a fresh Phoenix 1.8 app works.** The library
+  declared `{:websock_adapter, "~> 0.5.7"}` as a runtime dependency,
+  left over from a playground experiment and unused in `lib/`. A new
+  `phx.new` app locks websock_adapter 0.7.x, so `mix deps.get` failed
+  on resolution. The library no longer declares it. If you are on
+  4.18.0 or older and hit that failure, run
+  `mix deps.unlock websock_adapter && mix deps.get`.
+- **The install steps are right for Phoenix 1.8.** `usage-rules.md`
+  and the README said to put `use PetalComponents` in `def html`, which
+  LiveViews never go through, so LiveViews got none of the components.
+  It now goes in `html_helpers`, and the steps say to import
+  `CoreComponents` with `except: [button: 1, icon: 1, input: 1, table: 1]`,
+  because Phoenix 1.8 generates those four names too and importing both
+  stops the app compiling. The steps also say which call sites in pages
+  from `phx.gen.live` and `phx.gen.auth` need changing, which lines of
+  the generated `AGENTS.md` to correct, how to end up with exactly
+  one `@import "tailwindcss"`, and how to verify
+  (`mix compile --warnings-as-errors` plus a LiveView render check).
+  A new step sets `:error_translator_function` to the app's
+  `CoreComponents.translate_error/1`; without it, the
+  "has already been taken" error from `phx.gen.auth` rendered as
+  "invalid value".
+  The playground's Get code panel matches.
+- **Four `usage-rules.md` statements are accurate.** It said the
+  library needs no extra deps besides `mdex`, but `<.qr_code>` needs
+  the optional `eqrcode`. It said `use PetalComponents` imports every
+  component, but it does not import the Chat family, and the modules it
+  leaves out (the data table's filter editor, the old HeroiconsV1 sets,
+  the Showcase and Svg helpers) are now named. And it never said that
+  `<.prose>` needs the `@tailwindcss/typography` plugin, without which
+  it renders unstyled. The JS hooks step listed only some of the
+  components that need the bundled hooks (the README named only the
+  enhanced inputs and chat); dropdowns, popovers, alert dialogs, the
+  date picker and others need them too, and the step now says what you
+  see when they are missing.
+  The README says the same.
+- **Two `usage-rules.md` examples work when copied.** "Table with row
+  actions" had no `rows`, so it rendered an empty table, and the
+  data_table handler snippet put a `defp` between `handle_event/3`
+  clauses, a compiler warning.
+
+#### Added
+
+- **`usage-rules.md` has a Design section.** The rules an agent needs
+  before writing custom markup next to the components (the gray dial,
+  `dark:` pairs, text tiers, the dark ghost material, radius, focus,
+  solid fills), with a pointer to `guides/design.md` and its review
+  checklist. A test keeps every value it quotes identical to the guide.
+- **CI installs the library into a fresh Phoenix 1.8 app on every pull
+  request.** `scripts/install_smoke.sh` generates an app, follows the
+  install steps, fails if that moved any version the fresh app had
+  locked, compiles with `--warnings-as-errors`, renders the components
+  in a LiveView test and builds the assets.
+
 ### 4.18.0 - 2026-11-11
 
 #### Added

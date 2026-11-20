@@ -204,12 +204,13 @@ defmodule Dev.PlaygroundLive do
 
   ```elixir
   def deps do
-    [{:petal_components, "~> 4.5"}]
+    [{:petal_components, "~> 4.18"}]
   end
   ```
 
-  Then `use PetalComponents` in your web module - every component in this
-  playground is available as a plain HEEx tag.
+  Then `use PetalComponents` in `html_helpers` in your web module. Every
+  component in this playground except the Chat family is available as a
+  plain HEEx tag; alias `PetalComponents.Chat` and call `<Chat.markdown>`.
   """
 
   @chat_replies [
@@ -3313,8 +3314,10 @@ defmodule Dev.PlaygroundLive do
       %{
         name: "my_app_web.ex",
         code: """
-        # lib/<your_app>_web.ex - inside `def html`'s quote block
-        use PetalComponents\
+        # lib/<your_app>_web.ex - inside `defp html_helpers`, in place of
+        # `import MyAppWeb.CoreComponents` (Phoenix 1.8 defines these four too)
+        use PetalComponents
+        import MyAppWeb.CoreComponents, except: [button: 1, icon: 1, input: 1, table: 1]\
         """
       },
       %{
