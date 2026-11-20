@@ -1,6 +1,6 @@
 # Changelog
 
-### Unreleased
+### 4.18.1 - 2026-11-20
 
 #### Fixed
 
@@ -44,6 +44,18 @@
   actions" had no `rows`, so it rendered an empty table, and the
   data_table handler snippet put a `defp` between `handle_event/3`
   clauses, a compiler warning.
+- **Clicking an option in a `combo_box` inside a focusable element
+  selects it.** When any ancestor was focusable (a `<div tabindex="0">`,
+  a wrapping `<button>`, or `scroll_area`, which renders `tabindex="0"`),
+  a click on an option closed the panel and selected nothing. Keyboard
+  selection was not affected. Controls in the `:header` and `:footer`
+  slots still take their own presses (#726, reported in #725).
+- **`date_picker` with `label=""` renders no label.** It rendered an
+  empty `<label>`. `label` now has three stated cases: text renders
+  that text; left unset, a form field gets a label from its name
+  (`:due_on` becomes "Due on") and a bare `name` gets none; `""` means
+  no label, even on a form field. Thanks to mogadget for the pull
+  request (#720).
 
 #### Added
 

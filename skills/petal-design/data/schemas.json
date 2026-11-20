@@ -5705,7 +5705,7 @@
         },
         {
           "default": null,
-          "doc": "the field label; omitted when nil",
+          "doc": "the field label. With a `field`, leaving it unset derives one from the field name (`:due_on` becomes \"Due on\"); without one, no label renders. Pass `label=\"\"` to drop it, then point a `<label>` of your own at the input (`\"<id>-input\"`) so it keeps an accessible name",
           "name": "label",
           "required": false,
           "type": ":string",
@@ -18008,6 +18008,6 @@
       "slots": []
     }
   ],
-  "generated_at": "2026-10-21T01:42:29.083832Z",
-  "version": "4.18.0"
+  "generated_at": "2026-11-20T03:31:33.411855Z",
+  "version": "4.18.1"
 }
