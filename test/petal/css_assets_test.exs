@@ -24,6 +24,120 @@ defmodule PetalComponents.CssAssetsTest do
     end
   end
 
+  # The styling contract: every pc-* rule sits in @layer components, so a
+  # plain utility on a component call wins (`mix petal.check` tells people
+  # to drop a ! on the strength of it, guides/design.md section 11 row 2).
+  # Unlayered author CSS beats every layer, utilities included, so one rule
+  # outside the layer silently breaks that promise for its component (the
+  # carousel, toast and filters rules sat outside it for months, and
+  # `class="h-64"` on a carousel did nothing).
+  #
+  # These are the rules outside the layer today, and the test fails on any
+  # other, in either direction: a new exception is added here by hand or
+  # not at all. The reduced-motion ones have to beat a caller's animate-*
+  # utility. The Firefox-only date input ones are older than the contract.
+  @outside_the_layer [
+    {"@media (prefers-reduced-motion: reduce)",
+     ".pc-chat__typing > span, .pc-chat__caret, .pc-chat__tool-spinner"},
+    {"@-moz-document url-prefix()", ".pc-date-input"},
+    {"@-moz-document url-prefix()", ~s(input.pc-date-input[type="time"])},
+    {"@-moz-document url-prefix()", ".pc-date-input-icon"},
+    {"@media (prefers-reduced-motion: reduce)", ".pc-border-beam__beam, .pc-meteor"},
+    {"@media (prefers-reduced-motion: reduce)",
+     ".pc-gradient-text, .pc-shimmer-text, .pc-typing-effect__cursor"},
+    {"@media (prefers-reduced-motion: reduce)", ".pc-word-rotate__word"}
+  ]
+
+  test "every pc-* rule in default.css sits inside @layer components" do
+    css = File.read!(Path.join(@app_root, "assets/default.css"))
+    {:ok, %{statements: statements}} = PetalComponents.Check.Css.parse(css)
+
+    outside =
+      for st <- statements,
+          selector =
+            st
+            |> PetalComponents.Check.Css.selectors()
+            |> Enum.join(" ")
+            |> String.replace(~r/\s+/, " ")
+            |> String.trim(),
+          selector =~ ".pc-",
+          at_rules = PetalComponents.Check.Css.at_rules(st),
+          not match?(["@layer components" | _], at_rules),
+          uniq: true,
+          do: {List.first(at_rules), selector}
+
+    assert outside -- @outside_the_layer == [],
+           "pc-* rules outside @layer components: #{inspect(outside -- @outside_the_layer)}"
+
+    assert @outside_the_layer -- outside == [],
+           "listed as outside the layer, but not there: #{inspect(@outside_the_layer -- outside)}"
+  end
+
+  # The icon sizing contract (default.css, at the pagination previous
+  # chevron): in every phx.new app the heroicons plugin emits hero-* into
+  # the utilities layer, which beats any components-layer rule, so a pc-*
+  # class that sizes a hero-* span needs a doubled selector and !important.
+  # The toast's two icons had a plain `w-5 h-5` and `w-4 h-4`. That held
+  # only while the toast's rules sat outside the layer: once layered, the
+  # icons grew from 20px and 16px to 24px in Petal Pro and petal.build,
+  # and the playground (hero-* in the base layer there) showed no change.
+  describe "carousel, toast and filters icons" do
+    @icon_classes ~w(pc-filters__add-icon pc-filters__back-icon pc-filters__chip-remove-icon
+                     pc-toast__close-icon pc-toast__icon)
+
+    # A new icon in one of these three has to be named above, and the next
+    # test then holds it to the contract. Found three ways: an <.icon> call
+    # with a pc-* class, any class string that holds both a hero-* name and
+    # a pc-* class, and, in the hook, any class of these components that
+    # ends in "icon" (the toast's kind icon gets its hero-* name at run
+    # time, so no one string holds both names).
+    test "every pc-* class they put on a hero-* span is listed" do
+      heex =
+        for file <- ~w(carousel filters toast),
+            source = File.read!(Path.join(@app_root, "lib/petal_components/#{file}.ex")),
+            [text] <-
+              Regex.scan(~r/<\.icon\b.*?\/>/s, source) ++
+                Regex.scan(~r/class="[^"]*hero-[^"]*"/, source),
+            [class] <- Regex.scan(~r/pc-[a-z0-9_-]+/, text),
+            do: class
+
+      js = File.read!(Path.join(@app_root, "assets/js/petal_components.js"))
+
+      hook =
+        for [class] <-
+              Regex.scan(~r/pc-(?:carousel|filters|toast)[a-z0-9_-]*icon(?![a-z0-9_-])/, js),
+            do: class
+
+      assert Enum.sort(Enum.uniq(heex ++ hook)) == @icon_classes
+    end
+
+    test "each is sized by a doubled selector and !important, and by nothing else" do
+      css = File.read!(Path.join(@app_root, "assets/default.css"))
+
+      for class <- @icon_classes do
+        sized = rule_body(css, ".#{class}.#{class}")
+        assert sized =~ ~r/\bw-[\d.]+!/, ".#{class}.#{class} must set an important width"
+        assert sized =~ ~r/\bh-[\d.]+!/, ".#{class}.#{class} must set an important height"
+
+        # A size utility with no `!` (also behind a variant, `md:w-6`), or a
+        # width or height declaration with no !important, in any rule that
+        # names the class.
+        plain =
+          for [_, selector, body] <-
+                Regex.scan(~r/([^{}]*\.#{class}(?![\w-])[^{}]*)\{([^{}]*)\}/, css),
+              [token] <-
+                Regex.scan(
+                  ~r/(?<![\w!-])(?:w|h|size)-[\w.\/\[\]]+(?!!)(?![\w.\/\]!])|(?<![\w-])(?:width|height)\s*:(?![^;}]*!important)/,
+                  body
+                ),
+              do: {String.trim(selector), token}
+
+        assert plain == [],
+               "a plain size on .#{class} loses to hero-* in a real app: #{inspect(plain)}"
+      end
+    end
+  end
+
   describe "badge status dot" do
     # The dot's colour lives entirely in CSS - the markup is one class on
     # every colour x variant combination - so this is the only place the

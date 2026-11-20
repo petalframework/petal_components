@@ -26,6 +26,40 @@
 - **jason `~> 1.3`** (was `~> 1.2`): the JSON report uses
   `Jason.OrderedObject`, added in jason 1.3.0.
 
+#### Fixed
+
+- **Plain utilities work on `carousel` and `filters`.** Their rules in
+  `default.css`, and the toast's, sat outside `@layer components`.
+  Unlayered CSS beats every layer, utilities included, so
+  `<.carousel class="h-64">` kept the library's height (240px on a
+  phone, up to 400px on a desktop) and `<.filters class="gap-4">` kept
+  its 8px gap; only a `!` got through. The rules are inside the layer
+  now, like every other component's, so the plain utility wins and a `!`
+  you added for these can go. A utility that did nothing until now
+  starts to apply, on the carousel, on its slides and on the filter bar,
+  so look at those calls after you upgrade. Nothing else changes: every
+  element of the library's examples has the same computed styles and box
+  as before, in the playground's stylesheet, in Petal Pro's and
+  petal.build's, and in a fresh Phoenix app's. To keep it so, the
+  toast's two icons now follow the icon sizing contract (a doubled
+  selector and `!important`): once layered, a plain size loses to the
+  `hero-*` classes that the heroicons plugin of every `phx.new` app puts
+  in the utilities layer, and the icons would have grown from 20px and
+  16px to 24px. Three things to check in your app. Your own CSS outside
+  any layer now beats these three components' rules, as it already did
+  every other component's. So does anything in the utilities layer, such
+  as the typography plugin's `.prose`: a toast or a filter bar inside
+  `.prose` picks up its link colour and paragraph margins, so wrap it in
+  `not-prose`. And if your CSS resized the toast's icons, it no longer
+  does: they are pinned like the library's other internal icons, and the
+  icon sizing contract comment in `default.css` says how to override
+  one. `mix petal.check` reports a `!` on `carousel` and `filters` like
+  on any other component. It leaves alone the components that take no
+  class, such as `toast_group`, which drops a class passed to it. A test
+  fails if a `pc-*` rule lands outside the layer again (seven
+  reduced-motion and Firefox date-input rules stay outside, and the test
+  names each one).
+
 ### 4.18.1 - 2026-11-20
 
 #### Fixed

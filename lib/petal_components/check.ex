@@ -102,7 +102,7 @@ defmodule PetalComponents.Check do
     excepts = project_excepts(root, ex_files)
     index = Scope.index(root, ex_files)
     petal = petal_lookup(names)
-    unlayered = Components.unlayered_names()
+    classless = Components.classless_names()
 
     per_source = Enum.reject(enabled, &(&1.scope == :project))
     hero_inline? = hero_inline?(root, files.project_css)
@@ -123,7 +123,7 @@ defmodule PetalComponents.Check do
               defs: source.defs,
               aliases: source.aliases,
               hero_inline?: hero_inline?,
-              unlayered: unlayered
+              classless: classless
             }
 
             {info, texts} = with_colocated(info, source, root)
@@ -253,7 +253,7 @@ defmodule PetalComponents.Check do
       names: info.names,
       defs: info.defs,
       hero_inline?: info.hero_inline?,
-      unlayered: info.unlayered,
+      classless: info.classless,
       scope: info.scope,
       petal?: &Components.petal?(&1, info)
     }

@@ -43,6 +43,35 @@ defmodule PetalComponents.Check.Rules.BangUtilityTest do
       assert_at(src, f)
     end
 
+    # Their styles sat outside @layer components until the layer fix, where
+    # a plain utility lost and a ! could be the only way, so bang-utility
+    # left them alone. Now a plain utility wins on them too.
+    test "carousel and filters, like any other component" do
+      src =
+        ~s(<.carousel id="c" class="!h-64" slides={[]} />\n<.filters class="!gap-4" />\n) <>
+          ~s(<.button class="!px-1" />\n)
+
+      assert [c, f, b] = run(:heex, src)
+      assert c.message == "!h-64 on <.carousel> forces a utility over the component's own styles"
+      assert {c.replacement, f.replacement} == {"h-64", "gap-4"}
+      assert f.message =~ "<.filters>"
+      assert b.message =~ "<.button>"
+
+      remote = ~s(<PetalComponents.Carousel.carousel id="c" class="!h-64" slides={[]} />)
+      assert [r] = run(:ex, in_module(remote))
+      assert r.replacement == "h-64"
+    end
+
+    # form_field declares no class attr, but hands the class to its input,
+    # where a plain utility wins over the layered pc-text-input.
+    test "form_field, whose class reaches its input" do
+      src = ~s(<.form_field form={@form} field={:name} class="!w-full" />\n)
+
+      assert [f] = run(:heex, src)
+      assert f.message =~ "<.form_field>"
+      assert f.replacement == "w-full"
+    end
+
     test "a remote call and a multi-line tag" do
       src = in_module(~s(<PetalComponents.Button.button\n  label="x"\n  class="!px-0"\n/>))
       assert [f] = run(:ex, src)
@@ -54,18 +83,16 @@ defmodule PetalComponents.Check.Rules.BangUtilityTest do
   end
 
   describe "must not flag" do
-    # Their styles sit outside @layer components in default.css today, so a
-    # plain utility loses to them and a ! can be the only way to size them.
-    test "carousel, filters and toast_group, whose library styles are not layered yet" do
+    # toast_group declares no class attr: the class goes through :global and
+    # comes out as a second class attribute, which the browser drops.
+    # vertical_menu has no :global either, so the compiler rejects it. "Drop
+    # the !" would be advice about a class that never reaches the page.
+    test "a component that takes no class" do
       src =
-        ~s(<.carousel id="c" class="!h-64" slides={[]} />\n<.filters class="!gap-4" />\n) <>
-          ~s(<.toast_group class="!w-80" flash={@flash} />\n<.button class="!px-1" />\n)
+        ~s(<.toast_group class="!w-80" flash={@flash} />\n<.vertical_menu class="!w-80" />\n) <>
+          ~s(<PetalComponents.Toast.toast_group class="!w-80" flash={@flash} />\n)
 
-      assert [f] = run(:heex, src)
-      assert f.message =~ "<.button>"
-
-      remote = ~s(<PetalComponents.Carousel.carousel id="c" class="!h-64" slides={[]} />)
-      assert run(:ex, in_module(remote)) == []
+      assert run(:heex, src) == []
     end
 
     test "Elixir negation in a class expression" do

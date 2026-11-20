@@ -3,7 +3,6 @@ defmodule PetalComponents.Check.ComponentsTest do
   use PetalComponents.CheckCase, async: true
 
   alias PetalComponents.Check.Components
-  alias PetalComponents.Check.Css
   alias PetalComponents.Check.Rules.BangUtility
   alias PetalComponents.Check.Rules.PcFunctionPrefix
 
@@ -44,31 +43,57 @@ defmodule PetalComponents.Check.ComponentsTest do
     assert findings(:ex, src, rules: [BangUtility, PcFunctionPrefix]) == []
   end
 
-  # bang-utility says "drop the !", which is only true where the library's
-  # styles sit in @layer components: an unlayered rule beats every utility,
-  # so there a ! can be the only way. This reads default.css and keeps
-  # Components.unlayered_modules/0 equal to the components whose rules sit
-  # outside every at-rule. When that CSS moves into the layer this fails,
-  # and the module then comes out of the list.
-  test "unlayered_modules/0 names exactly the components styled outside @layer components" do
-    {:ok, %{statements: statements}} = Css.parse(File.read!("assets/default.css"))
+  # bang-utility says "drop the !". On a component that takes no class that
+  # is advice about a class that never reaches the page: it is not rendered
+  # (the compiler warns about an undefined attribute), or it travels through
+  # :global and comes out as a second class attribute, which the browser
+  # ignores (toast_group). The set is read from the attr declarations, so a
+  # component that gains a class attr leaves it by itself.
+  test "classless_names/0 is the components that take no class" do
+    names = Components.classless_names()
 
-    roots =
-      for st <- statements,
-          Css.at_rules(st) == [],
-          sel <- Css.selectors(st),
-          [_, root] <- Regex.scan(~r/\.pc-([a-z0-9]+)/, sel),
-          uniq: true,
-          do: root
+    assert "toast_group" in names
+    assert "vertical_menu" in names
 
-    expected =
-      for mod <- Components.unlayered_modules(),
-          do: mod |> Module.split() |> List.last() |> Macro.underscore()
+    for name <- ~w(button carousel filters modal) do
+      refute name in names, "#{name} declares a class attr"
+    end
 
-    assert Enum.sort(roots) == Enum.sort(expected)
+    # icon declares no attrs at all when heroicons is installed, so it is
+    # not in __components__/0. It does take a class, and must stay checked.
+    refute "icon" in names
 
-    assert Components.unlayered_names() ==
-             MapSet.new(~w(carousel filters toast_group))
+    # These two declare no class attr but pass one on to their input.
+    refute "form_field" in names
+    refute "hidden_input" in names
+
+    assert MapSet.subset?(names, Components.petal_names())
+  end
+
+  # The split above, shown by rendering: how many class attributes the tag
+  # that received the caller's class ends up with. One means the class
+  # reaches the page. Two means the browser keeps the first, the library's
+  # own, and drops the caller's.
+  test "which components drop a caller's class, by rendering them" do
+    form = Phoenix.Component.to_form(%{}, as: :user)
+
+    class_attrs = fn rendered ->
+      html = Phoenix.LiveViewTest.rendered_to_string(rendered)
+
+      for [tag] <- Regex.scan(~r/<[a-z][^>]*petal-probe[^>]*>/, html),
+          do: length(Regex.scan(~r/\sclass=/, tag))
+    end
+
+    given = %{class: "petal-probe", __changed__: nil}
+
+    field = Map.merge(given, %{form: form, field: :name})
+    assert class_attrs.(PetalComponents.Form.form_field(field)) == [1]
+    assert class_attrs.(PetalComponents.Form.hidden_input(field)) == [1]
+
+    assert class_attrs.(PetalComponents.Toast.toast_group(given)) == [2]
+    assert class_attrs.(PetalComponents.Confetti.confetti(Map.put(given, :id, "c"))) == [2]
+
+    assert Enum.sort(Components.class_reaches_page()) == [:form_field, :hidden_input]
   end
 
   test "a PetalComponents module that defines no components brings in no names" do

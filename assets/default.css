@@ -5936,7 +5936,13 @@
   }
 }
 
-/* Respect users who prefer reduced motion: keep the chat indicators static. */
+/* Respect users who prefer reduced motion: keep the chat indicators static.
+   This block, the decorative-motion block further down and the Firefox-only
+   @-moz-document below are the only pc-* rules outside @layer components,
+   and a test allows these three and nothing else. Outside the layer they
+   beat every utility, so a caller's animate-* utility cannot switch the
+   motion back on. Everything else stays inside the layer, including the
+   reduced-motion blocks nested in a component's own rules. */
 @media (prefers-reduced-motion: reduce) {
   .pc-chat__typing > span,
   .pc-chat__caret,
@@ -8113,6 +8119,7 @@
   }
 }
 
+@layer components {
   /* Carousel - ported from petal_marketing; material pass to follow */
   .pc-carousel-wrapper {
     @apply relative w-full;
@@ -8586,7 +8593,12 @@
   }
 
   .pc-toast__icon {
-    @apply w-5 h-5 shrink-0 mt-0.5;
+    @apply shrink-0 mt-0.5;
+  }
+  /* Doubled selector + !important: icon sizing contract (see pagination
+     previous chevron). The hook puts a hero-* class on this span. */
+  .pc-toast__icon.pc-toast__icon {
+    @apply w-5! h-5!;
   }
 
   .pc-toast__icon--info {
@@ -8640,8 +8652,9 @@
     @apply absolute -inset-2;
   }
 
-  .pc-toast__close-icon {
-    @apply w-4 h-4;
+  /* Doubled selector + !important: icon sizing contract (see pagination previous chevron). */
+  .pc-toast__close-icon.pc-toast__close-icon {
+    @apply w-4! h-4!;
   }
 
   .pc-toast__progress {
@@ -8684,6 +8697,7 @@
       transition-duration: 1ms;
     }
   }
+}
 
 /* Empty state: media, title, description, actions, trailing line.
    Wrapped in its own layer: appended rules after the last @layer block
@@ -11104,6 +11118,7 @@
   }
 }
 
+@layer components {
   /* Filters: the standalone filter bar (chips + add-filter popover).
      Shares the data table's editor form styling (pc-data-table__filter-*),
      because the editor markup itself is shared - one home for the operator
@@ -11195,6 +11210,7 @@
       transition-duration: 1ms;
     }
   }
+}
 
 /* Resizable - split panes with draggable, keyboard-operable separators.
  * The painted divider is a hairline; the hit area around it is much larger,
