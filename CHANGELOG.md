@@ -1,5 +1,31 @@
 # Changelog
 
+### Unreleased
+
+#### Added
+
+- **`mix petal.check`** reads your app's templates and CSS and reports
+  design-system mistakes with the exact fix, one line each. Errors:
+  literal neutral palettes, white-alpha dark ghosts, `!` utilities on
+  component calls and `!important` on `pc-*` selectors, the `pc_`
+  prefix, `~E`, `variant` on a combobox field, runtime heroicon names,
+  Tailwind v3 directives and partial ramp remaps. Warnings: legacy
+  dropdown spellings, focus rings and literal hues next to a word for
+  their semantic role. It never compiles your app. Plain runs only report;
+  `--strict` exits non-zero for CI and your agent, and `--changed`
+  checks only the files you touched. A baseline file and
+  `petal-check:ignore` comments handle existing code. `usage-rules.md`
+  gains a rule telling your agent to run it after UI changes, and
+  section 11 of the design guide says which review rows it covers.
+  Component rules count a `<.button>` call as petal_components' only
+  when the file brings PetalComponents in (directly or through
+  `use MyAppWeb, :html`), so an app's own `button` is never flagged.
+
+#### Changed
+
+- **jason `~> 1.3`** (was `~> 1.2`): the JSON report uses
+  `Jason.OrderedObject`, added in jason 1.3.0.
+
 ### 4.18.1 - 2026-11-20
 
 #### Fixed

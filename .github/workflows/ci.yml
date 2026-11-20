@@ -25,8 +25,12 @@ jobs:
         run: mix deps.get
       - name: Check unused deps
         run: mix deps.unlock --check-unused
+      - name: Compile without warnings
+        run: mix compile --warnings-as-errors
       - name: Run tests
         run: mix test
+      - name: Run the slow petal.check test (a host app that is never compiled)
+        run: mix test --only slow
       - name: Run code test coverage report
         run: mix coveralls.json
       - name: Upload to Codecov
@@ -34,6 +38,40 @@ jobs:
           curl -Os https://uploader.codecov.io/latest/linux/codecov
           chmod +x codecov
           ./codecov
+
+  # mix petal.check reads HEEx with LiveView's tokenizer, which LiveView 1.2
+  # renamed (Phoenix.LiveView.TagEngine.Tokenizer; 1.1 has
+  # Phoenix.LiveView.Tokenizer). The lock is on 1.2, so the test job covers
+  # that name. This job pins 1.1 in its own checkout and runs the check's
+  # tests, so the other name stays proven too. Only the check's tests: three
+  # sidebar tests rely on LiveView 1.2's Jason encoder for %JS{}. Nothing is
+  # committed: an env-driven requirement in mix.exs would be evaluated in
+  # every app's build, and the grep makes the job fail loudly if the
+  # dependency line changes instead of quietly testing 1.2 twice.
+  check-liveview-1-1:
+    runs-on: ubuntu-latest
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@v3
+      - uses: erlef/setup-beam@v1
+        with:
+          version-type: strict
+          version-file: .tool-versions
+      - name: Pin LiveView 1.1 in this checkout only
+        run: |
+          grep -q '{:phoenix_live_view, "~> 1.1"}' mix.exs
+          sed -i 's/{:phoenix_live_view, "~> 1.1"}/{:phoenix_live_view, "~> 1.1.0"}/' mix.exs
+          mix deps.unlock phoenix_live_view
+      - name: Install deps
+        run: mix deps.get
+      - name: Confirm the lock is on LiveView 1.1
+        run: |
+          grep -o '"phoenix_live_view": {:hex, :phoenix_live_view, "1\.1\.[0-9]*"' mix.lock
+      - name: Compile without warnings on LiveView 1.1
+        run: mix compile --warnings-as-errors
+      - name: Run the petal.check tests on LiveView 1.1
+        run: mix test --only petal_check
 
   # The hooks in assets/js ship inside the Hex package but never went through
   # Elixir's test suite - LazyHTML asserts on server-rendered markup, and the

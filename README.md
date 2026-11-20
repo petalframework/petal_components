@@ -140,6 +140,18 @@ Re-run it after upgrading petal_components and the block in your file updates in
 
 The design rules those tools follow (the `petal-design` skill in `skills/petal-design/`) are also written up for people: the [design system guide](guides/design.md) covers the token layer, the gray dial, dark mode, radius and type, the composition patterns, and a review checklist you can apply by hand.
 
+## Check your markup
+
+`mix petal.check` reads your app's templates and CSS and reports the design-system mistakes a machine can find, one line each, with the file, the line and the exact fix. It never compiles or starts your app.
+
+```sh
+mix petal.check                     # report only, exit 0
+mix petal.check --strict            # exit non-zero on new errors, for CI
+mix petal.check --strict --changed --format json --output petal-check.json   # for your agent
+```
+
+Run `mix petal.check --rules` for the list of rules and `mix petal.check --explain RULE` for one. Section 11 of the [design system guide](guides/design.md) says which review rows it covers and which still need a person. An app with existing findings can record them once with `mix petal.check --update-baseline`, so only new ones fail `--strict`.
+
 ## Component catalogue
 
 200+ components covering the patterns a real Phoenix app needs. The MCP server is always the canonical list - call `list_components` for the live inventory. Highlights:

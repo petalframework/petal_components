@@ -1,4 +1,5 @@
-ExUnit.start()
+# :slow tests run in a separate OS process (mix test --only slow).
+ExUnit.start(exclude: [:slow])
 
 Application.put_env(:phoenix_live_view, :debug_heex_annotations, false)
 

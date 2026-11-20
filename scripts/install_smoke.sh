@@ -25,6 +25,9 @@
 #   7. `mix compile --warnings-as-errors`, then a LiveViewTest that asserts
 #      the library's markup rendered (with --warnings-as-errors)
 #   8. builds the assets and greps the CSS and JS for the library's output
+#   9. runs `mix petal.check --strict` (clean), then on a probe file with one
+#      violation per rule family (exit 1, every rule id reported, nothing
+#      compiled)
 #
 # If you change the install steps in usage-rules.md, change the matching
 # edit here in the same commit. CI runs this on every pull request.
@@ -317,5 +320,46 @@ for selector in .pc-button .pc-card__header .pc-text-input; do
 done
 grep -qF PetalComboBox "$JS" || fail "built $JS has no petal_components hooks"
 echo "built CSS: $(grep -oF .pc-button "$CSS" | wc -l | tr -d ' ') .pc-button, $(grep -oF .pc-card__header "$CSS" | wc -l | tr -d ' ') .pc-card__header"
+
+step "mix petal.check --strict on the fresh app (must be clean)"
+mix petal.check --strict
+
+step "mix petal.check finds a probe file's violations without compiling it"
+# Written after the compile, test and asset steps, so none of them sees it,
+# and deleted at the end. It would not compile (<.pc_button> does not exist),
+# which is the point: petal.check reads source and never compiles the app.
+PROBE_EX="lib/${APP}_web/petal_check_probe.ex"
+PROBE_CSS="assets/css/petal-check-probe.css"
+cat >"$PROBE_EX" <<EOF
+defmodule ${MOD}Web.PetalCheckProbe do
+  use ${MOD}Web, :html
+
+  def probe(assigns) do
+    ~H"""
+    <.pc_button>x</.pc_button>
+    <.field type="combobox" variant="trigger" field={@f} options={[]} />
+    <.dropdown label="x" placement="left"></.dropdown>
+    <.icon name={"hero-" <> @name} />
+    <.button class="!px-0">x</.button>
+    <div class="text-zinc-500 dark:bg-white/10"></div>
+    """
+  end
+end
+EOF
+cat >"$PROBE_CSS" <<EOF
+@tailwind base;
+.pc-button { color: red !important; }
+EOF
+status=0
+mix petal.check --strict --format json --output petal-check.json || status=$?
+[ "$status" = 1 ] || fail "petal.check --strict on the probe exited $status, expected 1"
+for rule in pc-function-prefix combobox-variant legacy-dropdown dynamic-heroicon bang-utility \
+  literal-neutral white-alpha-ghost tailwind-v4-gate important-on-pc; do
+  grep -qE "\"rule\": *\"$rule\"" petal-check.json || fail "petal.check did not report $rule on the probe"
+done
+grep -qE '"unchecked": *0[,}]' petal-check.json || fail "petal.check left a file unchecked"
+[ ! -e "_build/dev/lib/${APP}/ebin/Elixir.${MOD}Web.PetalCheckProbe.beam" ] ||
+  fail "the probe was compiled; petal.check must never compile the app"
+rm -f "$PROBE_EX" "$PROBE_CSS" petal-check.json
 
 printf '\nINSTALL SMOKE PASSED (%s)\n' "$APP_DIR"

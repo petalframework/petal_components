@@ -221,6 +221,7 @@ Self-hosting a face in Phoenix: fetch the variable woff2 into `priv/static/fonts
 4. **Call components as plain HEEx tags after `use PetalComponents`.** `<.button>`, `<.modal>`, `<.table>`, `<.card>`, etc. If you have not imported, qualify with the module: `<PetalComponents.Button.button />`. Note: the `pc-*` prefix you see in source is the CSS class prefix for styling, not part of the function name.
 5. **Components work in both live and dead views.** Interactivity is Phoenix.LiveView.JS only (no Alpine.js as of v4). Many components (toasts, command palette, colour scheme, carousel, charts, chat, combobox, data table, enhanced inputs and more) use bundled JS hooks — register the whole set once in your LiveSocket: `import PetalComponents from "../../deps/petal_components/assets/js/petal_components"` then `hooks: { ...PetalComponents }`.
 6. **Form inputs come in two layers, pick deliberately.** Use `<.field type="..." />` when you want label + input + error + help text bundled (the common case in form contexts). Use the standalone primitives (`<.text_input>`, `<.select>`, `<.checkbox>`, etc.) when composing your own field layout.
+7. **Run `mix petal.check --strict --changed` after you change templates or CSS.** It needs petal_components 4.19 or later: if `mix help petal.check` fails, skip this rule. It checks the files that differ from git HEAD and prints one line per problem: `path:line:column: error [rule-id] what is wrong. fix: what to write instead`. Exit 0: done. Exit 1: fix every error on lines you wrote, then run it again. If it reports errors in files you did not change, do not fix them unasked: list them for the user. Exit 2: a file could not be read, so fix its syntax. Exit 4: tell the user, since the printed line says what to update. In an umbrella, run it from the umbrella root: from a child app, Mix compiles its sibling apps first, and an exit 1 with a `could not compile dependency` line is a build failure, not findings. Warnings never fail the run; fix the ones on your lines when the suggestion fits. Never run `--update-baseline`, `--prune-baseline`, `--exclude` or `--except`, and never add a `petal-check:` comment, unless the user asks.
 
 ## Design
 
@@ -238,7 +239,7 @@ These rules apply to every line of custom markup and CSS you write next to the c
 - Disabled is `disabled:opacity-50 disabled:cursor-not-allowed`. Transitions are `transition-colors duration-200 ease-out`.
 - Heroicon names must be source-literal: `name="hero-check-micro"` works, an interpolated name is purged by the Tailwind source scan.
 
-Before styling custom markup or theming the app, read `deps/petal_components/guides/design.md`. To review a diff, walk its section 11, "Reviewing a diff by hand".
+Before styling custom markup or theming the app, read `deps/petal_components/guides/design.md`. To review a diff, run `mix petal.check`, then walk the rows of its section 11, "Reviewing a diff by hand", that the command does not cover.
 
 ## Discovering components
 
