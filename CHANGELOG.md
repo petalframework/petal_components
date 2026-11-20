@@ -28,6 +28,42 @@
 
 #### Fixed
 
+- **Plain utilities work on `carousel` and `filters`.** Their rules in
+  `default.css`, and the toast's, sat outside `@layer components`.
+  Unlayered CSS beats every layer, utilities included, so
+  `<.carousel class="h-64">` kept the library's height (240px on a
+  phone, up to 400px on a desktop) and `<.filters class="gap-4">` kept
+  its 8px gap; only a `!` got through. The rules are inside the layer
+  now, like every other component's, so the plain utility wins and a `!`
+  you added for these can go. A utility that did nothing until now
+  starts to apply, on the carousel, on its slides and on the filter bar,
+  so look at those calls after you upgrade. Nothing else changes: every
+  element of the library's examples has the same computed styles and box
+  as before, in the playground's stylesheet, in Petal Pro's and
+  petal.build's, and in a fresh Phoenix app's. To keep it so, the
+  toast's two icons now follow the icon sizing contract (a doubled
+  selector and `!important`): once layered, a plain size loses to the
+  `hero-*` classes that the heroicons plugin of every `phx.new` app puts
+  in the utilities layer, and the icons would have grown from 20px and
+  16px to 24px. Three things to check in your app. Your own CSS outside
+  any layer now beats these three components' rules, as it already did
+  every other component's. So does anything in the utilities layer, such
+  as the typography plugin's `.prose`: a toast or a filter bar inside
+  `.prose` picks up its link colour and paragraph margins, so wrap it in
+  `not-prose`. And if your CSS resized the toast's icons, it no longer
+  does: they are pinned like the library's other internal icons, and the
+  icon sizing contract comment in `default.css` says how to override
+  one. `mix petal.check` reports a `!` on `carousel` and `filters` like
+  on any other component. It leaves alone the components that take no
+  class, such as `toast_group`, which drops a class passed to it. A test
+  fails if a `pc-*` rule lands outside the layer again (seven
+  reduced-motion and Firefox date-input rules stay outside, and the test
+  names each one).
+
+### 4.18.1 - 2026-11-20
+
+#### Fixed
+
 - **Installing into a fresh Phoenix 1.8 app works.** The library
   declared `{:websock_adapter, "~> 0.5.7"}` as a runtime dependency,
   left over from a playground experiment and unused in `lib/`. A new
@@ -68,37 +104,18 @@
   actions" had no `rows`, so it rendered an empty table, and the
   data_table handler snippet put a `defp` between `handle_event/3`
   clauses, a compiler warning.
-- **Plain utilities work on `carousel` and `filters`.** Their rules in
-  `default.css`, and the toast's, sat outside `@layer components`.
-  Unlayered CSS beats every layer, utilities included, so
-  `<.carousel class="h-64">` kept the library's height (240px on a
-  phone, up to 400px on a desktop) and `<.filters class="gap-4">` kept
-  its 8px gap; only a `!` got through. The rules are inside the layer
-  now, like every other component's, so the plain utility wins and a `!`
-  you added for these can go. A utility that did nothing until now
-  starts to apply, on the carousel, on its slides and on the filter bar,
-  so look at those calls after you upgrade. Nothing else changes: every
-  element of the library's examples has the same computed styles and box
-  as before, in the playground's stylesheet, in Petal Pro's and
-  petal.build's, and in a fresh Phoenix app's. To keep it so, the
-  toast's two icons now follow the icon sizing contract (a doubled
-  selector and `!important`): once layered, a plain size loses to the
-  `hero-*` classes that the heroicons plugin of every `phx.new` app puts
-  in the utilities layer, and the icons would have grown from 20px and
-  16px to 24px. Three things to check in your app. Your own CSS outside
-  any layer now beats these three components' rules, as it already did
-  every other component's. So does anything in the utilities layer, such
-  as the typography plugin's `.prose`: a toast or a filter bar inside
-  `.prose` picks up its link colour and paragraph margins, so wrap it in
-  `not-prose`. And if your CSS resized the toast's icons, it no longer
-  does: they are pinned like the library's other internal icons, and the
-  icon sizing contract comment in `default.css` says how to override
-  one. `mix petal.check` reports a `!` on `carousel` and `filters` like
-  on any other component. It leaves alone the components that take no
-  class, such as `toast_group`, which drops a class passed to it. A test
-  fails if a `pc-*` rule lands outside the layer again (seven
-  reduced-motion and Firefox date-input rules stay outside, and the test
-  names each one).
+- **Clicking an option in a `combo_box` inside a focusable element
+  selects it.** When any ancestor was focusable (a `<div tabindex="0">`,
+  a wrapping `<button>`, or `scroll_area`, which renders `tabindex="0"`),
+  a click on an option closed the panel and selected nothing. Keyboard
+  selection was not affected. Controls in the `:header` and `:footer`
+  slots still take their own presses (#726, reported in #725).
+- **`date_picker` with `label=""` renders no label.** It rendered an
+  empty `<label>`, and with `required` a lone asterisk. `label` now has
+  three stated cases: text renders that text; left unset, a form field
+  gets a label from its name (`:due_on` becomes "Due on") and a bare
+  `name` gets none; `""` means no label, even on a form field. Thanks
+  to mogadget for the pull request (#720).
 
 #### Added
 
@@ -106,7 +123,7 @@
   before writing custom markup next to the components (the gray dial,
   `dark:` pairs, text tiers, the dark ghost material, radius, focus,
   solid fills), with a pointer to `guides/design.md` and its review
-  checklist. A test keeps every value it quotes identical to the guide.
+  checklist. A test fails if it quotes a value the guide does not have.
 - **CI installs the library into a fresh Phoenix 1.8 app on every pull
   request.** `scripts/install_smoke.sh` generates an app, follows the
   install steps, fails if that moved any version the fresh app had
