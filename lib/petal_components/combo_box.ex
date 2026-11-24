@@ -84,6 +84,11 @@ defmodule PetalComponents.ComboBox do
     doc:
       "strings, {label, value} tuples, {label, value, opts} (opts: disabled: true), or {group_label, options} groups"
 
+  attr :search_options, :list,
+    default: [],
+    doc:
+      "a list of options in the shape of `:options` but intended to house the remote search results"
+
   attr :variant, :string,
     default: "input",
     values: ["input", "trigger"],
@@ -153,6 +158,10 @@ defmodule PetalComponents.ComboBox do
   attr :remote_options_target, :any,
     default: nil,
     doc: "the event's target - pass @myself when the handler lives on a LiveComponent"
+
+  attr :render_search_results_on_server, :boolean,
+    default: false,
+    doc: "should the results of a remote search be rendered on the server?"
 
   attr :loading_label, :string,
     default: "Searching…",
@@ -264,7 +273,10 @@ defmodule PetalComponents.ComboBox do
     """
 
   def combo_box(assigns) do
-    groups = normalize_options(assigns.options)
+    groups =
+      normalize_options(assigns.options) ++
+        normalize_options(assigns.search_options)
+
     # a native select can only select each option once - duplicated caller
     # values are meaningless and would desync the freshness stamps
     values = assigns |> current_values() |> Enum.uniq()
@@ -294,6 +306,7 @@ defmodule PetalComponents.ComboBox do
       data-remote-target={@remote_options_target}
       data-has-value={@current_values != [] && "true"}
       data-order={@multiple && Jason.encode!(@current_values)}
+      data-render-results-server={@render_search_results_on_server}
       {@rest}
     >
       <select
@@ -361,7 +374,10 @@ defmodule PetalComponents.ComboBox do
           data-custom-label={@selected != [] && "true"}
           data-values={@selected != [] && Jason.encode!(Enum.map(@selected_options, & &1.value))}
         ><%= if @selected != [] && @current_values != [] do %>
-          <span class="pc-combo-box__selected-content">{render_slot(@selected, @selected_options)}</span>
+          <span class="pc-combo-box__selected-content">{render_slot(
+            @selected,
+            @selected_options
+          )}</span>
         <% else %>
           {@trigger_label}
         <% end %></span>
@@ -497,7 +513,7 @@ defmodule PetalComponents.ComboBox do
         <div
           role="listbox"
           id={"#{@id}-listbox"}
-          phx-update={@remote_options_event_name && "ignore"}
+          phx-update={@remote_options_event_name && !@render_search_results_on_server && "ignore"}
           class="pc-combo-box__list"
           aria-label={@listbox_label}
           aria-multiselectable={@multiple && "true"}
@@ -650,7 +666,6 @@ defmodule PetalComponents.ComboBox do
   end
 
   # -- value / name / id resolution -----------------------------------------
-
   defp current_values(%{value: value}) when not is_nil(value) and value != [],
     do: value |> List.wrap() |> Enum.map(&to_string/1)
 
