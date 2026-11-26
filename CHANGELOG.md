@@ -38,10 +38,9 @@
   the selection. It fires one `input` event, so `phx-change` and
   `petal:otp-complete` fire as for typing, and a paste that leaves the
   value as it was fires nothing. `maxlength` stays on the input. If your
-  app has its own paste handler on the field or on an element around it
-  (Petal Pro's PIN screen has one), remove it when you upgrade: the event
-  still reaches it, so a handler that writes the paste itself inserts a
-  part code twice. A paste is now done by script, so the browser's undo
+  app has its own paste handler on the field or on an element around it,
+  remove it when you upgrade: the event still reaches it, so a handler
+  that writes the paste itself inserts a part code twice. A paste is now done by script, so the browser's undo
   step for it is gone. Text that arrives without a paste event, such as
   an IME commit or the Android keyboard's clipboard chip, is still cut
   before it is cleaned.
@@ -64,8 +63,7 @@
   over an empty list. Those empty states get that much shorter, so
   look at them after you upgrade, and at any CSS of your own on
   `.pc-empty__footer` (a border, say), which no longer shows on them.
-  If you made up the gap elsewhere (Petal Pro's billing success page
-  has a skeleton with an extra `mb-3` for it), take that out too.
+  If you made up for the gap elsewhere, take that out too.
 - **An `<.alert label="...">` with an `:actions` slot shows its
   label.** `<.alert color="danger" label="Wrong PIN">` with only
   `<:actions>` inside rendered the actions and an empty message, and
@@ -86,16 +84,18 @@
   rendered as a `<details>` disclosure with a chevron that opened onto
   nothing. It is now the plain `<div>` row a call with no panels gets.
   A widget in the block, panels or `:error_actions` still make it a
-  disclosure, as before.
+  disclosure, as before. A test or CSS of your own that expects a
+  `<details>` for such a call will find a `<div>`.
 - **A `tab` with a `label` shows its `number` badge.**
   `<.tab label="Reports" number={4} />` rendered "Reports" and no badge:
   the label was handed to the link inside the tab, which printed it in
   place of everything else. The tab now prints the label and the badge
-  itself, for every `link_type` and for a disabled tab. Nothing else
-  moves: a `label` still wins over the inner block, and a tab with no
-  `label` renders its inner block as before. A tab that has both now
-  has one more `<span class="pc-tab__number">` in it, so a test that
-  counts the badges may see more.
+  itself, for every `link_type` and for a disabled tab. A `label` still
+  wins over the inner block, and a tab with no `label` renders its inner
+  block as before. A tab with a label and a number now has one more
+  `<span class="pc-tab__number">` in it, so a test that counts the
+  badges may see more, and the whitespace around a label changes, which
+  only a test that compares raw HTML will notice.
 - **Plain utilities work on `carousel` and `filters`.** Their rules in
   `default.css`, and the toast's, sat outside `@layer components`.
   Unlayered CSS beats every layer, utilities included, so
