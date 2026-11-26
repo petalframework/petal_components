@@ -25,6 +25,29 @@
 
 - **jason `~> 1.3`** (was `~> 1.2`): the JSON report uses
   `Jason.OrderedObject`, added in jason 1.3.0.
+- **`<.field>` ties its help text and errors to the control.** A field
+  with errors showed them, but a screen reader on the input heard
+  neither that it was invalid nor what was wrong. Now the control gets
+  `aria-invalid="true"` while there are errors, and `aria-describedby`
+  naming the help text and then the errors, after any value you pass
+  yourself. Two ids are added, `<id>-help` on the help text and
+  `<id>-errors` on a new `<div class="pc-form-field-errors">` that wraps
+  all of a field's `<p class="pc-form-field-error">` messages. Your own
+  `aria-invalid` wins, `false` included. A field with no id gets no ids,
+  so nothing names a missing element. A checkbox's help text is inside
+  its label already, so it is not named twice. On checkbox-group,
+  radio-group and radio-card every option's input carries both
+  attributes. `combobox` and `range-dual` are not covered yet. Spacing
+  is unchanged with the default wrapper. What to check after you
+  upgrade: a child selector such as
+  `.pc-form-field-wrapper > .pc-form-field-error` no longer matches
+  (use a descendant selector), exact-markup snapshot tests see the new
+  attributes and the wrapper div, and a flex or grid `wrapper_class`
+  now lays out the messages as one item, stacked inside the div,
+  instead of one item each. So with `wrapper_class="flex"` several
+  messages stack instead of sitting side by side, and with a `gap-*`
+  in a column or grid wrapper the gap no longer applies between
+  messages (with `gap-2`, two messages sit 8px closer).
 
 #### Fixed
 

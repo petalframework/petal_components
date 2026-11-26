@@ -14,6 +14,20 @@ defmodule PetalComponents.Field do
       <.field field={@form[:email]} type="email" />
       <.field label="Name" value="" name="name" errors={["oh no!"]} />
 
+  ## Help text and errors are tied to the control
+
+  When the field has an id (passed, or taken from the form field), the help
+  text gets the id `<id>-help` and the error messages sit together in one
+  `<div id="<id>-errors" class="pc-form-field-errors">`, one
+  `<p class="pc-form-field-error">` per message. The control's
+  `aria-describedby` names them in that order, after any value you pass
+  yourself, and the control gets `aria-invalid="true"` while there are errors.
+  Pass `aria-invalid` yourself and your value wins. These ids and the class are
+  markup you can rely on in your CSS and tests. A field with no id mints no
+  ids. A checkbox's help text sits inside its label, so it is not named again.
+  On a checkbox-group, radio-group or radio-card every option's input carries
+  both attributes. `combobox` and `range-dual` do not take them yet.
+
   > #### Sliders have moved {: .info}
   >
   > `type="range"` and `type="range-dual"` still work and are not going
@@ -209,6 +223,7 @@ defmodule PetalComponents.Field do
   def field(%{type: "checkbox"} = assigns) do
     assigns =
       assigns
+      |> assign_described_by()
       |> assign_new(:value, fn -> nil end)
       |> assign_new(:checked, fn %{value: value} ->
         Phoenix.HTML.Form.normalize_value("checkbox", value)
@@ -226,6 +241,8 @@ defmodule PetalComponents.Field do
           checked={@checked}
           required={@required}
           class={["pc-checkbox", @class]}
+          aria-invalid={@aria_invalid}
+          aria-describedby={@aria_describedby}
           {@rest}
         />
         <div class="pc-checkbox-text">
@@ -235,12 +252,14 @@ defmodule PetalComponents.Field do
           <.field_help_text help_text={@help_text} class="pc-checkbox-text__help" />
         </div>
       </label>
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+      <.field_errors id={@errors_id} errors={@errors} />
     </.field_wrapper>
     """
   end
 
   def field(%{type: "select"} = assigns) do
+    assigns = assign_described_by(assigns)
+
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label required={@required} for={@id} class={@label_class}>
@@ -253,13 +272,15 @@ defmodule PetalComponents.Field do
         class={["pc-text-input", @class]}
         multiple={@multiple}
         required={@required}
+        aria-invalid={@aria_invalid}
+        aria-describedby={@aria_describedby}
         {@rest}
       >
         <option :if={@prompt} value="">{@prompt}</option>
         {Phoenix.HTML.Form.options_for_select(@options, @selected || @value)}
       </select>
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <.field_help_text help_text={@help_text} />
+      <.field_errors id={@errors_id} errors={@errors} />
+      <.field_help_text id={@help_id} help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -341,7 +362,9 @@ defmodule PetalComponents.Field do
         class={@class}
         {@rest}
       />
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+      <%!-- no ids: the caller's aria attrs land on the combobox wrapper, and
+      the real control inside it describes its own validation message --%>
+      <.field_errors id={nil} errors={@errors} />
       <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """
@@ -369,6 +392,8 @@ defmodule PetalComponents.Field do
       |> then(fn a ->
         assign(a, :id, PetalComponents.NumberField.resolve_id(a.id, a[:name]))
       end)
+      # after the id is resolved, so a name-only call gets its ids too
+      |> assign_described_by()
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
@@ -383,15 +408,19 @@ defmodule PetalComponents.Field do
         size={@number_size}
         class={@class}
         required={@required}
+        aria-invalid={@aria_invalid}
+        aria-describedby={@aria_describedby}
         {@rest}
       />
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <.field_help_text help_text={@help_text} />
+      <.field_errors id={@errors_id} errors={@errors} />
+      <.field_help_text id={@help_id} help_text={@help_text} />
     </.field_wrapper>
     """
   end
 
   def field(%{type: "textarea"} = assigns) do
+    assigns = assign_described_by(assigns)
+
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label required={@required} for={@id} class={@label_class}>
@@ -403,10 +432,12 @@ defmodule PetalComponents.Field do
         class={["pc-text-input", @class]}
         rows={@rows}
         required={@required}
+        aria-invalid={@aria_invalid}
+        aria-describedby={@aria_describedby}
         {@rest}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <.field_help_text help_text={@help_text} />
+      <.field_errors id={@errors_id} errors={@errors} />
+      <.field_help_text id={@help_id} help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -414,6 +445,7 @@ defmodule PetalComponents.Field do
   def field(%{type: "switch"} = assigns) do
     assigns =
       assigns
+      |> assign_described_by()
       |> assign_new(:value, fn -> nil end)
       |> assign_new(:checked, fn %{value: value} ->
         Phoenix.HTML.Form.normalize_value("checkbox", value)
@@ -438,6 +470,8 @@ defmodule PetalComponents.Field do
             checked={@checked}
             required={@required}
             class={["sr-only peer", @class]}
+            aria-invalid={@aria_invalid}
+            aria-describedby={@aria_describedby}
             {@rest}
           />
 
@@ -446,8 +480,8 @@ defmodule PetalComponents.Field do
         </label>
         <div class={[@required && "pc-label--required", @label_class]}>{@label}</div>
       </label>
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <.field_help_text help_text={@help_text} />
+      <.field_errors id={@errors_id} errors={@errors} />
+      <.field_help_text id={@help_id} help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -455,6 +489,7 @@ defmodule PetalComponents.Field do
   def field(%{type: "checkbox-group"} = assigns) do
     assigns =
       assigns
+      |> assign_described_by()
       |> assign_new(:checked, fn ->
         values =
           case assigns.value do
@@ -490,6 +525,8 @@ defmodule PetalComponents.Field do
               hidden_input={false}
               class="pc-checkbox"
               disabled={value in @disabled_options}
+              aria-invalid={@aria_invalid}
+              aria-describedby={@aria_describedby}
               {@rest}
             />
             <div>
@@ -504,14 +541,17 @@ defmodule PetalComponents.Field do
           </div>
         <% end %>
       </div>
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <.field_help_text help_text={@help_text} />
+      <.field_errors id={@errors_id} errors={@errors} />
+      <.field_help_text id={@help_id} help_text={@help_text} />
     </.field_wrapper>
     """
   end
 
   def field(%{type: "radio-group"} = assigns) do
-    assigns = assign_new(assigns, :checked, fn -> nil end)
+    assigns =
+      assigns
+      |> assign_described_by()
+      |> assign_new(:checked, fn -> nil end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
@@ -536,6 +576,8 @@ defmodule PetalComponents.Field do
                 to_string(value) == to_string(@value) || to_string(value) == to_string(@checked)
               }
               class="pc-radio"
+              aria-invalid={@aria_invalid}
+              aria-describedby={@aria_describedby}
               {@rest}
             />
             <div>
@@ -550,8 +592,8 @@ defmodule PetalComponents.Field do
           </div>
         <% end %>
       </div>
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <.field_help_text help_text={@help_text} />
+      <.field_errors id={@errors_id} errors={@errors} />
+      <.field_help_text id={@help_id} help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -559,6 +601,7 @@ defmodule PetalComponents.Field do
   def field(%{type: "radio-card"} = assigns) do
     assigns =
       assigns
+      |> assign_described_by()
       |> assign_new(:checked, fn -> nil end)
       |> assign_new(:options, fn -> [] end)
       |> assign_new(:group_layout, fn -> "row" end)
@@ -596,6 +639,8 @@ defmodule PetalComponents.Field do
                   to_string(option[:value]) == to_string(@checked)
               }
               class="sr-only pc-radio-card__input"
+              aria-invalid={@aria_invalid}
+              aria-describedby={@aria_describedby}
               {@rest}
             />
             <div class="pc-radio-card__fake-input"></div>
@@ -637,8 +682,8 @@ defmodule PetalComponents.Field do
           </div>
         <% end %>
       </div>
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <.field_help_text help_text={@help_text} />
+      <.field_errors id={@errors_id} errors={@errors} />
+      <.field_help_text id={@help_id} help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -659,6 +704,7 @@ defmodule PetalComponents.Field do
   def field(%{type: "password", viewable: true} = assigns) do
     assigns =
       assigns
+      |> assign_described_by()
       |> assign(class: [assigns.class, get_class_for_type(assigns.type)])
       |> assign_new(:wrapper_id, fn -> "pc-pw-#{Ecto.UUID.generate()}" end)
 
@@ -676,6 +722,8 @@ defmodule PetalComponents.Field do
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[@class, "pc-password-field-input"]}
           required={@required}
+          aria-invalid={@aria_invalid}
+          aria-describedby={@aria_describedby}
           {@rest}
         />
         <button
@@ -693,8 +741,8 @@ defmodule PetalComponents.Field do
           </span>
         </button>
       </div>
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <.field_help_text help_text={@help_text} />
+      <.field_errors id={@errors_id} errors={@errors} />
+      <.field_help_text id={@help_id} help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -702,6 +750,7 @@ defmodule PetalComponents.Field do
   def field(%{type: type, copyable: true} = assigns) when type in ["text", "url", "email"] do
     assigns =
       assigns
+      |> assign_described_by()
       |> assign(class: [assigns.class, get_class_for_type(assigns.type)])
       |> assign_new(:wrapper_id, fn -> "pc-copy-#{Ecto.UUID.generate()}" end)
 
@@ -722,6 +771,8 @@ defmodule PetalComponents.Field do
           value={Phoenix.HTML.Form.normalize_value(@type || "text", @value)}
           class={[@class, "pc-copyable-field-input"]}
           readonly
+          aria-invalid={@aria_invalid}
+          aria-describedby={@aria_describedby}
           {@rest}
         />
         <!-- Copy Button -->
@@ -743,9 +794,9 @@ defmodule PetalComponents.Field do
         <span data-pc-copy-announce class="sr-only" aria-live="polite"></span>
       </div>
       <!-- Error Message -->
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+      <.field_errors id={@errors_id} errors={@errors} />
       <!-- Help Text -->
-      <.field_help_text help_text={@help_text} />
+      <.field_help_text id={@help_id} help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -754,6 +805,7 @@ defmodule PetalComponents.Field do
       when type in ["text", "search", "url", "email", "tel"] do
     assigns =
       assigns
+      |> assign_described_by()
       |> assign(class: [assigns.class, get_class_for_type(assigns.type)])
       |> assign_new(:wrapper_id, fn -> "pc-clear-#{Ecto.UUID.generate()}" end)
 
@@ -774,6 +826,8 @@ defmodule PetalComponents.Field do
           value={@value}
           class={[@class, "pc-clearable-field-input"]}
           required={@required}
+          aria-invalid={@aria_invalid}
+          aria-describedby={@aria_describedby}
           {@rest}
         />
         <!-- Clear Button -->
@@ -790,9 +844,9 @@ defmodule PetalComponents.Field do
         </button>
       </div>
       <!-- Error Message -->
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+      <.field_errors id={@errors_id} errors={@errors} />
       <!-- Help Text -->
-      <.field_help_text help_text={@help_text} />
+      <.field_help_text id={@help_id} help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -800,7 +854,9 @@ defmodule PetalComponents.Field do
   def field(%{type: type} = assigns)
       when type in ["date", "datetime-local", "time", "month", "week"] do
     assigns =
-      assign(assigns,
+      assigns
+      |> assign_described_by()
+      |> assign(
         class: [assigns.class, "pc-date-input pc-date-picker-indicator"],
         icon_name: get_icon_for_type(assigns.type)
       )
@@ -818,14 +874,16 @@ defmodule PetalComponents.Field do
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={@class}
           required={@required}
+          aria-invalid={@aria_invalid}
+          aria-describedby={@aria_describedby}
           {@rest}
         />
         <span class="pc-date-input-icon" aria-hidden="true">
           <.icon name={@icon_name} class="pc-date-input-icon-glyph" />
         </span>
       </div>
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <.field_help_text help_text={@help_text} />
+      <.field_errors id={@errors_id} errors={@errors} />
+      <.field_help_text id={@help_id} help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -871,7 +929,9 @@ defmodule PetalComponents.Field do
         class={@class}
         {@rest}
       />
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+      <%!-- no ids: the two thumbs sit in a phx-update="ignore" box that does
+      not take the caller's attrs, so nothing could name these --%>
+      <.field_errors id={nil} errors={@errors} />
       <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """
@@ -881,6 +941,8 @@ defmodule PetalComponents.Field do
   # Range routes through Input.input so the fill option gets its hook and
   # server-rendered initial fill; the wrapper carries the label and help.
   def field(%{type: "range"} = assigns) do
+    assigns = assign_described_by(assigns)
+
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label :if={@label} required={@required} for={@id} class={@label_class}>
@@ -894,16 +956,21 @@ defmodule PetalComponents.Field do
         value={@value}
         class={@class}
         required={@required}
+        aria-invalid={@aria_invalid}
+        aria-describedby={@aria_describedby}
         {@rest}
       />
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <.field_help_text help_text={@help_text} />
+      <.field_errors id={@errors_id} errors={@errors} />
+      <.field_help_text id={@help_id} help_text={@help_text} />
     </.field_wrapper>
     """
   end
 
   def field(assigns) do
-    assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
+    assigns =
+      assigns
+      |> assign_described_by()
+      |> assign(class: [assigns.class, get_class_for_type(assigns.type)])
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
@@ -917,10 +984,12 @@ defmodule PetalComponents.Field do
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
         class={@class}
         required={@required}
+        aria-invalid={@aria_invalid}
+        aria-describedby={@aria_describedby}
         {@rest}
       />
-      <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <.field_help_text help_text={@help_text} />
+      <.field_errors id={@errors_id} errors={@errors} />
+      <.field_help_text id={@help_id} help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -987,6 +1056,20 @@ defmodule PetalComponents.Field do
     """
   end
 
+  # One box around all of a field's error messages, so the control can name it
+  # in aria-describedby with a single id however many errors there are. It
+  # renders only while there are errors, so the reference never dangles.
+  # Private and without attr declarations on purpose: declared attrs would put
+  # it in __components__ and so in the skill's schema snapshot. Every caller
+  # passes both id (nil for no id) and errors.
+  defp field_errors(assigns) do
+    ~H"""
+    <div :if={@errors != []} id={@id} class="pc-form-field-errors">
+      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+    </div>
+    """
+  end
+
   attr :class, :any, default: nil, doc: "extra classes for the help text"
   attr :help_text, :string, default: nil, doc: "context/help for your field"
   slot :inner_block, required: false
@@ -999,6 +1082,52 @@ defmodule PetalComponents.Field do
     </div>
     """
   end
+
+  # Works out the ids that tie help text and errors to the control:
+  # aria-describedby is the caller's own value, then <id>-help, then
+  # <id>-errors, and aria-invalid is "true" while there are errors. A field
+  # with no id mints no ids, so nothing names an element that is not there.
+  defp assign_described_by(assigns) do
+    base = assigns.id |> to_id_string() |> present()
+    # a checkbox's help text sits inside its <label>, so it is already part
+    # of the accessible name; describing the box by it would read it twice
+    help_id = described_id(base, assigns.help_text && assigns.type != "checkbox", "help")
+    errors_id = described_id(base, assigns.errors != [], "errors")
+    {own_describedby, rest} = Map.pop(assigns.rest, :"aria-describedby")
+
+    describedby =
+      [own_describedby, help_id, errors_id]
+      |> Enum.map(&present/1)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.join(" ")
+
+    assign(assigns,
+      rest: Map.delete(rest, :"aria-invalid"),
+      help_id: help_id,
+      errors_id: errors_id,
+      aria_describedby: present(describedby),
+      aria_invalid: aria_invalid(assigns.rest, assigns.errors)
+    )
+  end
+
+  # the caller's value wins, false included
+  defp aria_invalid(rest, errors) do
+    case Map.fetch(rest, :"aria-invalid") do
+      {:ok, own} -> own
+      :error -> if errors != [], do: "true"
+    end
+  end
+
+  defp described_id(base, true, suffix) when is_binary(base), do: "#{base}-#{suffix}"
+  defp described_id(_base, _show?, _suffix), do: nil
+
+  defp to_id_string(id) when is_atom(id) and not is_nil(id) and not is_boolean(id),
+    do: Atom.to_string(id)
+
+  defp to_id_string(id), do: id
+
+  defp present(value) when is_binary(value) and value != "", do: value
+  defp present(_value), do: nil
 
   defp get_class_for_type("radio"), do: "pc-radio"
   defp get_class_for_type("checkbox"), do: "pc-checkbox"
