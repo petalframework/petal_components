@@ -122,6 +122,8 @@ defmodule PetalComponents.Chat do
   """
   use Phoenix.Component
 
+  alias PetalComponents.Helpers
+
   @doc """
   A scrollable conversation thread. Composition-first: drop `chat_message/1`,
   `streaming_text/1`, or your own markup inside.
@@ -460,17 +462,14 @@ defmodule PetalComponents.Chat do
       |> assign(:icon_name, tool_icon_name(assigns.icon))
 
     # Only a settled row is worth collapsing behind a disclosure: an
-    # in-progress compact row stays a plain announced status line.
-    assigns =
-      assign(
-        assigns,
-        :revealable?,
-        settled? and
-          (assigns.panels? or assigns.inner_block != [] or assigns.error_actions != [])
-      )
+    # in-progress compact row stays a plain announced status line. Whether
+    # the widget slot holds anything is decided in the template, where it
+    # can be rendered: an open and close call always has an inner block.
+    assigns = assign(assigns, :settled?, settled?)
 
     ~H"""
-    <%= if @compact and @revealable? do %>
+    <%= if @compact and
+             revealable?(@settled?, @panels?, render_slot(@inner_block), @error_actions) do %>
       <details
         class={["pc-chat__tool", tool_modifier(@state), "pc-chat__tool--compact", @class]}
         {@rest}
@@ -552,6 +551,10 @@ defmodule PetalComponents.Chat do
       </div>
     <% end %>
     """
+  end
+
+  defp revealable?(settled?, panels?, widget, error_actions) do
+    settled? and (panels? or not Helpers.blank_render?(widget) or error_actions != [])
   end
 
   attr :state, :atom, required: true

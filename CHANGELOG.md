@@ -81,6 +81,12 @@
   when the inner block renders something other than whitespace, so
   those dialogs get 12px shorter. A test of your own that expects
   `.pc-alert-dialog__content` in such a dialog will not find it.
+- **A compact `tool_call` with only `:tool_icon` is a plain row.** A
+  finished compact call whose only content was the `:tool_icon` slot
+  rendered as a `<details>` disclosure with a chevron that opened onto
+  nothing. It is now the plain `<div>` row a call with no panels gets.
+  A widget in the block, panels or `:error_actions` still make it a
+  disclosure, as before.
 - **A `tab` with a `label` shows its `number` badge.**
   `<.tab label="Reports" number={4} />` rendered "Reports" and no badge:
   the label was handed to the link inside the tab, which printed it in
