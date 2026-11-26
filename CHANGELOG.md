@@ -28,6 +28,14 @@
 
 #### Fixed
 
+- **A full `input_otp` still shows focus.** Once every slot was filled,
+  no slot was marked active, so a focused field with a whole code looked
+  the same as one without focus. The last slot now stays active while
+  the field has focus: it gets the ring and, because it is filled, no
+  caret. The class is the same `pc-otp__slot--active`, so if your CSS
+  styled it expecting an empty slot, look at a full field after you
+  upgrade. If you added your own ring for the full case, you can remove
+  it.
 - **Plain utilities work on `carousel` and `filters`.** Their rules in
   `default.css`, and the toast's, sat outside `@layer components`.
   Unlayered CSS beats every layer, utilities included, so

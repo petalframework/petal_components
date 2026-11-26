@@ -1647,6 +1647,9 @@ export const PetalInputOTP = {
   render() {
     const value = this.input.value;
     const focused = document.activeElement === this.input;
+    // The next empty slot is active; once every slot is filled the last one
+    // stays active, so a full code still shows focus (it gets the ring, and
+    // no caret because it is filled).
     const activeIndex = Math.min(value.length, this.slots.length - 1);
 
     this.slots.forEach((slot, i) => {
@@ -1654,12 +1657,7 @@ export const PetalInputOTP = {
       slot.classList.toggle("pc-otp__slot--filled", Boolean(value[i]));
       slot.classList.toggle(
         "pc-otp__slot--active",
-        focused &&
-          i === activeIndex &&
-          value.length < this.slots.length + (value[i] ? 0 : 1) &&
-          (i === value.length ||
-            (i === this.slots.length - 1 &&
-              value.length === this.slots.length)),
+        focused && i === activeIndex,
       );
     });
   },
