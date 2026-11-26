@@ -183,6 +183,209 @@ defmodule PetalComponents.EmptyTest do
     refute_has_class(html, "pc-empty__footer")
   end
 
+  # An open and close call always has an inner block, even when it holds only
+  # named slots and the whitespace between them, so the footer has to test
+  # what the block renders.
+  describe "the footer and a blank inner block" do
+    defp footer_count(html),
+      do: html |> LazyHTML.from_fragment() |> LazyHTML.query(".pc-empty__footer") |> Enum.count()
+
+    defp learn_more(assigns) do
+      ~H"""
+      <a :if={@href} href={@href}>Learn more</a>
+      """
+    end
+
+    test "a call with only :icon and :actions renders no footer" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.empty title="No projects yet">
+          <:icon><.icon name="hero-folder-plus" class="w-6 h-6" /></:icon>
+          <:actions>
+            <.button size="sm">Create project</.button>
+          </:actions>
+        </.empty>
+        """)
+
+      assert_has_class(html, "pc-empty__actions")
+      assert footer_count(html) == 0
+    end
+
+    for size <- ["sm", "lg"] do
+      test "size #{size} with only :icon and :actions renders no footer" do
+        assigns = %{size: unquote(size)}
+
+        html =
+          rendered_to_string(~H"""
+          <.empty title="No projects yet" size={@size}>
+            <:icon><.icon name="hero-folder-plus" class="w-6 h-6" /></:icon>
+            <:actions><.button size="sm">Create project</.button></:actions>
+          </.empty>
+          """)
+
+        assert_has_class(html, "pc-empty--#{@size}")
+        assert footer_count(html) == 0
+      end
+    end
+
+    test "whitespace, nil, an empty string, raw whitespace and a false if render no footer" do
+      assigns = %{link: nil, show?: false}
+
+      html =
+        rendered_to_string(~H"""
+        <.empty title="No projects yet">
+          <:actions><.button size="sm">Create</.button></:actions>
+          {@link}
+          {""}
+          {Phoenix.HTML.raw("   ")}
+          <%= if false do %>
+            <p>hidden</p>
+          <% end %>
+          <a :if={@show?} href="/docs">Learn more</a>
+        </.empty>
+        """)
+
+      assert footer_count(html) == 0
+    end
+
+    test "a nested component that renders nothing gives no footer; with a link it does" do
+      assigns = %{}
+
+      none =
+        rendered_to_string(~H"""
+        <.empty title="No projects yet">
+          <.learn_more href={nil} />
+        </.empty>
+        """)
+
+      some =
+        rendered_to_string(~H"""
+        <.empty title="No projects yet">
+          <.learn_more href="/docs" />
+        </.empty>
+        """)
+
+      assert footer_count(none) == 0
+      assert footer_count(some) == 1
+    end
+
+    test "a text-only footer and a component-only footer still render" do
+      assigns = %{}
+
+      text =
+        rendered_to_string(~H"""
+        <.empty title="No projects yet">
+          <:actions><.button size="sm">Create</.button></:actions>
+          Updated hourly
+        </.empty>
+        """)
+
+      assert text
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.query(".pc-empty__footer")
+             |> LazyHTML.text() =~ "Updated hourly"
+
+      component =
+        rendered_to_string(~H"""
+        <.empty title="No projects yet">
+          <.button size="sm" variant="link">Learn more</.button>
+        </.empty>
+        """)
+
+      assert component
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.query(".pc-empty__footer .pc-button")
+             |> Enum.count() == 1
+    end
+
+    test "{0} renders a footer" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.empty title="No projects yet">{0}</.empty>
+        """)
+
+      assert footer_count(html) == 1
+    end
+
+    # Deliberate: a comprehension counts as content without being looked into.
+    test "a :for over an empty list keeps the footer" do
+      assigns = %{links: []}
+
+      html =
+        rendered_to_string(~H"""
+        <.empty title="No projects yet">
+          <a :for={link <- @links} href={link}>{link}</a>
+        </.empty>
+        """)
+
+      assert footer_count(html) == 1
+    end
+
+    test "a self-closing call has no footer" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.empty title="No projects yet" />
+        """)
+
+      assert footer_count(html) == 0
+    end
+
+    defp tracked_page(assigns) do
+      ~H"""
+      <.empty title={"Projects #{@other}"}>
+        <:actions><.button size="sm">Create</.button></:actions>
+        <a :if={@link} href={@link}>Learn more</a>
+      </.empty>
+      """
+    end
+
+    # Renders the way a LiveView does: a diff against the last render's
+    # fingerprints, merged into what the client holds.
+    defp tracked_render(assigns, {client, prints, components}) do
+      {diff, prints, components} =
+        Phoenix.LiveView.Diff.render(
+          %Phoenix.LiveView.Socket{},
+          tracked_page(assigns),
+          prints,
+          components
+        )
+
+      client = Phoenix.LiveViewTest.Diff.merge_diff(client, diff)
+      html = client |> Phoenix.LiveView.Diff.to_iodata() |> IO.iodata_to_binary()
+      {html, {client, prints, components}}
+    end
+
+    test "the footer follows the block through LiveView change tracking" do
+      state =
+        {%{}, Phoenix.LiveView.Diff.new_fingerprints(), Phoenix.LiveView.Diff.new_components()}
+
+      {html, state} = tracked_render(%{link: nil, other: 1, __changed__: nil}, state)
+      assert footer_count(html) == 0
+
+      {html, state} =
+        tracked_render(%{link: "/docs", other: 1, __changed__: %{link: true}}, state)
+
+      assert footer_count(html) == 1
+      assert html =~ ~s(href="/docs")
+
+      {html, state} =
+        tracked_render(%{link: "/docs", other: 2, __changed__: %{other: true}}, state)
+
+      assert footer_count(html) == 1
+      assert html =~ ~s(href="/docs")
+      assert html =~ "Projects 2"
+
+      {html, _state} = tracked_render(%{link: nil, other: 2, __changed__: %{link: true}}, state)
+      assert footer_count(html) == 0
+    end
+  end
+
   test "class merges onto the root and rest passes through" do
     assigns = %{}
 

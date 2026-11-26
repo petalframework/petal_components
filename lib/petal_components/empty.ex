@@ -79,6 +79,8 @@ defmodule PetalComponents.Empty do
 
   import PetalComponents.Icon
 
+  alias PetalComponents.Helpers
+
   attr :title, :string, default: nil, doc: "the headline, e.g. \"No results found\""
 
   attr :description, :string,
@@ -137,7 +139,10 @@ defmodule PetalComponents.Empty do
         {render_slot(@actions)}
       </div>
 
-      <div :if={@inner_block != []} class="pc-empty__footer">
+      <%!-- Not `@inner_block != []`: an open and close call always has an
+            inner block, so a call with only :icon and :actions would get an
+            empty footer and its top margin. Test what the block renders. --%>
+      <div :if={!Helpers.blank_render?(render_slot(@inner_block))} class="pc-empty__footer">
         {render_slot(@inner_block)}
       </div>
     </div>

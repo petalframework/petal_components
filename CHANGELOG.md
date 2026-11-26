@@ -53,6 +53,19 @@
   styled it expecting an empty slot, look at a full field after you
   upgrade. If you added your own ring for the full case, you can remove
   it.
+- **`<.empty>` with only `:icon` and `:actions` has no empty footer.**
+  Any open and close call has an inner block, even when it holds only
+  named slots and the space between them, so such a call rendered an
+  empty `<div class="pc-empty__footer">` and its top margin: 8px under
+  the actions at `sm`, 12px at `md` and 16px at `lg`. The footer now
+  renders only when the inner block renders something other than
+  whitespace; `nil`, `""` and a false `:if` count as nothing. A text or
+  a link in the block still gets its footer, and so does a `:for`, even
+  over an empty list. Those empty states get that much shorter, so
+  look at them after you upgrade, and at any CSS of your own on
+  `.pc-empty__footer` (a border, say), which no longer shows on them.
+  If you made up the gap elsewhere (Petal Pro's billing success page
+  has a skeleton with an extra `mb-3` for it), take that out too.
 - **A `tab` with a `label` shows its `number` badge.**
   `<.tab label="Reports" number={4} />` rendered "Reports" and no badge:
   the label was handed to the link inside the tab, which printed it in
