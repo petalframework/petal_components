@@ -2,10 +2,15 @@ defmodule PetalComponents.OverlayTextResetCssTest do
   use ComponentCase
 
   import PetalComponents.AlertDialog
+  import PetalComponents.Command
+  import PetalComponents.ContextMenu
   import PetalComponents.DatePicker
   import PetalComponents.Dropdown
+  import PetalComponents.HoverCard
   import PetalComponents.Modal
   import PetalComponents.Popover
+  import PetalComponents.SlideOver
+  import PetalComponents.Tooltip
 
   # Every overlay is a DOM child of wherever its call sits, so it inherits
   # that container's text styles: an alert dialog opened from a
@@ -200,6 +205,111 @@ defmodule PetalComponents.OverlayTextResetCssTest do
         """)
 
       assert_classed(html, ".pc-modal .pc-modal__box", "text-right")
+    end
+
+    test "slide_over class lands inside the reset element" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="so" class="text-right">Body</.slide_over>
+        """)
+
+      assert_classed(html, ".pc-slide-over [role=dialog]", "text-right")
+    end
+
+    test "command_dialog class lands on the palette inside the dialog" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.command_dialog id="cmdk" class="text-right">
+          <.command_list>Items</.command_list>
+        </.command_dialog>
+        """)
+
+      assert_classed(html, "dialog.pc-command-dialog #cmdk-palette", "text-right")
+    end
+
+    test "tooltip content_class lands on the bubble" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tooltip label="Hi" content_class="uppercase">Trigger</.tooltip>
+        """)
+
+      assert_classed(html, ".pc-tooltip__content", "uppercase")
+    end
+
+    test "hover_card card_class lands on the panel" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.hover_card card_class="uppercase">
+          <:trigger>Name</:trigger>
+          Card
+        </.hover_card>
+        """)
+
+      assert_classed(html, ".pc-hover-card__panel", "uppercase")
+    end
+
+    test "context_menu menu_class lands on the panel" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.context_menu id="cm" menu_class="uppercase">
+          <:trigger>Area</:trigger>
+          <.context_menu_item label="Copy" />
+        </.context_menu>
+        """)
+
+      assert_classed(html, ".pc-context-menu__panel", "uppercase")
+    end
+  end
+
+  # The changelog warns about these: on five overlays `class` goes on the
+  # outer wrapper, outside the reset, so a text class there stops reaching
+  # the panel. If one of them moves `class` onto the panel, change the
+  # changelog and usage notes with it.
+  describe "a wrapper class sits outside the reset element" do
+    test "tooltip, popover, dropdown, hover_card and date_picker" do
+      assigns = %{}
+
+      cases = [
+        {rendered_to_string(~H"""
+         <.tooltip label="Hi" class="uppercase">Trigger</.tooltip>
+         """), ".pc-tooltip", ".pc-tooltip__content"},
+        {rendered_to_string(~H"""
+         <.popover id="pop" class="uppercase">
+           <:trigger>Open</:trigger>
+           Body
+         </.popover>
+         """), ".pc-popover", ".pc-popover__panel"},
+        {rendered_to_string(~H"""
+         <.dropdown label="Actions" class="uppercase">
+           <.dropdown_menu_item label="Edit" />
+         </.dropdown>
+         """), ".pc-dropdown", ".pc-dropdown__menu-items-wrapper"},
+        {rendered_to_string(~H"""
+         <.hover_card class="uppercase">
+           <:trigger>Name</:trigger>
+           Card
+         </.hover_card>
+         """), ".pc-hover-card", ".pc-hover-card__panel"},
+        {rendered_to_string(~H"""
+         <.date_picker id="dp" name="due_on" class="uppercase" />
+         """), ".pc-date-picker", ".pc-date-picker__panel"}
+      ]
+
+      for {html, wrapper, panel} <- cases do
+        assert_classed(html, wrapper, "uppercase")
+        assert classes_of(html, "#{wrapper} #{panel}") != [], "#{panel} is not inside #{wrapper}"
+        refute_classed(html, panel, "uppercase")
+      end
     end
   end
 

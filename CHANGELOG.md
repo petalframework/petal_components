@@ -80,8 +80,15 @@
   picker panel. Font weight, size, line height, colour and text
   selection still inherit, as they did, because an app sets those on
   `body` and wants them in its overlays. To style an overlay's text, put
-  the class on the component (`class`, `panel_class`,
-  `menu_items_wrapper_class`): that still wins. If you set tracking or
+  the class on the element that holds it, and it still wins: `class` on
+  `<.alert_dialog>`, `<.modal>`, `<.slide_over>` and `<.command_dialog>`;
+  `panel_class` on `<.popover>` and `<.date_picker>`;
+  `menu_items_wrapper_class` on `<.dropdown>`; `content_class` on
+  `<.tooltip>`; `card_class` on `<.hover_card>`; `menu_class` on
+  `<.context_menu>`. A text class on the wrapper `class` of a tooltip,
+  popover, dropdown, hover card or date picker no longer reaches the
+  panel (it reached it before only by inheritance): move it to the attr
+  above. If you set tracking or
   tabular figures on `body` for the whole app, overlays now drop them,
   so put them on the component too. A wrapper you added only to undo
   the cell's alignment, such as a `text-start` around a dialog, can go.

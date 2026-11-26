@@ -102,7 +102,7 @@
 @layer components {
   /* Overlay text reset: an overlay is a DOM child of its call site, so it
      took a table cell's alignment, nowrap, case and figures. First in the
-     layer, so each component's own rules and a passed class still win. */
+     layer, so each component's own rules and a class on the panel still win. */
   .pc-alert-dialog,
   .pc-command-dialog,
   .pc-modal,
