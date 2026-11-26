@@ -97,7 +97,8 @@ defmodule PetalComponents.AlertDialog do
 
   The native restoration only works while the opener is still in the page.
   Delete a table row from the keyboard and the confirm takes its own Delete
-  button with it, so focus would fall to `<body>`. The hook catches that.
+  button with it, so focus would fall to `<body>`. The dialog's hook catches
+  that.
   Confirm the Delete on row 2 and focus lands on the Delete of the row below:
   the same control in the row that took its place, or that row's first
   control if it is built differently. When nothing is left, focus goes to the

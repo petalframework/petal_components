@@ -2932,8 +2932,10 @@ export const PetalAlertDialog = {
 
     // The part that went or hid is the child of the lowest parent still on
     // screen. Look only among that parent's children, starting at the one
-    // now in the part's place, then after it, then before it. Never higher:
-    // a jump to a sidebar or a footer reads like a navigation.
+    // now in the part's place, then after it, then before it. A part that
+    // is still there (hidden, or holding an opener that can no longer take
+    // focus) starts with the child after itself. Never higher: a jump to a
+    // sidebar or a footer reads like a navigation.
     const level = openerPath.find(
       ({ parent }) =>
         parent.isConnected &&
