@@ -576,4 +576,96 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
     endExit(el);
     expect(focusins(removed)).toBe(1);
   });
+
+  it("a mouse confirm (the pointerdown lands inside the dialog) stays armed: the row removal still goes to the next row", () => {
+    const [row1] = tableWithDialogInRows();
+    pointerDown($("#delete-1"));
+    $("#delete-1").focus();
+    click($("#delete-1"));
+
+    pointerDown(row1.el.querySelector(".pc-alert-dialog__confirm"));
+    confirm(row1.el);
+    endExit(row1.el);
+    removeRow("row-1", [row1.hook, row1.trigger]);
+
+    expect(document.activeElement).toBe($("#show-2"));
+  });
+
+  it("a live navigation's teardown of an armed dialog leaves no document listeners behind", () => {
+    const listening = [];
+    const add = document.addEventListener.bind(document);
+    const remove = document.removeEventListener.bind(document);
+    vi.spyOn(document, "addEventListener").mockImplementation((t, f, o) => {
+      listening.push([t, f]);
+      add(t, f, o);
+    });
+    vi.spyOn(document, "removeEventListener").mockImplementation((t, f, o) => {
+      const i = listening.findIndex(([lt, lf]) => lt === t && lf === f);
+      if (i !== -1) listening.splice(i, 1);
+      remove(t, f, o);
+    });
+    const [row1, row2] = tableWithDialogInRows();
+    $("#delete-1").focus();
+    click($("#delete-1"));
+    confirm(row1.el);
+    endExit(row1.el);
+    toBody();
+
+    destroy([row1.hook, row1.trigger, row2.hook, row2.trigger]);
+
+    expect(listening.map(([type]) => type)).toEqual([]);
+  });
+
+  it("a reopen mid-exit with no detail keeps the opener: the dialog's own Cancel never becomes it", () => {
+    const { el, hook } = tableWithOutsideDialog(3);
+    $("#delete-2").focus();
+    openWith(el);
+    cancel(el);
+
+    // activeElement is the Cancel button inside the dialog by now
+    openWith(el);
+
+    expect(hook.opener).toBe($("#delete-2"));
+  });
+
+  it("a surviving container with its own tabindex keeps it after taking focus", () => {
+    render(`
+      <table><tbody id="rows" tabindex="0">${rowsHtml(1)}</tbody></table>
+      ${dialogHtml("d")}`);
+    const el = stubDialog($("#d"));
+    mountHook("PetalAlertDialog", el);
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<button type="button" id="add">Outside the page wrapper</button>`,
+    );
+    $("#delete-1").focus();
+    openWith(el);
+    confirm(el);
+    removeRow("row-1");
+    endExit(el);
+
+    expect(document.activeElement).toBe($("#rows"));
+    $("#add").focus();
+    expect($("#rows").getAttribute("tabindex")).toBe("0");
+  });
+
+  it("the focus ring follows how the dialog was opened, not the input that confirmed it", () => {
+    const seen = [];
+    const realFocus = HTMLElement.prototype.focus;
+    vi.spyOn(HTMLElement.prototype, "focus").mockImplementation(function (opts) {
+      if (this.id === "delete-2") seen.push(opts);
+      realFocus.call(this, opts);
+    });
+    const { el } = tableWithOutsideDialog(3);
+    $("#delete-1").focus();
+    keyDown("Enter");
+    openWith(el);
+
+    pointerDown(el.querySelector(".pc-alert-dialog__confirm"));
+    confirm(el);
+    removeRow("row-1");
+    endExit(el);
+
+    expect(seen).toEqual([{ preventScroll: true, focusVisible: true }]);
+  });
 });
