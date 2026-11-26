@@ -34,12 +34,13 @@
   `<id>-errors` on a new `<div class="pc-form-field-errors">` that wraps
   all of a field's `<p class="pc-form-field-error">` messages. Your own
   `aria-invalid` wins, `false` included. A field with no id gets no ids,
-  so nothing names a missing element. A checkbox's help text is inside
-  its label already, so it is not named twice. On checkbox-group,
-  radio-group and radio-card every option's input carries both
-  attributes. `combobox` and `range-dual` are not covered yet. Spacing
-  is unchanged with the default wrapper. What to check after you
-  upgrade: a child selector such as
+  so nothing names a missing element (a `number-field` with only a name
+  uses the id it already derives, `number_field_<name>`). A checkbox's
+  help text is inside its label already, so it is not named twice. On
+  checkbox-group, radio-group and radio-card every option's input
+  carries both attributes. `combobox` and `range-dual` are not covered
+  yet. Spacing is unchanged with the default wrapper. What to check
+  after you upgrade: a child selector such as
   `.pc-form-field-wrapper > .pc-form-field-error` no longer matches
   (use a descendant selector), exact-markup snapshot tests see the new
   attributes and the wrapper div, and a flex or grid `wrapper_class`

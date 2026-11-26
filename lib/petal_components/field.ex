@@ -24,7 +24,9 @@ defmodule PetalComponents.Field do
   yourself, and the control gets `aria-invalid="true"` while there are errors.
   Pass `aria-invalid` yourself and your value wins. These ids and the class are
   markup you can rely on in your CSS and tests. A field with no id mints no
-  ids. A checkbox's help text sits inside its label, so it is not named again.
+  ids (a `number-field` with only a name uses the id it already derives,
+  `number_field_<name>`). A checkbox's help text sits inside its label, so it
+  is not named again.
   On a checkbox-group, radio-group or radio-card every option's input carries
   both attributes. `combobox` and `range-dual` do not take them yet.
 
