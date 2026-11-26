@@ -25,15 +25,17 @@
 
 - **`<.alert_dialog>` keeps keyboard focus in the list when the confirm
   deletes its opener.** Before, deleting a table row from its own Delete
-  button with the keyboard dropped focus on the page body, so the next Tab
-  started over. Now focus moves to the same control in the row that took its
-  place, or to the list itself when nothing is left (measured in Chrome).
-  That works every time with the dialog inside the row it deletes, the
-  `petal.gen.live` shape. A dialog outside the row only gets it when the row
-  goes before the dialog has finished closing, so not with `phx-remove` on
-  the row, not with reduced motion and not on a slow reply. Mouse and touch
-  users get exactly what they had before, and focus the user moved is never
-  taken. The hooks change, nothing else: no new attr and no markup change.
+  button with the keyboard dropped focus on the page body, so nothing showed
+  where the user was. Now focus moves to the same control in the row that
+  took its place (measured in Chrome), or that row's first control if it is
+  built differently. When nothing is left, it goes to the empty state's first
+  control, or to the list or page section that held it. You get this with the
+  dialog inside the row it deletes, the `petal.gen.live` shape. A dialog
+  outside the row only gets it when the row goes before the dialog has
+  finished closing. So usually not with `phx-remove` on the row, not with
+  reduced motion and not on a slow reply. Mouse and touch users get exactly
+  what they had before, and focus the user moved is never taken. The hooks
+  change, nothing else: no new attr and no markup change.
 
 - **jason `~> 1.3`** (was `~> 1.2`): the JSON report uses
   `Jason.OrderedObject`, added in jason 1.3.0.
