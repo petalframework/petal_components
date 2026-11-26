@@ -88,10 +88,10 @@
   `<.context_menu>`. A text class on the wrapper `class` of a tooltip,
   popover, dropdown, hover card or date picker no longer reaches the
   panel (it reached it before only by inheritance): move it to the attr
-  above. If you set tracking or
-  tabular figures on `body` for the whole app, overlays now drop them,
-  so put them on the component too. A wrapper you added only to undo
-  the cell's alignment, such as a `text-start` around a dialog, can go.
+  above. If you set tracking or tabular figures on `body` for the whole
+  app, overlays now drop them, so put them on the component too. A
+  wrapper you added only to undo the cell's alignment, such as a
+  `text-start` around a dialog, can go.
 
 ### 4.18.1 - 2026-11-20
 
