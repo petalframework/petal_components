@@ -69,6 +69,22 @@
   separator and `<.hr>` are unchanged. On the bare dark page the line
   is a touch fainter than before (it matches a table row there), so a
   dark screenshot test of a separator will see a new colour.
+- **Overlays no longer take their text styles from where they sit.**
+  An overlay is a DOM child of its call site, so an `<.alert_dialog>`
+  in a `text-right whitespace-nowrap uppercase tabular-nums` table cell
+  opened right-aligned and in capitals, with its description on one
+  line running off the panel. Text alignment, wrapping, case, tracking,
+  italics, numeral style and the cursor no longer come from the
+  container on the alert dialog, command dialog, modal, slide over,
+  dropdown menu, popover, context menu, hover card, tooltip and date
+  picker panel. Font weight, size, line height, colour and text
+  selection still inherit, as they did, because an app sets those on
+  `body` and wants them in its overlays. To style an overlay's text, put
+  the class on the component (`class`, `panel_class`,
+  `menu_items_wrapper_class`): that still wins. If you set tracking or
+  tabular figures on `body` for the whole app, overlays now drop them,
+  so put them on the component too. A wrapper you added only to undo
+  the cell's alignment, such as a `text-start` around a dialog, can go.
 
 ### 4.18.1 - 2026-11-20
 

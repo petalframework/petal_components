@@ -100,6 +100,28 @@
 }
 
 @layer components {
+  /* Overlay text reset: an overlay is a DOM child of its call site, so it
+     took a table cell's alignment, nowrap, case and figures. First in the
+     layer, so each component's own rules and a passed class still win. */
+  .pc-alert-dialog,
+  .pc-command-dialog,
+  .pc-modal,
+  .pc-slide-over,
+  .pc-dropdown__menu-items-wrapper,
+  .pc-popover__panel,
+  .pc-context-menu__panel,
+  .pc-hover-card__panel,
+  .pc-tooltip__content,
+  .pc-date-picker__panel {
+    text-align: start;
+    white-space: normal;
+    text-transform: none;
+    letter-spacing: normal;
+    font-style: normal;
+    font-variant-numeric: normal;
+    cursor: auto;
+  }
+
   /* Container */
 
   .pc-container {
