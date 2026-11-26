@@ -28,6 +28,74 @@
 
 #### Fixed
 
+- **Pasting a code into `input_otp` keeps every digit.** The input's
+  `maxlength` cut the pasted text before the hook stripped what the
+  pattern rejects, so "123 456", "123-456" or a code with newlines around
+  it lost its last digit, and a code with letters mixed in lost most of
+  them. The `PetalInputOTP` hook now takes the paste itself: it cleans
+  the whole text first and then cuts it to the length. A paste that holds
+  a whole code replaces what is in the field; a shorter one goes in at
+  the selection. It fires one `input` event, so `phx-change` and
+  `petal:otp-complete` fire as for typing, and a paste that leaves the
+  value as it was fires nothing. `maxlength` stays on the input. If your
+  app has its own paste handler on the field or on an element around it,
+  remove it when you upgrade: the event still reaches it, so a handler
+  that writes the paste itself inserts a part code twice. A paste is now done by script, so the browser's undo
+  step for it is gone. Text that arrives without a paste event, such as
+  an IME commit or the Android keyboard's clipboard chip, is still cut
+  before it is cleaned.
+- **A full `input_otp` still shows focus.** Once every slot was filled,
+  no slot was marked active, so a focused field with a whole code looked
+  the same as one without focus. The last slot now stays active while
+  the field has focus: it gets the ring and, because it is filled, no
+  caret. The class is the same `pc-otp__slot--active`, so if your CSS
+  styled it expecting an empty slot, look at a full field after you
+  upgrade. If you added your own ring for the full case, you can remove
+  it.
+- **`<.empty>` with only `:icon` and `:actions` has no empty footer.**
+  Any open and close call has an inner block, even when it holds only
+  named slots and the space between them, so such a call rendered an
+  empty `<div class="pc-empty__footer">` and its top margin: 8px under
+  the actions at `sm`, 12px at `md` and 16px at `lg`. The footer now
+  renders only when the inner block renders something other than
+  whitespace; `nil`, `""` and a false `:if` count as nothing. A text or
+  a link in the block still gets its footer, and so does a `:for`, even
+  over an empty list. Those empty states get that much shorter, so
+  look at them after you upgrade, and at any CSS of your own on
+  `.pc-empty__footer` (a border, say), which no longer shows on them.
+  If you made up for the gap elsewhere, take that out too.
+- **An `<.alert label="...">` with an `:actions` slot shows its
+  label.** `<.alert color="danger" label="Wrong PIN">` with only
+  `<:actions>` inside rendered the actions and an empty message, and
+  `aria-describedby` pointed at that empty element, so a screen reader
+  heard nothing either. The label now shows whenever the inner block
+  renders only whitespace, as it already did for a self-closing call.
+  Text in the inner block still wins over `label`, and when to render
+  the alert at all is unchanged. No markup or class changes.
+- **An `<.alert_dialog>` with only a `:trigger` has no empty body
+  block.** The call the docs show (a `title`, a `description` and a
+  `<:trigger>`) rendered an empty `<div class="pc-alert-dialog__content">`
+  under the description, adding 12px to the dialog. It now renders only
+  when the inner block renders something other than whitespace, so
+  those dialogs get 12px shorter. A test of your own that expects
+  `.pc-alert-dialog__content` in such a dialog will not find it.
+- **A compact `tool_call` with only `:tool_icon` is a plain row.** A
+  finished compact call whose only content was the `:tool_icon` slot
+  rendered as a `<details>` disclosure with a chevron that opened onto
+  nothing. It is now the plain `<div>` row a call with no panels gets.
+  A widget in the block, panels or `:error_actions` still make it a
+  disclosure, as before. A test or CSS of your own that expects a
+  `<details>` for such a call will find a `<div>`.
+- **A `tab` with a `label` shows its `number` badge.**
+  `<.tab label="Reports" number={4} />` rendered "Reports" and no badge:
+  the label was handed to the link inside the tab, which printed it in
+  place of everything else. The tab now prints the label and the badge
+  itself, for every `link_type` and for a disabled tab. A `label` still
+  wins over the inner block, and a tab with no `label` renders its inner
+  block as before. A tab with a label and a number now has one more
+  `<span class="pc-tab__number">` in it, so a test that counts the
+  badges may see more, and the whitespace around a label changes, which
+  only a test that compares raw HTML will notice.
 - **Plain utilities work on `carousel` and `filters`.** Their rules in
   `default.css`, and the toast's, sat outside `@layer components`.
   Unlayered CSS beats every layer, utilities included, so

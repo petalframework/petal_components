@@ -4,7 +4,7 @@ defmodule PetalComponents.Showcase.InputOtp do
 
   example :basic, "Six digits",
     description:
-      "One real input under the segmented boxes, so paste, SMS autofill and form posts all just work - the boxes are presentation only. length defaults to 6; pattern=\"alphanumeric\" accepts letter codes too. Needs the PetalInputOTP hook from the bundle." do
+      "One real input under the segmented boxes, so SMS autofill and form posts work as for any input, and the hook cleans a pasted code (spaces, dashes and newlines are dropped before the cut) - the boxes are presentation only. length defaults to 6; pattern=\"alphanumeric\" accepts letter codes too. Needs the PetalInputOTP hook from the bundle." do
     ~H"""
     <.input_otp name="otp_code" />
     """

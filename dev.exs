@@ -11966,7 +11966,8 @@ defmodule Dev.PlaygroundLive do
       <h1 class="text-3xl font-bold tracking-tight">Input OTP</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         A segmented one-time-code input. One real input under the hood, so
-        paste, SMS autofill and form posts all just work. Try typing in it.
+        SMS autofill and form posts just work, and a pasted code is cleaned
+        before it is cut. Try typing in it.
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">

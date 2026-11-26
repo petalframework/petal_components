@@ -120,6 +120,7 @@ defmodule PetalComponents.AlertDialog do
   """
   use Phoenix.Component
 
+  alias PetalComponents.Helpers
   alias Phoenix.LiveView.JS
 
   import PetalComponents.Button
@@ -219,7 +220,12 @@ defmodule PetalComponents.AlertDialog do
           <p :if={@description} id={"#{@id}-description"} class="pc-alert-dialog__description">
             {@description}
           </p>
-          <div :if={@inner_block != []} class="pc-alert-dialog__content">
+          <%!-- Not `@inner_block != []`: a call with only :trigger still has
+                an inner block. Test what the block renders. --%>
+          <div
+            :if={!Helpers.blank_render?(render_slot(@inner_block))}
+            class="pc-alert-dialog__content"
+          >
             {render_slot(@inner_block)}
           </div>
         </div>

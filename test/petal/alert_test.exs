@@ -464,6 +464,74 @@ defmodule PetalComponents.AlertTest do
       assert html =~ "View notes"
     end
 
+    # An open and close call always has an inner block, so `render_slot ||
+    # @label` never reached the label when only named slots were given.
+    test "the label attr shows when the call has only :actions" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="danger" label="Wrong PIN">
+          <:actions>
+            <button>Resend code</button>
+          </:actions>
+        </.alert>
+        """)
+
+      doc = parse_html(html)
+
+      [described_by] =
+        doc |> LazyHTML.query("[role=alert]") |> LazyHTML.attribute("aria-describedby")
+
+      described = LazyHTML.query(doc, "##{described_by}")
+
+      assert described |> LazyHTML.text() |> String.trim() == "Wrong PIN"
+      assert html =~ "Resend code"
+    end
+
+    test "inner content still wins over the label attr" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="info" label="Label text">
+          Inner text
+          <:actions><button>OK</button></:actions>
+        </.alert>
+        """)
+
+      label = html |> parse_html() |> LazyHTML.query(".pc-alert__label") |> LazyHTML.text()
+      assert String.trim(label) == "Inner text"
+    end
+
+    test "a nil inner expression falls back to the label attr" do
+      assigns = %{message: nil}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="info" label="Fallback">{@message}</.alert>
+        """)
+
+      label = html |> parse_html() |> LazyHTML.query(".pc-alert__label") |> LazyHTML.text()
+      assert String.trim(label) == "Fallback"
+    end
+
+    # Pinned: an alert with a heading and actions but no label still renders,
+    # as before; only the label's fallback changed.
+    test "a heading and actions with no label still render the alert" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="info" heading="Update available">
+          <:actions><button>View notes</button></:actions>
+        </.alert>
+        """)
+
+      assert html =~ "Update available"
+      assert html =~ "View notes"
+    end
+
     test "icon attr overrides the kind icon and implies with_icon" do
       assigns = %{}
 

@@ -905,6 +905,37 @@ defmodule PetalComponents.ChatTest do
       assert html =~ ">Retry<"
     end
 
+    # An open and close call always has an inner block, so a finished row
+    # holding only :tool_icon used to become a disclosure that reveals nothing.
+    test "a compact finished call with only :tool_icon is a plain row, not a disclosure" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tool_call name="search" state={:complete} compact>
+          <:tool_icon><span>S</span></:tool_icon>
+        </.tool_call>
+        """)
+
+      assert_has_class(html, "pc-chat__tool--compact")
+      assert html |> parse_html() |> LazyHTML.query("details") |> Enum.empty?()
+      assert html |> parse_html() |> LazyHTML.query(".pc-chat__tool-glyph") |> Enum.count() == 1
+    end
+
+    test "a compact finished call with a widget in the block is still a disclosure" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tool_call name="search" state={:complete} compact>
+          <:tool_icon><span>S</span></:tool_icon>
+          <div class="my-widget">3 results</div>
+        </.tool_call>
+        """)
+
+      assert html |> parse_html() |> LazyHTML.query("details .my-widget") |> Enum.count() == 1
+    end
+
     test "a non-compact call never renders the compact row chrome" do
       assigns = %{}
 

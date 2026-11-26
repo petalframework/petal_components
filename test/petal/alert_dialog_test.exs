@@ -266,6 +266,49 @@ defmodule PetalComponents.AlertDialogTest do
       assert html |> doc() |> LazyHTML.query(".pc-alert-dialog__content") |> Enum.empty?()
     end
 
+    # The shape the docs show: an open and close call holding only :trigger
+    # still has an inner block (the whitespace), which used to give the body
+    # an empty content wrapper and its top margin.
+    test "no content wrapper renders when the call has only a :trigger" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert_dialog
+          id="del"
+          title="Delete?"
+          description="This cannot be undone."
+          on_confirm={JS.push("delete")}
+        >
+          <:trigger>
+            <button type="button">Delete</button>
+          </:trigger>
+        </.alert_dialog>
+        """)
+
+      assert html |> doc() |> LazyHTML.query(".pc-alert-dialog__content") |> Enum.empty?()
+
+      assert html |> doc() |> LazyHTML.query(".pc-alert-dialog__trigger button") |> Enum.count() ==
+               1
+    end
+
+    test "the content wrapper still renders for text beside a :trigger" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert_dialog id="del" title="Delete?">
+          <:trigger><button type="button">Delete</button></:trigger>
+          Three files go with it.
+        </.alert_dialog>
+        """)
+
+      assert html
+             |> doc()
+             |> LazyHTML.query(".pc-alert-dialog__content")
+             |> LazyHTML.text() =~ "Three files go with it."
+    end
+
     test "the trigger slot renders and is wired to open the dialog" do
       assigns = %{}
 

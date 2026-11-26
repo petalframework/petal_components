@@ -9482,7 +9482,7 @@
       "examples": [
         {
           "code": "<.input_otp name=\"otp_code\" />",
-          "description": "One real input under the segmented boxes, so paste, SMS autofill and form posts all just work - the boxes are presentation only. length defaults to 6; pattern=\"alphanumeric\" accepts letter codes too. Needs the PetalInputOTP hook from the bundle.",
+          "description": "One real input under the segmented boxes, so SMS autofill and form posts work as for any input, and the hook cleans a pasted code (spaces, dashes and newlines are dropped before the cut) - the boxes are presentation only. length defaults to 6; pattern=\"alphanumeric\" accepts letter codes too. Needs the PetalInputOTP hook from the bundle.",
           "title": "Six digits"
         },
         {
@@ -18008,6 +18008,6 @@
       "slots": []
     }
   ],
-  "generated_at": "2026-11-20T03:31:33.411855Z",
+  "generated_at": "2026-11-26T01:46:39.091273Z",
   "version": "4.18.1"
 }
