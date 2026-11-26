@@ -149,9 +149,10 @@ const keyClick = (el) => {
   keyDown("Enter");
   clickWith(el, 0);
 };
-// A screen reader's activate (browse mode, VoiceOver) or switch access: a
-// click with detail 0, and neither a key press nor a pointer reaches the
-// page.
+// Assistive technology clicking for the user with no pointer: a click with
+// detail 0, and neither a key press nor a pointer reaches the page. R14
+// takes a screen reader's activate and switch access to look like this;
+// which ones do, per engine, is not measured.
 const atClick = (el) => clickWith(el, 0);
 
 // What LiveView does when a stream delete lands: the row leaves the DOM,
@@ -231,8 +232,18 @@ const chromeLikeCheckVisibility = () => {
 // The component's own stylesheet rule for the trigger wrapper.
 const triggerCss = `<style>.pc-alert-dialog__trigger { display: contents; }</style>`;
 
+// Stands for LiveView's own click listener: on window, bubble phase.
+const windowClicks = [];
+const onWindowClick = (fn) => {
+  windowClicks.push(fn);
+  window.addEventListener("click", fn);
+};
+
 describe("PetalAlertDialog focus return when the opener is removed", () => {
   afterEach(() => {
+    windowClicks
+      .splice(0)
+      .forEach((fn) => window.removeEventListener("click", fn));
     vi.restoreAllMocks();
     live.splice(0).forEach((h) => h.destroyed());
     document.body.innerHTML = "";
@@ -430,7 +441,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       expect(document.activeElement).toBe($("#delete-3"));
     });
 
-    it("the note a pointer-free click leaves is used once: a later mouse open closed by close_alert_dialog/2 moves nothing", () => {
+    it("the note a pointer-free click leaves lasts one open: a later mouse open closed by close_alert_dialog/2 moves nothing", () => {
       const { el } = tableWithOutsideDialog(3);
       pointerDown($("#delete-1"));
       $("#delete-1").focus();
@@ -449,10 +460,10 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       expect(document.activeElement).not.toBe($("#delete-3"));
     });
 
-    // A close the hook did not start (a <form method="dialog"> button,
-    // clicked with the mouse) still runs on_cancel: the hook clicks Cancel
-    // itself. That click has detail 0 (HTMLElement.click(); jsdom's here)
-    // and is no sign of a keyboard.
+    // A close the hook did not start (app code calling dialog.close(), a
+    // <form method="dialog"> in the body) still runs on_cancel: the hook
+    // clicks Cancel itself. That click has detail 0 (HTMLElement.click();
+    // jsdom's here) and is no sign of a keyboard.
     it("a mouse open, then a close the hook did not start: the Cancel click the hook makes itself is no keyboard", () => {
       const { el, hook } = tableWithOutsideDialog(3);
       pointerDown($("#delete-2"));
@@ -466,6 +477,223 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const active = document.activeElement;
       expect(active === document.body || el.contains(active)).toBe(true);
       expect(hook.focusArmed).toBe(false);
+    });
+
+    // The same click on the other path: a cancel event no key caused
+    // (Android's back gesture, a close watcher), which the hook routes
+    // through Cancel too.
+    it("a touch open, then a cancel event with no key press: the Cancel click the hook makes itself is no keyboard", () => {
+      const { el, hook } = tableWithOutsideDialog(3);
+      pointerDown($("#delete-2"));
+      openWith(el, { dispatcher: $("#delete-2") });
+      removeRow("row-2");
+
+      el.dispatchEvent(new Event("cancel", { cancelable: true }));
+      endExit(el);
+
+      expect(document.activeElement).not.toBe($("#delete-3"));
+      expect(hook.focusArmed).toBe(false);
+    });
+
+    it("an Escape does not stop a later pointer-free answer on the same dialog from counting", () => {
+      const { el } = tableWithOutsideDialog(3);
+      $("#delete-1").focus();
+      keyboard();
+      openWith(el, { dispatcher: $("#delete-1") });
+      escape(el);
+      endExit(el);
+
+      pointerDown($("#delete-2"));
+      $("#delete-2").focus();
+      openWith(el, { dispatcher: $("#delete-2") });
+      atClick(confirmOf(el));
+      removeRow("row-2");
+      endExit(el);
+
+      expect(document.activeElement).toBe($("#delete-3"));
+    });
+
+    it("a mouse open, the opener removed while open, then a Cancel with no key press and no pointer: the next row", () => {
+      const { el } = tableWithOutsideDialog(3);
+      pointerDown($("#delete-2"));
+      $("#delete-2").focus();
+      openWith(el, { dispatcher: $("#delete-2") });
+      removeRow("row-2");
+
+      atClick(cancelOf(el));
+      endExit(el);
+
+      expect(document.activeElement).toBe($("#delete-3"));
+    });
+
+    // LiveView's click listener sits on window, in the bubble phase, so an
+    // on_confirm that also runs close_alert_dialog/2 makes a second close
+    // intent after the hook's own. It must not undo the first one's answer.
+    it("a mouse open, a pointer-free confirm whose on_confirm also runs close_alert_dialog/2: focus still moves", () => {
+      const { el } = tableWithOutsideDialog(3);
+      pointerDown($("#delete-2"));
+      $("#delete-2").focus();
+      openWith(el, { dispatcher: $("#delete-2") });
+      onWindowClick((e) => {
+        if (e.target === confirmOf(el))
+          el.dispatchEvent(new CustomEvent("pc:alert-dialog-close"));
+      });
+
+      atClick(confirmOf(el));
+      removeRow("row-2");
+      endExit(el);
+
+      expect(document.activeElement).toBe($("#delete-3"));
+    });
+
+    it("a mouse open, a pointer-free confirm, then a native close the hook did not start lands mid-exit: the confirm's answer stands", () => {
+      const { el } = tableWithOutsideDialog(3);
+      pointerDown($("#delete-2"));
+      $("#delete-2").focus();
+      openWith(el, { dispatcher: $("#delete-2") });
+
+      atClick(confirmOf(el));
+      removeRow("row-2");
+      // the hook's own Cancel click runs here, and must not clear the note
+      el.close();
+
+      expect(document.activeElement).toBe($("#delete-3"));
+    });
+
+    it("the same under reduced motion, the dialog in the row: the second close intent comes after the close, and focus still moves", () => {
+      window.matchMedia = (q) => ({ matches: q.includes("reduce"), media: q });
+      const [, row2] = tableWithDialogInRows(3);
+      mouseClick($("#delete-2"), { focus: true });
+      onWindowClick((e) => {
+        if (e.target === confirmOf(row2.el))
+          row2.el.dispatchEvent(new CustomEvent("pc:alert-dialog-close"));
+      });
+
+      atClick(confirmOf(row2.el));
+      expect(row2.el.open).toBe(false);
+      removeRow("row-2", [row2.hook, row2.trigger]);
+
+      expect(document.activeElement).toBe($("#delete-3"));
+    });
+
+    // A click a script makes has detail 0 too. When a pointer click led to
+    // it, the user is on a pointer: a menu item whose phx-click runs
+    // JS.dispatch("click", to: the trigger), app code calling .click().
+    it("a mouse click on a menu item that dispatches a click on the trigger (JS.dispatch), then a mouse confirm: nothing moves", () => {
+      const [, row2] = tableWithDialogInRows(3);
+      render(`<button type="button" id="menu-delete">Delete row 2</button>`);
+      // what DOM.dispatchEvent in LiveView builds for JS.dispatch("click")
+      onWindowClick((e) => {
+        if (e.target.id === "menu-delete")
+          $("#delete-2").dispatchEvent(
+            new MouseEvent("click", {
+              bubbles: true,
+              cancelable: true,
+              detail: { dispatcher: e.target },
+            }),
+          );
+      });
+
+      mouseClick($("#menu-delete"));
+      expect(row2.el.open).toBe(true);
+      mouseClick(confirmOf(row2.el));
+      endExit(row2.el);
+      removeRow("row-2", [row2.hook, row2.trigger]);
+
+      expect(document.activeElement).toBe(document.body);
+    });
+
+    it("a mouse click whose handler calls the trigger's .click(), then a mouse confirm: nothing moves", () => {
+      const [, row2] = tableWithDialogInRows(3);
+      render(`<button type="button" id="bulk">Delete selected</button>`);
+      $("#bulk").addEventListener("click", () => $("#delete-2").click());
+
+      mouseClick($("#bulk"));
+      expect(row2.el.open).toBe(true);
+      mouseClick(confirmOf(row2.el));
+      endExit(row2.el);
+      removeRow("row-2", [row2.hook, row2.trigger]);
+
+      expect(document.activeElement).toBe(document.body);
+    });
+
+    it("a mouse open, then a mouse click in the body whose handler calls the confirm's .click(): nothing moves", () => {
+      const { el } = tableWithOutsideDialog(3);
+      el.insertAdjacentHTML(
+        "afterbegin",
+        `<button type="button" id="yes">Yes, delete</button>`,
+      );
+      $("#yes").addEventListener("click", () => confirmOf(el).click());
+      pointerDown($("#delete-2"));
+      $("#delete-2").focus();
+      openWith(el, { dispatcher: $("#delete-2") });
+
+      mouseClick($("#yes"));
+      removeRow("row-2");
+      endExit(el);
+
+      expect(document.activeElement).not.toBe($("#delete-3"));
+      const active = document.activeElement;
+      expect(active === document.body || el.contains(active)).toBe(true);
+    });
+
+    // Each open reads how it was made, a reopen mid-exit too: a mouse
+    // reopen after a keyboard open is a mouse open.
+    it("a keyboard open and confirm, then a mouse reopen mid-exit from another row and a mouse confirm: nothing moves", () => {
+      const { el, hook } = tableWithOutsideDialog(4);
+      $("#delete-1").focus();
+      keyboard();
+      openWith(el, { dispatcher: $("#delete-1") });
+      keyClick(confirmOf(el));
+      expect(hook.closing).toBe(true);
+
+      // Safari: the click focuses nothing
+      pointerDown($("#delete-3"));
+      openWith(el, { dispatcher: $("#delete-3") });
+      mouseClick(confirmOf(el));
+      removeRow("row-1");
+      removeRow("row-3");
+      endExit(el);
+
+      expect(document.activeElement).not.toBe($("#delete-4"));
+      const active = document.activeElement;
+      expect(active === document.body || el.contains(active)).toBe(true);
+    });
+
+    // The trigger's flag does not depend on the click hitting a control:
+    // here the opener is the focused row around a trigger holding a label.
+    it("a pointer-free click on a trigger's label (no control hit): the open counts, and the next row takes focus", () => {
+      render(`
+        <table><tbody id="rows">
+          <tr id="row-1" tabindex="0"><td>
+            <div id="d-trigger" data-dialog="d"><span id="label">Delete</span></div>
+          </td></tr>
+          <tr id="row-2" tabindex="0"><td>Second</td></tr>
+        </tbody></table>
+        ${dialogHtml("d")}`);
+      const el = stubDialog($("#d"));
+      mountHook("PetalAlertDialog", el);
+      const trigger = mountHook("PetalAlertDialogTrigger", $("#d-trigger"));
+      $("#row-1").focus();
+
+      atClick($("#label"));
+      mouseClick(confirmOf(el));
+      removeRow("row-1", [trigger]);
+      endExit(el);
+
+      expect(document.activeElement).toBe($("#row-2"));
+    });
+
+    // R14 leaves focusCancel() alone: its ring follows the key tracker.
+    it("a pointer-free open with no key press: Cancel is focused without asking for the ring", () => {
+      const [, row2] = tableWithDialogInRows(3);
+      toBody();
+      const focus = vi.spyOn(cancelOf(row2.el), "focus");
+
+      atClick($("#delete-2"));
+
+      expect(row2.el.open).toBe(true);
+      expect(focus).toHaveBeenLastCalledWith({ focusVisible: false });
     });
   });
 

@@ -2606,8 +2606,8 @@ export const PetalAlertDialog = {
     // Never for a pointer: for a mouse, touch or pen user from open to
     // answer it does nothing, because a focus they never asked for can pop
     // a tooltip, open a virtual keyboard or catch their next Space. It acts
-    // for the keyboard, and for a screen reader or switch access that
-    // clicks with no key press (a click with detail 0).
+    // for the keyboard, and for assistive technology that clicks with no
+    // key press (a click with detail 0 that no pointer click led to).
     //
     // "Armed" means a restore can still matter. It is set at open and ends
     // at the first sign the user has moved on: focus landing anywhere but
@@ -2651,8 +2651,19 @@ export const PetalAlertDialog = {
     this.onModalityPointer = () => {
       this.lastInputWasKeyboard = false;
     };
+    // A click a script makes while handling a pointer click has detail 0
+    // too: LiveView's JS.dispatch("click") from a menu item, app code
+    // calling button.click(). The user is on a pointer all the same, so a
+    // click with detail 0 counts as "no pointer" only when no pointer click
+    // is still being dispatched around it (eventPhase drops to NONE once a
+    // dispatch is over).
+    this.pointerClick = null;
+    this.onModalityClick = (e) => {
+      if (e.detail > 0) this.pointerClick = e;
+    };
     document.addEventListener("keydown", this.onModalityKey, true);
     document.addEventListener("pointerdown", this.onModalityPointer, true);
+    document.addEventListener("click", this.onModalityClick, true);
     // The trigger hook names the control that was clicked (detail.opener);
     // open_alert_dialog/2 goes through JS.dispatch, where LiveView names the
     // element carrying the binding (detail.dispatcher). See findOpener().
@@ -2665,18 +2676,22 @@ export const PetalAlertDialog = {
       if (!this.clickCancel()) this.requestClose();
     };
     // Both actions close the dialog after their phx-click JS has run.
-    // A click with detail 0 came from no pointer: Enter or Space, or a
-    // screen reader or switch access activating the button with no key
-    // press reaching the page. Noted for requestClose(). Not the Cancel
-    // click the hook makes itself (clickCancel()): that one says nothing
-    // about the user.
+    // A click with detail 0 came from no pointer: Enter or Space, or
+    // assistive technology activating the button with no key press
+    // reaching the page. Noted for requestClose(), and kept until the next
+    // open: an on_confirm that also runs close_alert_dialog/2 makes a
+    // second close intent after this one, and that must not undo it. Not
+    // the Cancel click the hook makes itself (clickCancel()), nor one a
+    // script makes inside a pointer click: those say nothing about the
+    // user.
     this.onAction = (e) => {
       const action = e.target.closest("[data-pc-alert-dialog-close]");
       if (!action) return;
       this.closeKind = action.hasAttribute("data-pc-alert-dialog-cancel")
         ? "cancel"
         : "confirm";
-      this.actionWithoutPointer = !this.clickingCancel && e.detail === 0;
+      if (this.clickWithoutPointer(e) && !this.clickingCancel)
+        this.actionWithoutPointer = true;
       this.requestClose();
     };
     // The native close event is where the dialog is really gone, so the
@@ -2775,16 +2790,33 @@ export const PetalAlertDialog = {
     this.el.removeEventListener("animationend", this.onExitEnd);
     document.removeEventListener("keydown", this.onModalityKey, true);
     document.removeEventListener("pointerdown", this.onModalityPointer, true);
+    document.removeEventListener("click", this.onModalityClick, true);
+    this.pointerClick = null;
   },
 
   cancelButton() {
     return this.el.querySelector("[data-pc-alert-dialog-cancel]");
   },
 
+  // A pointer click is still being dispatched: any click made now was made
+  // by a script handling it (see onModalityClick).
+  inPointerClick() {
+    return this.pointerClick?.eventPhase > Event.NONE;
+  },
+
+  // A click no pointer made: detail 0, and not a script's inside a pointer
+  // click.
+  clickWithoutPointer(e) {
+    return e.detail === 0 && !this.inPointerClick();
+  },
+
   // The hook's own click on Cancel, so Escape and a close it did not start
   // run on_cancel. Its detail is 0 like a keyboard click's, so it is marked
-  // as the hook's own: a mouse click on a <form method="dialog"> button
-  // must not read as a keyboard.
+  // as the hook's own and never noted as "no pointer": a cancel event no
+  // key caused (Android's back gesture, a close watcher) or a native close
+  // the hook did not start (app code calling dialog.close(), a
+  // <form method="dialog"> in the body) says nothing about how the user
+  // got there.
   clickCancel() {
     const cancel = this.cancelButton();
     if (!cancel) return false;
@@ -2805,8 +2837,16 @@ export const PetalAlertDialog = {
   },
 
   open(detail) {
-    // A fresh open, or an abandoned exit: no close intent is pending.
+    if (this.el.open && !this.closing) return;
+    // A fresh open, or an abandoned exit: no close intent is pending, and
+    // how this open was made is read afresh. "Keyboard" means "not a
+    // pointer": the trigger hook says when its click had detail 0, which
+    // assistive technology's activate gives with no key press.
     this.closedByKeyboard = false;
+    this.actionWithoutPointer = false;
+    this.openedByKeyboard =
+      this.lastInputWasKeyboard ||
+      (detail?.keyboard === true && !this.inPointerClick());
     // Reopened mid-exit. The dialog is still open and still on the top layer,
     // so the recovery is to abandon the exit rather than close and reopen -
     // that would drop and re-take focus and restart the entrance from a
@@ -2821,11 +2861,6 @@ export const PetalAlertDialog = {
       this.focusCancel();
       return;
     }
-    if (this.el.open) return;
-    // "Keyboard" means "not a pointer": the trigger hook says when its click
-    // had detail 0, which a screen reader's activate gives with no key press.
-    this.openedByKeyboard =
-      this.lastInputWasKeyboard || detail?.keyboard === true;
     this.closeKind = null;
     this.rememberOpener(this.findOpener(detail));
     this.closedByUs = false;
@@ -3061,11 +3096,11 @@ export const PetalAlertDialog = {
   // Close INTENT. The single door every close path walks through.
   requestClose() {
     // Before the guard, so every close intent records how it was made. The
-    // note from onAction is used once: a later close_alert_dialog/2 makes
-    // its own.
+    // note from onAction lasts until the next open, so a second intent in
+    // the same close (on_confirm running close_alert_dialog/2 after the
+    // hook's own) keeps the answer of the first.
     this.closedByKeyboard =
       this.lastInputWasKeyboard || this.actionWithoutPointer;
-    this.actionWithoutPointer = false;
     if (!this.el.open || this.closing) return;
     if (this.reducedMotion()) return this.finishClose();
 
@@ -3104,8 +3139,9 @@ export const PetalAlertDialogTrigger = {
   mounted() {
     // Name the control that was clicked, so the dialog knows its opener
     // even where the click focused nothing, and whether a pointer made the
-    // click: a mouse click or a tap has detail 1 or more, Enter, Space and
-    // a screen reader's activate have 0.
+    // click: a mouse click or a tap has detail 1 or more; Enter, Space,
+    // assistive technology's activate and a script's click have 0 (the
+    // dialog tells a script's click inside a pointer click apart).
     this.onClick = (e) => {
       const dialog = document.getElementById(this.el.dataset.dialog);
       const hit = e.target.closest?.(ALERT_DIALOG_FOCUSABLE);
