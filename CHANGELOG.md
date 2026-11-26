@@ -53,6 +53,15 @@
   styled it expecting an empty slot, look at a full field after you
   upgrade. If you added your own ring for the full case, you can remove
   it.
+- **A `tab` with a `label` shows its `number` badge.**
+  `<.tab label="Reports" number={4} />` rendered "Reports" and no badge:
+  the label was handed to the link inside the tab, which printed it in
+  place of everything else. The tab now prints the label and the badge
+  itself, for every `link_type` and for a disabled tab. Nothing else
+  moves: a `label` still wins over the inner block, and a tab with no
+  `label` renders its inner block as before. A tab that has both now
+  has one more `<span class="pc-tab__number">` in it, so a test that
+  counts the badges may see more.
 - **Plain utilities work on `carousel` and `filters`.** Their rules in
   `default.css`, and the toast's, sat outside `@layer components`.
   Unlayered CSS beats every layer, utilities included, so

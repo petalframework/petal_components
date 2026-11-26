@@ -118,7 +118,112 @@ defmodule PetalComponents.TabsTest do
     assert html =~ "<a"
     assert html =~ "href="
     assert html =~ "phx-click"
-    assert html =~ "<span"
+
+    # The badge has to sit inside the label tab itself: the other tab's badge
+    # used to satisfy a plain `html =~ "<span"`.
+    [_home, press_me] =
+      html |> LazyHTML.from_fragment() |> LazyHTML.query("[role=tab]") |> Enum.to_list()
+
+    assert LazyHTML.text(press_me) =~ "Press me"
+
+    assert press_me |> LazyHTML.query(".pc-tab__number") |> LazyHTML.text() |> String.trim() ==
+             "63"
+  end
+
+  describe "label and the badge" do
+    defp tab_text(html) do
+      html
+      |> LazyHTML.from_fragment()
+      |> LazyHTML.query("[role=tab]")
+      |> LazyHTML.text()
+      |> String.split()
+      |> Enum.join(" ")
+    end
+
+    defp badge(html) do
+      html
+      |> LazyHTML.from_fragment()
+      |> LazyHTML.query("[role=tab] .pc-tab__number")
+      |> LazyHTML.text()
+      |> String.trim()
+    end
+
+    for link_type <- ["a", "live_patch", "live_redirect", "button"] do
+      test "label plus number shows both for link_type #{link_type}" do
+        assigns = %{link_type: unquote(link_type)}
+
+        html =
+          rendered_to_string(~H"""
+          <.tab link_type={@link_type} to="/reports" label="Reports" number={4} />
+          """)
+
+        assert tab_text(html) == "Reports 4"
+        assert badge(html) == "4"
+      end
+    end
+
+    test "label plus number shows both on a disabled tab" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tab to="/reports" label="Reports" number={4} disabled />
+        """)
+
+      assert tab_text(html) == "Reports 4"
+      assert badge(html) == "4"
+    end
+
+    test "label plus number in the open and close form shows both" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tab link_type="button" label="Reports" number={4}></.tab>
+        """)
+
+      assert tab_text(html) == "Reports 4"
+    end
+
+    test "an open and close call with a label and nothing inside still shows the label" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tab link_type="button" label="Reports"></.tab>
+        """)
+
+      assert tab_text(html) == "Reports"
+    end
+
+    test "the label still wins over the inner block" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tab link_type="button" label="Reports">Body</.tab>
+        """)
+
+      assert tab_text(html) == "Reports"
+
+      html =
+        rendered_to_string(~H"""
+        <.tab link_type="button" label="Reports" number={4}>Body</.tab>
+        """)
+
+      assert tab_text(html) == "Reports 4"
+    end
+
+    test "with no label the inner block renders, with its badge" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tab to="/" number={2}>Home</.tab>
+        """)
+
+      assert tab_text(html) == "Home 2"
+    end
   end
 
   test "tabs with icon" do

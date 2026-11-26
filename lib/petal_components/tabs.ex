@@ -99,10 +99,12 @@ defmodule PetalComponents.Tabs do
     assigns =
       assign(assigns, :resolved_variant, resolve_variant(assigns.variant, assigns.underline))
 
+    # The label is not passed to Link.a: Link.a renders a label in place of
+    # its inner block, which dropped the number badge. The label still wins
+    # over the inner block here, the same rule Link.a applies.
     ~H"""
     <Link.a
       link_type={@link_type}
-      label={@label}
       to={@to}
       class={get_tab_class(@is_active, @resolved_variant) ++ [@class]}
       disabled={@disabled}
@@ -111,13 +113,13 @@ defmodule PetalComponents.Tabs do
       {@rest}
     >
       <%= if @number do %>
-        {render_slot(@inner_block) || @label}
+        {if @label, do: @label, else: render_slot(@inner_block)}
 
         <span class={get_tab_number_class(@is_active, @resolved_variant == "underline")}>
           {@number}
         </span>
       <% else %>
-        {render_slot(@inner_block) || @label}
+        {if @label, do: @label, else: render_slot(@inner_block)}
       <% end %>
     </Link.a>
     """
