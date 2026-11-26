@@ -33,11 +33,11 @@
   dialog inside the row it deletes, the `petal.gen.live` shape. A dialog
   outside the row only gets it when the row goes before the dialog has
   finished closing. So usually not with `phx-remove` on the row, not with
-  reduced motion and not on a slow reply. It acts for the keyboard, and for
-  assistive technology that presses the button without a pointer, such as a
-  screen reader or switch access. Mouse and touch users get exactly what they
-  had before, and focus the user moved is never taken. The hooks change,
-  nothing else: no new attr and no markup change.
+  reduced motion and not on a slow reply. It acts when the dialog is opened
+  or answered from the keyboard, or by assistive technology that clicks the
+  `:trigger` or the dialog's buttons without a pointer. Mouse and touch users
+  get exactly what they had before, and focus the user moved is never taken.
+  The hooks change, nothing else: no new attr and no markup change.
 
 - **jason `~> 1.3`** (was `~> 1.2`): the JSON report uses
   `Jason.OrderedObject`, added in jason 1.3.0.
