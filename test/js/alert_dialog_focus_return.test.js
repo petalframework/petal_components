@@ -775,4 +775,153 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
 
     expect(seen).toEqual([{ preventScroll: true, focusVisible: true }]);
   });
+
+  // A row or card that is itself the click target:
+  //   <tr phx-click={JS.push("pick") |> open_alert_dialog("confirm")}>
+  // LiveView names the <tr> as the dispatcher. It is no control and cannot
+  // take focus, so the dialog took focus from nothing.
+  const clickableRows = (n) =>
+    Array.from(
+      { length: n },
+      (_, i) =>
+        `<tr id="row-${i + 1}"><td>Invoice ${i + 1}</td><td><a href="/invoices/${i + 1}" id="view-${i + 1}">View</a></td></tr>`,
+    ).join("");
+
+  function clickableTable(rows = 3) {
+    render(`
+      <table><tbody id="rows">${clickableRows(rows)}</tbody></table>
+      ${dialogHtml("d")}`);
+    const el = stubDialog($("#d"));
+    const hook = mountHook("PetalAlertDialog", el);
+    return { el, hook };
+  }
+
+  // The browser's next rendering step, which jsdom never takes: a focused
+  // button inside a closed dialog is no longer rendered, so focus falls to
+  // <body> (see stubDialog).
+  const nextFrame = (el) => {
+    if (!el.open && el.contains(document.activeElement)) toBody();
+  };
+
+  it("a clickable row that is no control, then Cancel: focus stays where the browser left it, never the next row", () => {
+    const { el, hook } = clickableTable();
+    toBody();
+    openWith(el, { dispatcher: $("#row-2") });
+
+    cancel(el);
+    endExit(el);
+    nextFrame(el);
+
+    expect(document.activeElement).toBe(document.body);
+    expect(document.querySelector("[tabindex]")).toBe(null);
+    expect(hook.focusArmed).toBe(false);
+  });
+
+  it("a clickable row that is no control, then Escape: the same", () => {
+    const { el, hook } = clickableTable();
+    toBody();
+    openWith(el, { dispatcher: $("#row-2") });
+
+    el.dispatchEvent(new Event("cancel", { cancelable: true }));
+    endExit(el);
+    nextFrame(el);
+
+    expect(document.activeElement).toBe(document.body);
+    expect(hook.focusArmed).toBe(false);
+  });
+
+  it("a clickable row removed by the confirm while the exit plays: focus goes to the next row", () => {
+    const { el } = clickableTable();
+    toBody();
+    openWith(el, { dispatcher: $("#row-2") });
+
+    confirm(el);
+    removeRow("row-2");
+    endExit(el);
+
+    expect(document.activeElement).toBe($("#view-3"));
+  });
+
+  it("a clickable row the confirm kept: nothing moves at the close, and the row going later still sends focus on", () => {
+    render(`
+      <table><tbody id="rows">
+        <tr id="row-1"><td>Invoice 1 ${dialogHtml("d1")}</td></tr>
+        <tr id="row-2"><td><a href="/invoices/2" id="view-2">View</a></td></tr>
+      </tbody></table>`);
+    const el = stubDialog($("#d1"));
+    const hook = mountHook("PetalAlertDialog", el);
+    toBody();
+    openWith(el, { dispatcher: $("#row-1") });
+
+    confirm(el);
+    endExit(el);
+    nextFrame(el);
+    expect(document.activeElement).toBe(document.body);
+
+    removeRow("row-1", [hook]);
+
+    expect(document.activeElement).toBe($("#view-2"));
+  });
+
+  it("a clickable row cancelled, then removed later for another reason: nothing moves", () => {
+    render(`
+      <table><tbody id="rows">
+        <tr id="row-1"><td>Invoice 1 ${dialogHtml("d1")}</td></tr>
+        <tr id="row-2"><td><a href="/invoices/2" id="view-2">View</a></td></tr>
+      </tbody></table>`);
+    const el = stubDialog($("#d1"));
+    const hook = mountHook("PetalAlertDialog", el);
+    toBody();
+    openWith(el, { dispatcher: $("#row-1") });
+
+    cancel(el);
+    endExit(el);
+    nextFrame(el);
+    removeRow("row-1", [hook]);
+
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it("a menu item that is no control, in a menu that hides: focus still goes to the menu's own trigger", () => {
+    const realFocus = HTMLElement.prototype.focus;
+    vi.spyOn(HTMLElement.prototype, "focus").mockImplementation(function (opts) {
+      if (this.closest("[hidden]")) return;
+      realFocus.call(this, opts);
+    });
+    render(`
+      <div id="dropdown">
+        <button type="button" id="menu-button">Actions</button>
+        <div id="menu"><div id="item-delete" role="menuitem">Delete</div></div>
+      </div>
+      ${dialogHtml("d")}`);
+    const el = stubDialog($("#d"));
+    mountHook("PetalAlertDialog", el);
+
+    toBody();
+    openWith(el, { dispatcher: $("#item-delete") });
+    $("#menu").hidden = true;
+    confirm(el);
+    endExit(el);
+
+    expect(document.activeElement).toBe($("#menu-button"));
+  });
+
+  it("an opener that IS a control but can no longer take focus (disabled by the confirm) still sends focus on", () => {
+    // jsdom lets a disabled button take focus; real browsers do not.
+    const realFocus = HTMLElement.prototype.focus;
+    vi.spyOn(HTMLElement.prototype, "focus").mockImplementation(function (opts) {
+      if (this.disabled) return;
+      realFocus.call(this, opts);
+    });
+    const { el } = tableWithOutsideDialog(3);
+    $("#delete-2").focus();
+    openWith(el);
+
+    confirm(el);
+    $("#delete-2").disabled = true;
+    toBody();
+    endExit(el);
+
+    expect(document.activeElement).toBe($("#delete-3"));
+  });
 });

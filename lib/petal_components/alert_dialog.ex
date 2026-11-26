@@ -102,12 +102,15 @@ defmodule PetalComponents.AlertDialog do
   `open_alert_dialog/2`, or else whatever had focus. It also notes the
   opener's neighbours on the way up the page. When the dialog finishes
   closing, or when the hook is destroyed after the opener or the dialog has
-  left the page, and focus has been lost (it is on `<body>` or inside the closed dialog),
-  the hook moves it: back to the opener if it is still there, else to the
-  first control in the next row, then the previous row, then (when a fresh
-  render of the row swapped the opener for a new one) the opener's own
-  container, then the same one level up, and last to the surviving container, which gets `tabindex="-1"`
-  until it loses focus. It never takes focus from where the user or the
+  left the page, and focus has been lost (it is on `<body>` or inside the
+  closed dialog), the hook moves it: back to the opener if it is still there,
+  else to the first control in the next row, then the previous row, then
+  (when a fresh render of the row swapped the opener for a new one) the
+  opener's own container, then the same one level up, and last to the
+  surviving container, which gets `tabindex="-1"` until it loses focus. An
+  opener that is still on the page and in view but is not a control (a
+  clickable row that runs `open_alert_dialog/2`) never held focus, so nothing
+  moves while it stays. The hook never takes focus from where the user or the
   browser put it, it stops watching as soon as the user moves on (a focus or
   a click elsewhere, or a Cancel that ends back on the opener), and a live
   navigation's teardown moves nothing. The focus ring shows only when the

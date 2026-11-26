@@ -2514,11 +2514,14 @@ const ALERT_DIALOG_EXIT_GRACE_MS = 60;
 const ALERT_DIALOG_FOCUSABLE =
   'a[href], button, input:not([type="hidden"]), select, textarea, [tabindex]';
 
+const alertDialogInView = (n) =>
+  !n.closest("[hidden], [inert], dialog:not([open])") &&
+  (typeof n.checkVisibility !== "function" || n.checkVisibility());
+
 const alertDialogCanTakeFocus = (n) =>
   !n.matches(":disabled") &&
   n.getAttribute("tabindex") !== "-1" &&
-  !n.closest("[hidden], [inert], dialog:not([open])") &&
-  (typeof n.checkVisibility !== "function" || n.checkVisibility());
+  alertDialogInView(n);
 
 // The alertdialog: a native <dialog> asking one question with two answers.
 //
@@ -2829,7 +2832,9 @@ export const PetalAlertDialog = {
   //
   // Where it goes, first that takes it: the opener, if it is still here
   // (the Safari case: it was never focused, so the native close had nothing
-  // to give back). Otherwise the first focusable in the opener's next
+  // to give back). An opener that is still here and in view but is no
+  // control (a clickable row) ends it there: focus stays where the browser
+  // left it. Otherwise the first focusable in the opener's next
   // sibling at the lowest level whose parent survived (the next row), then
   // in its previous sibling, then the same one level up, and so on. The next
   // row is the logical next place the WAI-ARIA dialog pattern asks for, and
@@ -2853,6 +2858,19 @@ export const PetalAlertDialog = {
     };
     // Still armed after this one: the confirm's row removal can follow it.
     if (tryFocus(this.opener)) return;
+    // The opener is still here and in view but is no control: a clickable
+    // row or card that ran open_alert_dialog/2. It never held focus, so
+    // there is nothing to give back, and its neighbours are not where the
+    // user was. A cancel settles it; anything else stays armed in case the
+    // row goes next.
+    if (
+      this.opener?.isConnected &&
+      !this.opener.matches(ALERT_DIALOG_FOCUSABLE) &&
+      alertDialogInView(this.opener)
+    ) {
+      if (this.closeKind === "cancel") this.disarmFocus();
+      return;
+    }
     this.disarmFocus();
 
     const tryOne = (n) =>
