@@ -96,27 +96,19 @@ defmodule PetalComponents.AlertDialog do
   WAI-ARIA alertdialog pattern wants.
 
   The native restoration only works while the opener is still in the page.
-  When the confirm deletes the thing that opened the dialog (a table row with
-  its own Delete button, say), the hook steps in. At every open it remembers
-  the opener: the control the `:trigger` slot wraps, the element that ran
-  `open_alert_dialog/2`, or else whatever had focus. It also notes the
-  opener's neighbours on the way up the page. When the dialog finishes
-  closing, or when the hook is destroyed after the opener or the dialog has
-  left the page, and focus has been lost (it is on `<body>` or inside the
-  closed dialog), the hook moves it: back to the opener if it is still there,
-  else to the first control in the next row, then the previous row, then
-  (when a fresh render of the row swapped the opener for a new one) the
-  opener's own container, then the same one level up, and last to the
-  surviving container, which gets `tabindex="-1"` until it loses focus. An
-  opener that is still on the page and in view but is not a control (a
-  clickable row that runs `open_alert_dialog/2`) never held focus, so nothing
-  moves while it stays. The hook never takes focus from where the user or the
-  browser put it, it stops watching as soon as the user moves on (a focus or
-  a click elsewhere, or a Cancel that ends back on the opener), and a live
-  navigation's teardown moves nothing. The focus ring shows only when the
-  dialog was opened from the keyboard. Not covered: a dialog rendered outside
-  the removed element whose opener is removed after the close has finished.
-  Nothing runs then, so focus falls to `<body>` as before.
+  Delete a table row from the keyboard and the confirm takes its own Delete
+  button with it, so focus would fall to `<body>`. The hook catches that and
+  moves focus to the same control in the row that took its place: confirm
+  the Delete on row 2 and focus lands on the Delete of the row below. When
+  nothing is left, the list itself takes focus. This works every time when
+  the dialog is rendered inside the row it deletes, which is the
+  `petal.gen.live` shape. A dialog rendered outside the row only gets it when
+  the row goes before the dialog has finished closing. That rules out a row
+  with `phx-remove`, a user who prefers reduced motion, and a slow reply. In
+  those cases focus falls to `<body>` as before, and your app can move it
+  itself. It is keyboard only: a dialog opened and answered with a mouse or a
+  finger behaves exactly as it did before. And it never takes focus from
+  where the user put it.
 
   Two small hooks carry the parts `Phoenix.LiveView.JS` cannot reach:
   `showModal()`/`close()` are DOM methods with no JS-command equivalent, and
