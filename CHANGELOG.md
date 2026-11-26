@@ -74,6 +74,13 @@
   renders only whitespace, as it already did for a self-closing call.
   Text in the inner block still wins over `label`, and when to render
   the alert at all is unchanged. No markup or class changes.
+- **An `<.alert_dialog>` with only a `:trigger` has no empty body
+  block.** The call the docs show (a `title`, a `description` and a
+  `<:trigger>`) rendered an empty `<div class="pc-alert-dialog__content">`
+  under the description, adding 12px to the dialog. It now renders only
+  when the inner block renders something other than whitespace, so
+  those dialogs get 12px shorter. A test of your own that expects
+  `.pc-alert-dialog__content` in such a dialog will not find it.
 - **A `tab` with a `label` shows its `number` badge.**
   `<.tab label="Reports" number={4} />` rendered "Reports" and no badge:
   the label was handed to the link inside the tab, which printed it in
