@@ -2704,10 +2704,14 @@ export const PetalAlertDialog = {
     if (this.el.open) document.body.classList.remove("overflow-hidden");
     // The Petal Pro shape: the dialog and its trigger sit in the row being
     // deleted, so the patch that removes the row destroys this hook too,
-    // after the close or mid-exit. Only then, with the opener already out of
-    // the page: a live navigation destroys every hook while the old page is
-    // still in the document, and focus must not move then.
-    if (this.opener && !this.opener.isConnected) this.restoreFocus();
+    // after the close or mid-exit. Only then, with the opener or the dialog
+    // already out of the page: a live navigation destroys every hook while
+    // the old page is still in the document, and focus must not move then.
+    // The dialog counts too because in a list with no :key LiveView keys
+    // rows by index, so morphdom moves the opener into the next item's row
+    // (blurring it) instead of removing it.
+    if (this.opener && (!this.opener.isConnected || !this.el.isConnected))
+      this.restoreFocus();
     this.disarmFocus();
     this.el.removeEventListener("pc:alert-dialog-open", this.onOpen);
     this.el.removeEventListener("pc:alert-dialog-close", this.onCloseEvent);

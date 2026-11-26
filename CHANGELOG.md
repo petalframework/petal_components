@@ -27,14 +27,18 @@
   deleted.** Before, confirming a dialog that deleted its own row (a Delete
   button in a table row, the `petal.gen.live` shape) dropped keyboard focus
   on the page body, so the next Tab started over and a screen reader lost
-  its place. Now focus goes to the first control in the next row, or the
-  row before if it was the last one, or, when the table is left empty, the
-  nearest control beside it or the table body itself. The focus ring shows
-  only when the dialog was opened from the keyboard. Cancel still returns
-  focus to the button you started from, and now does in Safari too, which
-  never focused the button on click. Not covered: a dialog rendered outside
-  the row, where the row is removed after the close has finished. The
-  hooks change, nothing else: no new attr and no markup change.
+  its place. Now focus goes to the first control in the next row when that
+  row has one, or the row before if it was the last one, or, when the table
+  is left empty, the nearest control beside it or the table body itself. In
+  a list rendered with no `:key` (the `petal.gen.live.data_table` shape),
+  LiveView reuses the deleted row's button for the next item, so focus
+  lands on the Delete button that took the deleted one's place. The focus
+  ring shows only when the dialog was opened from the keyboard. Cancel
+  still returns focus to the button you started from, and now does in
+  Safari too, which never focused the button on click. Not covered: a
+  dialog rendered outside the row, where the row is removed after the
+  close has finished. The hooks change, nothing else: no new attr and no
+  markup change.
 
 - **jason `~> 1.3`** (was `~> 1.2`): the JSON report uses
   `Jason.OrderedObject`, added in jason 1.3.0.

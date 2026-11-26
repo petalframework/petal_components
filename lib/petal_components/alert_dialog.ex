@@ -101,8 +101,8 @@ defmodule PetalComponents.AlertDialog do
   the opener: the control the `:trigger` slot wraps, the element that ran
   `open_alert_dialog/2`, or else whatever had focus. It also notes the
   opener's neighbours on the way up the page. When the dialog finishes
-  closing, or when the hook is destroyed after the opener has left the page,
-  and focus has been lost (it is on `<body>` or inside the closed dialog),
+  closing, or when the hook is destroyed after the opener or the dialog has
+  left the page, and focus has been lost (it is on `<body>` or inside the closed dialog),
   the hook moves it: back to the opener if it is still there, else to the
   first control in the next row, then the previous row, then the same one
   level up, and last to the surviving container, which gets `tabindex="-1"`

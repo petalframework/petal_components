@@ -229,6 +229,40 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
     expect(document.activeElement).toBe($("#show-2"));
   });
 
+  it("an index-keyed list (a :for with no :key): the opener node is moved, not removed, and still takes focus", () => {
+    // petal.gen.live.data_table and Pro's passkeys render rows with no id,
+    // so LiveView keys them by index. Deleting item 2 of 3, morphdom keeps
+    // the second <tr>, moves item 3's trigger and dialog (keyed by id) into
+    // it, and moves item 2's Delete button (keyed by its index) into item 3's
+    // trigger. The button never leaves the page, but the move blurs it.
+    const row = (n) => `
+      <tr><td>
+        <div id="d${n}-trigger" class="pc-alert-dialog__trigger" data-dialog="d${n}">
+          <button type="button" data-label="delete-${n}">Delete</button>
+        </div>
+        ${dialogHtml(`d${n}`)}
+      </td></tr>`;
+    render(`<table><tbody id="rows">${[1, 2, 3].map(row).join("")}</tbody></table>`);
+    const rows = [1, 2, 3].map(mountRowHooks);
+    const opener = $('[data-label="delete-2"]');
+    opener.focus();
+    click(opener);
+    confirm(rows[1].el);
+    endExit(rows[1].el);
+    expect(document.activeElement).toBe(opener);
+
+    // what morphdom does with LiveView's node keys (id, else data-phx-id)
+    const [, tr2, tr3] = $("#rows").children;
+    $("#d3-trigger").querySelector("button").replaceWith(opener);
+    opener.dataset.label = "delete-3";
+    tr2.querySelector("td").replaceChildren($("#d3-trigger"), $("#d3"));
+    tr3.remove();
+    destroy([rows[1].hook, rows[1].trigger]);
+
+    expect(opener.isConnected).toBe(true);
+    expect(document.activeElement).toBe(opener);
+  });
+
   it("an opener still in the page keeps its focus: nothing else is touched", () => {
     const { el } = tableWithOutsideDialog();
     $("#delete-1").focus();
