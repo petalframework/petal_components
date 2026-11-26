@@ -111,9 +111,11 @@ defmodule PetalComponents.AlertDialog do
   slow reply. In those cases focus falls to `<body>` as before: render the
   dialog inside the row to get it there too.
 
-  It acts for the keyboard only: a dialog opened and answered with a mouse or
-  a finger behaves exactly as it did before. And it never takes focus from
-  where the user put it.
+  It acts when the dialog is opened or answered without a pointer: from the
+  keyboard, or by assistive technology that presses the button for the user,
+  such as a screen reader or switch access. A dialog opened and answered with
+  a mouse or a finger behaves exactly as it did before. And it never takes
+  focus from where the user put it.
 
   Two small hooks carry the parts `Phoenix.LiveView.JS` cannot reach:
   `showModal()`/`close()` are DOM methods with no JS-command equivalent, and
