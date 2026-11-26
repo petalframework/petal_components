@@ -28,6 +28,23 @@
 
 #### Fixed
 
+- **Pasting a code into `input_otp` keeps every digit.** The input's
+  `maxlength` cut the pasted text before the hook stripped what the
+  pattern rejects, so "123 456", "123-456" or a code with newlines around
+  it lost its last digit, and a code with letters mixed in lost most of
+  them. The `PetalInputOTP` hook now takes the paste itself: it cleans
+  the whole text first and then cuts it to the length. A paste that holds
+  a whole code replaces what is in the field; a shorter one goes in at
+  the selection. It fires one `input` event, so `phx-change` and
+  `petal:otp-complete` fire as for typing, and a paste that leaves the
+  value as it was fires nothing. `maxlength` stays on the input. If your
+  app has its own paste handler on the field or on an element around it
+  (Petal Pro's PIN screen has one), remove it when you upgrade: the event
+  still reaches it, so a handler that writes the paste itself inserts a
+  part code twice. A paste is now done by script, so the browser's undo
+  step for it is gone. Text that arrives without a paste event, such as
+  an IME commit or the Android keyboard's clipboard chip, is still cut
+  before it is cleaned.
 - **A full `input_otp` still shows focus.** Once every slot was filled,
   no slot was marked active, so a focused field with a whole code looked
   the same as one without focus. The last slot now stays active while

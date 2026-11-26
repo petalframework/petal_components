@@ -6,10 +6,18 @@ defmodule PetalComponents.InputOtp do
 
   Under the hood there is exactly ONE real (invisible) input stretched across
   the painted segments, which is what makes everything work the way users
-  expect: native paste, one form field posted, and SMS / password-manager
-  autofill via `autocomplete="one-time-code"`. The `PetalInputOTP` hook
-  (shipped in the petal_components JS bundle) paints the segments, the fake
-  caret and the active ring.
+  expect: one form field posted, and SMS / password-manager autofill via
+  `autocomplete="one-time-code"`. The `PetalInputOTP` hook (shipped in the
+  petal_components JS bundle) paints the segments, the fake caret and the
+  active ring.
+
+  The hook also takes a paste: it drops what `pattern` rejects (spaces,
+  dashes, newlines) and only then cuts to `length`, so "123 456" fills all
+  six slots. A paste that holds a whole code replaces the field; a shorter
+  one goes in at the selection. It fires one `input` event, so `phx-change`
+  and `petal:otp-complete` behave as for typing. Text committed without a
+  paste event (an IME commit, some autofill) is still cut by `maxlength`
+  before it is cleaned.
 
   Fires a `petal:otp-complete` DOM event (bubbling, with `detail.value`) when
   all segments are filled; `phx-change` on the surrounding form works as

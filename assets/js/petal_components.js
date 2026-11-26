@@ -1627,6 +1627,35 @@ export const PetalInputOTP = {
     this.input.addEventListener("keyup", this.render);
     this.input.addEventListener("blur", this.render);
 
+    // The browser applies maxlength to pasted text before the input event,
+    // so "123 456" would arrive as "123 45" and lose a digit. Take the paste
+    // here instead: drop what the pattern rejects, then cut to the length.
+    // A paste that holds a whole code replaces what was there; a shorter one
+    // goes in at the selection. The event is not stopped, so a paste
+    // listener of your own on an ancestor still runs.
+    this.input.addEventListener("paste", (e) => {
+      const text = e.clipboardData ? e.clipboardData.getData("text") : "";
+      if (!text) return;
+      e.preventDefault();
+
+      const input = this.input;
+      const max = this.slots.length;
+      const pasted = this.clean(text);
+      const next =
+        pasted.length >= max
+          ? pasted.slice(0, max)
+          : this.clean(
+              input.value.slice(0, input.selectionStart) +
+                pasted +
+                input.value.slice(input.selectionEnd),
+            ).slice(0, max);
+
+      if (next === input.value) return;
+      input.value = next;
+      input.setSelectionRange(next.length, next.length);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+
     this.render();
   },
 
@@ -1635,12 +1664,14 @@ export const PetalInputOTP = {
     this.render();
   },
 
-  sanitize() {
+  clean(text) {
     const pattern =
       this.el.dataset.pattern === "alphanumeric" ? /[^a-zA-Z0-9]/g : /[^0-9]/g;
-    const clean = this.input.value
-      .replace(pattern, "")
-      .slice(0, this.slots.length);
+    return text.replace(pattern, "");
+  },
+
+  sanitize() {
+    const clean = this.clean(this.input.value).slice(0, this.slots.length);
     if (clean !== this.input.value) this.input.value = clean;
   },
 
