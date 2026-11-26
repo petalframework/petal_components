@@ -2859,13 +2859,21 @@ export const PetalAlertDialog = {
       tryOne(n) ||
       Array.from(n.querySelectorAll(ALERT_DIALOG_FOCUSABLE)).some(tryOne);
 
+    // Where focus lands takes the opener's place, still armed: a row actions
+    // menu that hid sends focus to the menu's own trigger in the same row,
+    // and the row removal that follows must walk on from there.
+    const landed = () => {
+      this.rememberOpener(document.activeElement);
+      return true;
+    };
+
     const start = this.openerPath.findIndex(({ parent }) => parent.isConnected);
     if (start === -1) return;
     const levels = this.openerPath.slice(start);
     for (const { parent, next, prev } of levels) {
       const here = (n) => n && n.parentElement === parent;
-      if (here(next) && tryWithin(next)) return;
-      if (here(prev) && tryWithin(prev)) return;
+      if (here(next) && tryWithin(next)) return landed();
+      if (here(prev) && tryWithin(prev)) return landed();
     }
 
     // Nothing focusable is left beside it (the last row of a table went).

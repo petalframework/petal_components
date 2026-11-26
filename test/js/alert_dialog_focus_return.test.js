@@ -455,6 +455,38 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
     expect(document.querySelector("[tabindex]")).toBe(null);
   });
 
+  it("a row actions menu that hides: focus goes to the menu's trigger, then on to the next row when the row goes", () => {
+    const realFocus = HTMLElement.prototype.focus;
+    vi.spyOn(HTMLElement.prototype, "focus").mockImplementation(function (opts) {
+      if (this.closest("[hidden]")) return;
+      realFocus.call(this, opts);
+    });
+    render(`
+      <table><tbody id="rows">
+        <tr id="row-1"><td>
+          <div id="dropdown-1">
+            <button type="button" id="menu-button-1">Actions</button>
+            <div id="menu-1"><button type="button" id="item-delete-1">Delete</button></div>
+          </div>
+          ${dialogHtml("d1")}
+        </td></tr>
+        <tr id="row-2"><td><a href="/invoices/2" id="show-2">Show</a></td></tr>
+      </tbody></table>`);
+    const el = stubDialog($("#d1"));
+    const hook = mountHook("PetalAlertDialog", el);
+
+    $("#item-delete-1").focus();
+    openWith(el, { dispatcher: $("#item-delete-1") });
+    $("#menu-1").hidden = true;
+    confirm(el);
+    endExit(el);
+    expect(document.activeElement).toBe($("#menu-button-1"));
+
+    removeRow("row-1", [hook]);
+
+    expect(document.activeElement).toBe($("#show-2"));
+  });
+
   it("a container that refuses focus gets no stray tabindex", () => {
     const realFocus = HTMLElement.prototype.focus;
     vi.spyOn(HTMLElement.prototype, "focus").mockImplementation(function (opts) {
