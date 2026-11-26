@@ -8974,10 +8974,14 @@
   /* Separator - hairline dividers for app UI                            */
   /* ------------------------------------------------------------------ */
 
-  /* No margin by design: app layouts own their own rhythm. Colours match
-     .pc-hr so a page can mix the prose rule and the app rule. */
+  /* No margin by design: app layouts own their own rhythm. The colour is
+     the panel hairline the card border, the table rows and the dropdown
+     and command separators wear (gray-200, dark gray-400/17). An opaque
+     gray-800 all but vanished on a dark card (gray-900), about 1.2 to 1;
+     the alpha takes its contrast from whatever surface is under it. The
+     prose rule .pc-hr keeps its own opaque gray-800. */
   .pc-separator--horizontal {
-    @apply h-px w-full shrink-0 bg-gray-200 dark:bg-gray-800;
+    @apply h-px w-full shrink-0 bg-gray-200 dark:bg-gray-400/17;
   }
 
   /* One ramp step darker than the horizontal rule. The horizontal one sits in
@@ -8995,7 +8999,7 @@
   }
 
   .pc-separator__line {
-    @apply h-px flex-1 bg-gray-200 dark:bg-gray-800;
+    @apply h-px flex-1 bg-gray-200 dark:bg-gray-400/17;
   }
 
   .pc-separator__label {

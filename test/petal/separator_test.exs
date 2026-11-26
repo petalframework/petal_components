@@ -216,4 +216,41 @@ defmodule PetalComponents.SeparatorTest do
     assert_has_class(html, "pc-separator--labelled")
     assert html =~ "March 2026"
   end
+
+  describe "dark hairline" do
+    # The line colour lives only in CSS, so the stylesheet is read here. On a
+    # dark card (gray-900) the old opaque gray-800 line measured about 1.2 to
+    # 1 and all but vanished, fainter than the card's own border. The
+    # separator now wears the panel hairline its siblings in the dropdown and
+    # the command palette already use.
+
+    @css File.read!(Path.expand("../../assets/default.css", __DIR__))
+
+    defp rule_body(selector) do
+      case Regex.run(~r/^\s*#{Regex.escape(selector)}\s*\{([^}]*)\}/m, @css) do
+        [_, body] -> body
+        nil -> flunk("selector not found in default.css: #{selector}")
+      end
+    end
+
+    for selector <- [
+          ".pc-separator--horizontal",
+          ".pc-separator__line",
+          ".pc-dropdown__separator",
+          ".pc-command__separator"
+        ] do
+      test "#{selector} is gray-200 in light and gray-400/17 in dark" do
+        body = rule_body(unquote(selector))
+        assert body =~ "bg-gray-200"
+        assert body =~ "dark:bg-gray-400/17"
+        refute body =~ "dark:bg-gray-800"
+      end
+    end
+
+    test "the vertical separator keeps its own stronger line" do
+      body = rule_body(".pc-separator--vertical")
+      assert body =~ "bg-gray-300"
+      assert body =~ "dark:bg-gray-700"
+    end
+  end
 end

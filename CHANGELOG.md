@@ -59,6 +59,16 @@
   fails if a `pc-*` rule lands outside the layer again (seven
   reduced-motion and Firefox date-input rules stay outside, and the test
   names each one).
+- **`<.separator>` shows on a dark card.** In dark mode its line was an
+  opaque gray-800, one step from a card's gray-900, so the "or" divider
+  on a sign-in card all but disappeared (about 1.2 to 1). The
+  horizontal line and both flanks of a labelled one now wear the
+  hairline a card's border, table rows and the dropdown and command
+  separators already use, `dark:bg-gray-400/17`, which takes its
+  contrast from the surface under it. Light mode, the vertical
+  separator and `<.hr>` are unchanged. On the bare dark page the line
+  is a touch fainter than before (it matches a table row there), so a
+  dark screenshot test of a separator will see a new colour.
 
 ### 4.18.1 - 2026-11-20
 
