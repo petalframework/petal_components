@@ -95,6 +95,25 @@ defmodule PetalComponents.AlertDialog do
   modal dialog ignores backdrop clicks, which is exactly the behaviour the
   WAI-ARIA alertdialog pattern wants.
 
+  The native restoration only works while the opener is still in the page.
+  When the confirm deletes the thing that opened the dialog (a table row with
+  its own Delete button, say), the hook steps in. At every open it remembers
+  the opener: the control the `:trigger` slot wraps, the element that ran
+  `open_alert_dialog/2`, or else whatever had focus. It also notes the
+  opener's neighbours on the way up the page. When the dialog finishes
+  closing, or when the hook is destroyed after the opener has left the page,
+  and focus has been lost (it is on `<body>` or inside the closed dialog),
+  the hook moves it: back to the opener if it is still there, else to the
+  first control in the next row, then the previous row, then the same one
+  level up, and last to the surviving container, which gets `tabindex="-1"`
+  until it loses focus. It never takes focus from where the user or the
+  browser put it, it stops watching as soon as the user moves on (a focus or
+  a click elsewhere, or a Cancel that ends back on the opener), and a live
+  navigation's teardown moves nothing. The focus ring shows only when the
+  dialog was opened from the keyboard. Not covered: a dialog rendered outside
+  the removed element whose opener is removed after the close has finished.
+  Nothing runs then, so focus falls to `<body>` as before.
+
   Two small hooks carry the parts `Phoenix.LiveView.JS` cannot reach:
   `showModal()`/`close()` are DOM methods with no JS-command equivalent, and
   Escape's native `cancel` event has to be intercepted so it runs `on_cancel`

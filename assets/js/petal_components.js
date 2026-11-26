@@ -2507,6 +2507,19 @@ export const PetalCommandDialog = {
 const ALERT_DIALOG_EXIT_MS = 150;
 const ALERT_DIALOG_EXIT_GRACE_MS = 60;
 
+// What restoreFocus() may land on when the opener is gone. The selector finds
+// the candidates; alertDialogCanTakeFocus() drops the ones a Tab would skip:
+// disabled, tabindex="-1", hidden, inert, or inside a closed <dialog> (every
+// row of a petal.gen.live table carries its own closed alert dialog).
+const ALERT_DIALOG_FOCUSABLE =
+  'a[href], button, input:not([type="hidden"]), select, textarea, [tabindex]';
+
+const alertDialogCanTakeFocus = (n) =>
+  !n.matches(":disabled") &&
+  n.getAttribute("tabindex") !== "-1" &&
+  !n.closest("[hidden], [inert], dialog:not([open])") &&
+  (typeof n.checkVisibility !== "function" || n.checkVisibility());
+
 // The alertdialog: a native <dialog> asking one question with two answers.
 //
 // The hook exists for the four things CSS and Phoenix.LiveView.JS cannot do:
@@ -2535,7 +2548,8 @@ const ALERT_DIALOG_EXIT_GRACE_MS = 60;
 // native modal dialog ignores backdrop clicks, so click-away does nothing -
 // which is the behaviour the WAI-ARIA alertdialog pattern asks for. Focus
 // containment and focus restoration to the opener also come from the native
-// element, not from here.
+// element, not from here - except when the opener is gone (see
+// restoreFocus()).
 export const PetalAlertDialog = {
   mounted() {
     this.closedByUs = false;
@@ -2544,6 +2558,34 @@ export const PetalAlertDialog = {
     this.wasOpen = false;
     this.wasClosing = false;
     this.refocus = null;
+    // Where focus goes back to. The native close refocuses the element that
+    // had focus before showModal(), but only while it is still in the page.
+    // Delete a table row from its own Delete button and the opener is gone,
+    // so focus fell to <body> and a keyboard or screen reader user lost
+    // their place. The hook remembers the opener and its surroundings at
+    // every open and, if focus is lost, sends it to the next row.
+    //
+    // "Armed" means a restore can still matter. It is set at open and ends
+    // at the first sign the user has moved on: focus landing anywhere but
+    // the opener or the dialog, a pointerdown outside the dialog (Safari
+    // focuses nothing on click, so focusin alone would miss it), or a
+    // Cancel/Escape that put focus back on a living opener. A confirm stays
+    // armed: the row removal usually lands after the close. The two
+    // document listeners exist only while armed, so an idle dialog (a table
+    // can hold fifty) costs nothing.
+    this.opener = null;
+    this.openerPath = [];
+    this.focusArmed = false;
+    this.focusListening = false;
+    this.openedByKeyboard = false;
+    this.closeKind = null;
+    this.onArmedFocusIn = (e) => {
+      if (e.target === this.opener || this.el.contains(e.target)) return;
+      this.disarmFocus();
+    };
+    this.onArmedPointer = (e) => {
+      if (!this.el.contains(e.target)) this.disarmFocus();
+    };
     // WebKit marks ANY focus inside a freshly shown modal dialog as
     // keyboard-visible - even a script focus following a tap, even deferred
     // past the click task (measured against real WebKit; Chromium's
@@ -2562,7 +2604,10 @@ export const PetalAlertDialog = {
     };
     document.addEventListener("keydown", this.onModalityKey, true);
     document.addEventListener("pointerdown", this.onModalityPointer, true);
-    this.onOpen = () => this.open();
+    // The trigger hook names the element that was clicked (detail.opener);
+    // open_alert_dialog/2 goes through JS.dispatch, where LiveView names it
+    // (detail.dispatcher).
+    this.onOpen = (e) => this.open(e.detail);
     this.onCloseEvent = () => this.requestClose();
     // Escape. Swallow the native close and route through the cancel button so
     // Escape and a Cancel click run the exact same on_cancel JS - one path.
@@ -2573,7 +2618,12 @@ export const PetalAlertDialog = {
     };
     // Both actions close the dialog after their phx-click JS has run.
     this.onAction = (e) => {
-      if (e.target.closest("[data-pc-alert-dialog-close]")) this.requestClose();
+      const action = e.target.closest("[data-pc-alert-dialog-close]");
+      if (!action) return;
+      this.closeKind = action.hasAttribute("data-pc-alert-dialog-cancel")
+        ? "cancel"
+        : "confirm";
+      this.requestClose();
     };
     // The native close event is where the dialog is really gone, so the
     // scroll unlock lives here - it drains every path, including the ones
@@ -2588,6 +2638,16 @@ export const PetalAlertDialog = {
       document.body.classList.remove("overflow-hidden");
       if (!this.closedByUs) this.cancelButton()?.click();
       this.closedByUs = false;
+      // The native close has had its go at giving focus back by now.
+      this.restoreFocus();
+      if (
+        this.closeKind === "cancel" &&
+        this.opener?.isConnected &&
+        document.activeElement === this.opener
+      ) {
+        this.disarmFocus();
+      }
+      this.closeKind = null;
     };
     // The exit finishes on the BOX's own animation. Three things this must
     // NOT react to: the entrance animation (same element, same event - the
@@ -2642,6 +2702,13 @@ export const PetalAlertDialog = {
     // never leave a watchdog pointed at a torn-down hook.
     this.clearExit();
     if (this.el.open) document.body.classList.remove("overflow-hidden");
+    // The Petal Pro shape: the dialog and its trigger sit in the row being
+    // deleted, so the patch that removes the row destroys this hook too,
+    // after the close or mid-exit. Only then, with the opener already out of
+    // the page: a live navigation destroys every hook while the old page is
+    // still in the document, and focus must not move then.
+    if (this.opener && !this.opener.isConnected) this.restoreFocus();
+    this.disarmFocus();
     this.el.removeEventListener("pc:alert-dialog-open", this.onOpen);
     this.el.removeEventListener("pc:alert-dialog-close", this.onCloseEvent);
     this.el.removeEventListener("cancel", this.onCancel);
@@ -2663,17 +2730,26 @@ export const PetalAlertDialog = {
     );
   },
 
-  open() {
+  open(detail) {
     // Reopened mid-exit. The dialog is still open and still on the top layer,
     // so the recovery is to abandon the exit rather than close and reopen -
     // that would drop and re-take focus and restart the entrance from a
     // half-faded box. Drop the closing class, re-pin focus, done.
     if (this.closing) {
+      // The same open carrying on, so keep its opener unless this request
+      // names a new one (activeElement is inside the dialog by now).
+      const opener = this.findOpener(detail);
+      if (opener) this.rememberOpener(opener);
+      else if (this.opener) this.armFocus();
+      this.closeKind = null;
       this.clearExit();
       this.focusCancel();
       return;
     }
     if (this.el.open) return;
+    this.openedByKeyboard = this.lastInputWasKeyboard;
+    this.closeKind = null;
+    this.rememberOpener(this.findOpener(detail));
     this.closedByUs = false;
     // The brief's "page behind does not scroll" - locked on open, unlocked
     // in onClose so every close path releases it.
@@ -2683,6 +2759,136 @@ export const PetalAlertDialog = {
     // cancel explicitly so the least destructive action is always the default,
     // whatever a consumer's body content puts above it.
     this.focusCancel();
+  },
+
+  // Who opened the dialog this time: the element the trigger hook names,
+  // else the one LiveView names for a JS command, else activeElement. Safari
+  // does not focus a button on click, so activeElement alone would often be
+  // <body>.
+  findOpener(detail) {
+    const usable = (n) =>
+      n?.nodeType === Node.ELEMENT_NODE &&
+      n.isConnected &&
+      n !== document.body &&
+      n !== document.documentElement &&
+      !this.el.contains(n);
+    return (
+      [detail?.opener, detail?.dispatcher, document.activeElement].find(
+        usable,
+      ) || null
+    );
+  },
+
+  // Recorded afresh at every open, never kept from an earlier one: a shared
+  // dialog opened from row 3 must not send focus near row 1. The path is
+  // taken NOW because a removed row takes its links with it: once detached
+  // it has no parent and no siblings to ask. Each step up to <body> keeps
+  // the element's neighbours, so the restore can land on the row that took
+  // the deleted row's place.
+  rememberOpener(opener) {
+    this.opener = opener;
+    this.openerPath = [];
+    if (!opener) return this.disarmFocus();
+    for (
+      let n = opener;
+      n.parentElement && n.parentElement !== document.body;
+      n = n.parentElement
+    ) {
+      this.openerPath.push({
+        parent: n.parentElement,
+        next: n.nextElementSibling,
+        prev: n.previousElementSibling,
+      });
+    }
+    this.armFocus();
+  },
+
+  armFocus() {
+    this.focusArmed = true;
+    if (this.focusListening) return;
+    this.focusListening = true;
+    document.addEventListener("focusin", this.onArmedFocusIn, true);
+    document.addEventListener("pointerdown", this.onArmedPointer, true);
+  },
+
+  disarmFocus() {
+    this.focusArmed = false;
+    if (!this.focusListening) return;
+    this.focusListening = false;
+    document.removeEventListener("focusin", this.onArmedFocusIn, true);
+    document.removeEventListener("pointerdown", this.onArmedPointer, true);
+  },
+
+  // Acts only when focus is LOST: on <body>, on nothing, disconnected, or
+  // left on a button inside this closed dialog. A focus the browser gave
+  // back to a living opener, or one the user moved, is never touched.
+  //
+  // Where it goes, first that takes it: the opener, if it is still here
+  // (the Safari case: it was never focused, so the native close had nothing
+  // to give back). Otherwise the first focusable in the opener's next
+  // sibling at the lowest level whose parent survived (the next row), then
+  // in its previous sibling, then the same one level up, and so on. The next
+  // row is the logical next place the WAI-ARIA dialog pattern asks for, and
+  // where Chrome's own Tab carries on from. Last, the surviving parent
+  // itself, made focusable with tabindex="-1" for that one visit.
+  restoreFocus() {
+    if (!this.focusArmed) return;
+    const active = document.activeElement;
+    const lost =
+      !active ||
+      active === document.body ||
+      !active.isConnected ||
+      (!this.el.open && this.el.contains(active));
+    if (!lost) return;
+
+    const opts = { preventScroll: true, focusVisible: this.openedByKeyboard };
+    const tryFocus = (n) => {
+      if (!n?.isConnected) return false;
+      n.focus(opts);
+      return document.activeElement === n;
+    };
+    // Still armed after this one: the confirm's row removal can follow it.
+    if (tryFocus(this.opener)) return;
+    this.disarmFocus();
+
+    const tryOne = (n) =>
+      n.matches(ALERT_DIALOG_FOCUSABLE) &&
+      alertDialogCanTakeFocus(n) &&
+      tryFocus(n);
+    const tryWithin = (n) =>
+      tryOne(n) ||
+      Array.from(n.querySelectorAll(ALERT_DIALOG_FOCUSABLE)).some(tryOne);
+
+    const start = this.openerPath.findIndex(({ parent }) => parent.isConnected);
+    if (start === -1) return;
+    const levels = this.openerPath.slice(start);
+    for (const { parent, next, prev } of levels) {
+      const here = (n) => n && n.parentElement === parent;
+      if (here(next) && tryWithin(next)) return;
+      if (here(prev) && tryWithin(prev)) return;
+    }
+
+    // Nothing focusable is left beside it (the last row of a table went).
+    // The container is rarely focusable: lend it tabindex="-1" for this one
+    // visit, tidy up on blur, and take it back at once if the focus did not
+    // take (a container that hid).
+    for (const { parent } of levels) {
+      if (!parent.isConnected) continue;
+      if (parent.hasAttribute("tabindex")) {
+        if (tryFocus(parent)) return;
+        continue;
+      }
+      parent.setAttribute("tabindex", "-1");
+      if (tryFocus(parent)) {
+        parent.addEventListener(
+          "blur",
+          () => parent.removeAttribute("tabindex"),
+          { once: true },
+        );
+        return;
+      }
+      parent.removeAttribute("tabindex");
+    }
   },
 
   focusCancel() {
@@ -2737,9 +2943,19 @@ export const PetalAlertDialog = {
 // views, phx-click JS commands only run inside a LiveView.
 export const PetalAlertDialogTrigger = {
   mounted() {
-    this.onClick = () => {
+    // Name the control that was clicked, so the dialog can give focus back
+    // to it (or past it, if the confirm deletes it) even where the click
+    // focused nothing (Safari).
+    this.onClick = (e) => {
       const dialog = document.getElementById(this.el.dataset.dialog);
-      if (dialog) dialog.dispatchEvent(new CustomEvent("pc:alert-dialog-open"));
+      const hit = e.target.closest?.(
+        "button, a[href], input, select, textarea, [tabindex]",
+      );
+      const opener = hit && this.el.contains(hit) ? hit : null;
+      if (dialog)
+        dialog.dispatchEvent(
+          new CustomEvent("pc:alert-dialog-open", { detail: { opener } }),
+        );
     };
     this.el.addEventListener("click", this.onClick);
   },
