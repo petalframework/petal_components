@@ -2530,10 +2530,18 @@ const alertDialogDisplayNone = (n) => {
   return false;
 };
 
+// checkVisibility() is false for an element with no box, and a
+// display:contents element has none: the trigger wrapper is one, and so is a
+// stream container laid straight into a grid. Its children still show, so it
+// counts as in view when its parent is. That is also what the walk gives
+// where checkVisibility() is missing, so the engines agree.
 const alertDialogInView = (n) =>
   !n.closest('[hidden], [inert], [aria-hidden="true"], dialog:not([open])') &&
   (typeof n.checkVisibility === "function"
-    ? n.checkVisibility()
+    ? n.checkVisibility() ||
+      (getComputedStyle(n).display === "contents" &&
+        !!n.parentElement &&
+        alertDialogInView(n.parentElement))
     : !alertDialogDisplayNone(n));
 
 // The ones a Tab would skip are out: disabled, a negative tabindex, out of
@@ -2783,7 +2791,6 @@ export const PetalAlertDialog = {
       // names a new one (activeElement is inside the dialog by now).
       const opener = this.findOpener(detail);
       if (opener) this.rememberOpener(opener);
-      else if (this.opener) this.armFocus();
       this.closeKind = null;
       this.clearExit();
       this.focusCancel();
@@ -2877,6 +2884,8 @@ export const PetalAlertDialog = {
   // focus the browser gave back to a living opener, or one the user moved,
   // is never touched.
   restoreFocus() {
+    // A guard only: a disarmed hook has no opener and no path, so the walk
+    // below would find nothing anyway.
     if (!this.focusArmed) return;
     if (!this.openedByKeyboard && !this.closedByKeyboard)
       return this.disarmFocus();
@@ -2916,7 +2925,9 @@ export const PetalAlertDialog = {
     }
     this.disarmFocus();
     // The modal, dialog or LiveView the opener sat in went with it: whoever
-    // closed that owns focus.
+    // closed that owns focus. (The level search below asks for a parent
+    // inside the region, which a detached region never has; this says so
+    // first.)
     if (region && !region.isConnected) return;
 
     // The part that went or hid is the child of the lowest parent still on
@@ -2972,7 +2983,10 @@ export const PetalAlertDialog = {
 
     // Nothing left to land on (the last row of a table went). The parent is
     // rarely focusable: lend it tabindex="-1" for this one visit, tidy up on
-    // blur, and take it back at once if the focus did not take.
+    // blur, and take it back at once if the focus did not take. Not a
+    // display:contents parent (an emptied trigger wrapper): it has no box to
+    // draw a ring on, and engines differ on whether it can take focus at all.
+    if (getComputedStyle(parent).display === "contents") return;
     if (parent.hasAttribute("tabindex")) {
       tryFocus(parent);
       return;

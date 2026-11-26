@@ -172,21 +172,39 @@ function recordFocus() {
   return seen;
 }
 
-// Counts the arming listeners (focusin) a hook holds at document level.
-function trackFocusin() {
-  let count = 0;
+// Counts the document-level focusin and pointerdown listeners added since
+// the call, net of removals. Arming adds one of each. A dialog hook's mount
+// also adds a pointerdown for its modality tracker, so a spec that mounts
+// after the call compares with a count taken after the mount.
+function trackArming() {
+  const count = { focusin: 0, pointerdown: 0 };
   const add = document.addEventListener.bind(document);
   const remove = document.removeEventListener.bind(document);
   vi.spyOn(document, "addEventListener").mockImplementation((t, f, o) => {
-    if (t === "focusin") count++;
+    if (t in count) count[t]++;
     add(t, f, o);
   });
   vi.spyOn(document, "removeEventListener").mockImplementation((t, f, o) => {
-    if (t === "focusin") count--;
+    if (t in count) count[t]--;
     remove(t, f, o);
   });
-  return () => count;
+  return () => ({ ...count });
 }
+
+// A Chrome-like checkVisibility(): false for an element with no box, which
+// is one with display:contents or inside display:none (CSSOM View). From
+// the spec, not measured; the real check is the lead's browser pass.
+const chromeLikeCheckVisibility = () => {
+  Element.prototype.checkVisibility = function () {
+    if (getComputedStyle(this).display === "contents") return false;
+    for (let e = this; e; e = e.parentElement)
+      if (getComputedStyle(e).display === "none") return false;
+    return true;
+  };
+};
+
+// The component's own stylesheet rule for the trigger wrapper.
+const triggerCss = `<style>.pc-alert-dialog__trigger { display: contents; }</style>`;
 
 describe("PetalAlertDialog focus return when the opener is removed", () => {
   afterEach(() => {
@@ -200,8 +218,9 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
 
   describe("the keyboard gate (R1)", () => {
     it("mouse open, mouse confirm, row removed mid-exit: nothing moves and no arming listener is left", () => {
-      const focusin = trackFocusin();
+      const arming = trackArming();
       const { el, hook } = tableWithOutsideDialog(3);
+      const mounted = arming();
       pointerDown($("#delete-2"));
       $("#delete-2").focus();
       openWith(el, { dispatcher: $("#delete-2") });
@@ -215,12 +234,13 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const active = document.activeElement;
       expect(active === document.body || el.contains(active)).toBe(true);
       expect(hook.focusArmed).toBe(false);
-      expect(focusin()).toBe(0);
+      expect(arming()).toEqual(mounted);
     });
 
     it("mouse open, mouse confirm, then the row with the dialog goes: focus falls to body, as on main", () => {
-      const focusin = trackFocusin();
+      const arming = trackArming();
       const [, row2] = tableWithDialogInRows(3);
+      const mounted = arming();
       pointerDown($("#delete-2"));
       $("#delete-2").focus();
       click($("#delete-2"));
@@ -228,7 +248,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       pointerDown(row2.el.querySelector(".pc-alert-dialog__confirm"));
       confirm(row2.el);
       endExit(row2.el);
-      expect(focusin()).toBe(0);
+      expect(arming()).toEqual(mounted);
       removeRow("row-2", [row2.hook, row2.trigger]);
 
       expect(document.activeElement).toBe(document.body);
@@ -337,6 +357,27 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       expect(document.activeElement).toBe($("#sum"));
     });
 
+    it("the trigger names only a control inside itself, never a focusable row around it", () => {
+      render(`
+        <table><tbody>
+          <tr id="row-1" tabindex="0"><td>
+            <div id="d-trigger" data-dialog="d"><span id="label">Delete</span></div>
+          </td></tr>
+        </tbody></table>
+        ${dialogHtml("d")}`);
+      const el = stubDialog($("#d"));
+      mountHook("PetalAlertDialog", el);
+      mountHook("PetalAlertDialogTrigger", $("#d-trigger"));
+      const named = [];
+      el.addEventListener("pc:alert-dialog-open", (e) =>
+        named.push(e.detail.opener),
+      );
+
+      click($("#label"));
+
+      expect(named).toEqual([null]);
+    });
+
     it("a dispatcher that is a control wins over what has focus", () => {
       const { el, hook } = tableWithOutsideDialog(4);
       $("#add").focus();
@@ -426,12 +467,15 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyboard();
       $("#delete-1").focus();
       openWith(el, {});
-      cancel(el);
+      // a confirm whose reply kept row 1: still armed on its Delete
+      confirm(el);
       endExit(el);
+      expect(hook.opener).toBe($("#delete-1"));
 
       toBody();
       openWith(el, {});
       expect(hook.focusArmed).toBe(false);
+      expect(hook.opener).toBe(null);
       confirm(el);
       removeRow("row-1");
       endExit(el);
@@ -697,14 +741,18 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
     });
 
     it("a live navigation's teardown (the page still connected) moves nothing and leaves no arming listener", () => {
-      const focusin = trackFocusin();
+      const arming = trackArming();
       const [row1, row2] = tableWithDialogInRows();
+      const mounted = arming();
       $("#delete-1").focus();
       keyboard();
       click($("#delete-1"));
       confirm(row1.el);
       endExit(row1.el);
-      expect(focusin()).toBe(1);
+      expect(arming()).toEqual({
+        focusin: mounted.focusin + 1,
+        pointerdown: mounted.pointerdown + 1,
+      });
       // the click that starts the navigation blurs to <body>
       toBody();
 
@@ -712,7 +760,8 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       destroy([row1.hook, row1.trigger, row2.hook, row2.trigger]);
 
       expect(document.activeElement).toBe(document.body);
-      expect(focusin()).toBe(0);
+      // every listener the hooks added is gone, the modality ones included
+      expect(arming()).toEqual({ focusin: 0, pointerdown: 0 });
     });
 
     it("focus inside the dialog while it is still open is not lost: a teardown then moves nothing", () => {
@@ -747,11 +796,16 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       expect(row2.el.open).toBe(false);
     });
 
-    it("a Cancel that ends on the living opener disarms it, and lets go of the opener and its path", () => {
-      const [row1] = tableWithDialogInRows();
+    it("a Cancel that ends on the living opener disarms it, and lets go of the opener, its path and its region", () => {
+      render(`
+        <div role="dialog" id="panel">
+          <table><tbody id="rows">${rowWithDialog(1)}${rowWithDialog(2)}</tbody></table>
+        </div>`);
+      const [row1] = [1, 2].map(mountRowHooks);
       $("#delete-1").focus();
       keyboard();
       click($("#delete-1"));
+      expect(row1.hook.region).toBe($("#panel"));
       cancel(row1.el);
       endExit(row1.el);
       expect(document.activeElement).toBe($("#delete-1"));
@@ -779,19 +833,59 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       expect(document.activeElement).toBe(document.body);
     });
 
-    it("an idle dialog has no focusin listener; an open adds one and the close-out removes it", () => {
-      const focusin = trackFocusin();
+    it("an idle dialog holds no arming listener; an open adds focusin and pointerdown, and the close-out removes both", () => {
+      const arming = trackArming();
       const { el } = tableWithOutsideDialog();
-      expect(focusin()).toBe(0);
+      const mounted = arming();
+      expect(mounted.focusin).toBe(0);
 
       $("#delete-1").focus();
       keyboard();
       openWith(el);
-      expect(focusin()).toBe(1);
+      expect(arming()).toEqual({
+        focusin: 1,
+        pointerdown: mounted.pointerdown + 1,
+      });
 
       cancel(el);
       endExit(el);
-      expect(focusin()).toBe(0);
+      expect(arming()).toEqual(mounted);
+    });
+
+    it("a reopen mid-exit forgets the Escape it abandoned: a later close on the living opener stays armed for the removal", () => {
+      const [, row2] = tableWithDialogInRows(3);
+      $("#delete-2").focus();
+      keyboard();
+      click($("#delete-2"));
+      escape(row2.el);
+
+      // reopened from the same button while the exit plays, then closed by
+      // close_alert_dialog/2, which is neither Cancel nor confirm
+      click($("#delete-2"));
+      row2.el.dispatchEvent(new CustomEvent("pc:alert-dialog-close"));
+      endExit(row2.el);
+      expect(document.activeElement).toBe($("#delete-2"));
+      removeRow("row-2", [row2.hook, row2.trigger]);
+
+      expect(document.activeElement).toBe($("#delete-3"));
+    });
+
+    // Safari does not focus a clicked button, so the native close has
+    // nothing to give back and the hook puts focus on the opener itself.
+    it("a restore to the opener stays armed: the slow reply's row removal still sends focus on", () => {
+      const [, row2] = tableWithDialogInRows(3);
+      pointerDown($("#delete-2"));
+      toBody();
+      click($("#delete-2"));
+      keyDown("Enter");
+      confirm(row2.el);
+      endExit(row2.el);
+      expect(document.activeElement).toBe($("#delete-2"));
+      expect(row2.hook.focusArmed).toBe(true);
+
+      removeRow("row-2", [row2.hook, row2.trigger]);
+
+      expect(document.activeElement).toBe($("#delete-3"));
     });
 
     it("a reopen mid-exit with no detail keeps the opener: the confirm that follows still sends focus to the next row", () => {
@@ -863,26 +957,32 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
   });
 
   describe("a region that left the page (R3, R7.c)", () => {
-    it("a modal removed with the row: nothing moves", () => {
-      render(`
-        <button type="button" id="open-modal">Edit invoices</button>
-        <div id="modal">
-          <div role="dialog" aria-modal="true">
-            <table><tbody id="rows">${rowWithDialog(1)}${rowWithDialog(2)}</tbody></table>
-          </div>
-        </div>`);
-      const rows = [1, 2].map(mountRowHooks);
-      $("#delete-1").focus();
-      keyDown("Enter");
-      click($("#delete-1"));
-      confirm(rows[0].el);
-      endExit(rows[0].el);
+    // Each kind on its own, so dropping one from the region selector fails.
+    const regions = {
+      'role="dialog"': (rows) => `<div role="dialog">${rows}</div>`,
+      'aria-modal="true"': (rows) => `<div aria-modal="true">${rows}</div>`,
+      "a native <dialog>": (rows) => `<dialog open>${rows}</dialog>`,
+    };
+    for (const [kind, wrap] of Object.entries(regions)) {
+      it(`a modal removed with the row (${kind}): nothing moves`, () => {
+        render(`
+          <button type="button" id="open-modal">Edit invoices</button>
+          <div id="modal">
+            ${wrap(`<table><tbody id="rows">${rowWithDialog(1)}${rowWithDialog(2)}</tbody></table>`)}
+          </div>`);
+        const rows = [1, 2].map(mountRowHooks);
+        $("#delete-1").focus();
+        keyDown("Enter");
+        click($("#delete-1"));
+        confirm(rows[0].el);
+        endExit(rows[0].el);
 
-      $("#modal").remove();
-      destroy(rows.flatMap(({ hook, trigger }) => [hook, trigger]));
+        $("#modal").remove();
+        destroy(rows.flatMap(({ hook, trigger }) => [hook, trigger]));
 
-      expect(document.activeElement).toBe(document.body);
-    });
+        expect(document.activeElement).toBe(document.body);
+      });
+    }
 
     it("a modal on its way out (hidden by its phx-remove, still in the page): nothing outside it is used", () => {
       render(`
@@ -1049,6 +1149,27 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       expect(document.activeElement).toBe($("#delete-3"));
     });
 
+    it("the first row and its detail row removed together, nothing recorded beside it left: the child now at its index", () => {
+      render(`
+        <table><tbody id="rows">
+          <tr id="row-1"><td><button type="button" id="delete-1">Delete</button></td></tr>
+          <tr id="detail-1"><td>Notes for invoice 1</td></tr>
+          ${rowsHtml(3).replace(/<tr id="row-1">.*?<\/tr>/, "")}
+        </tbody></table>
+        ${dialogHtml("d")}`);
+      const el = stubDialog($("#d"));
+      mountHook("PetalAlertDialog", el);
+      $("#delete-1").focus();
+      keyboard();
+      openWith(el);
+      confirm(el);
+      $("#row-1").remove();
+      $("#detail-1").remove();
+      endExit(el);
+
+      expect(document.activeElement).toBe($("#delete-2"));
+    });
+
     it("a row inserted above while open, then the row and its detail row go: still the row after", () => {
       render(`
         <table><tbody id="rows">
@@ -1183,6 +1304,116 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       expect(document.activeElement).toBe($("#restore-1"));
     });
 
+    // The trigger wrapper is display:contents in the component's CSS, and
+    // Chrome's checkVisibility() is false for an element with no box. The
+    // walk must agree with the engines that have no checkVisibility().
+    const contentsEngines = {
+      "Chrome-like checkVisibility": chromeLikeCheckVisibility,
+      "no checkVisibility": () => {},
+    };
+    for (const [engine, setUp] of Object.entries(contentsEngines)) {
+      it(`the opener replaced inside its display:contents trigger, a control after it in the cell (${engine}): the replacement`, () => {
+        setUp();
+        render(`
+          ${triggerCss}
+          <table><tbody id="rows">
+            ${[1, 2]
+              .map(
+                (n) => `<tr id="row-${n}"><td>
+                  <div id="d${n}-trigger" class="pc-alert-dialog__trigger" data-dialog="d${n}">
+                    <button type="button" id="archive-${n}">Archive</button>
+                  </div>
+                  <a href="/${n}/edit" id="edit-${n}">Edit</a>
+                  ${dialogHtml(`d${n}`)}
+                </td></tr>`,
+              )
+              .join("")}
+          </tbody></table>`);
+        const [row1] = [1, 2].map(mountRowHooks);
+        $("#archive-1").focus();
+        keyboard();
+        click($("#archive-1"));
+        confirm(row1.el);
+        $("#archive-1").replaceWith(
+          Object.assign(document.createElement("button"), {
+            type: "button",
+            id: "restore-1",
+          }),
+        );
+        endExit(row1.el);
+
+        expect(document.activeElement).toBe($("#restore-1"));
+      });
+
+      it(`a stream container laid into a grid with display:contents (${engine}): the next card, not the first`, () => {
+        setUp();
+        render(`
+          <div id="grid">
+            <div id="cards" style="display: contents">
+              ${[1, 2, 3]
+                .map(
+                  (n) =>
+                    `<article id="card-${n}"><a href="/${n}" id="open-${n}">Open</a><button type="button" id="delete-${n}">Delete</button></article>`,
+                )
+                .join("")}
+            </div>
+          </div>
+          ${dialogHtml("d")}`);
+        const el = stubDialog($("#d"));
+        mountHook("PetalAlertDialog", el);
+        $("#delete-2").focus();
+        keyboard();
+        openWith(el);
+        confirm(el);
+        removeRow("card-2");
+        endExit(el);
+
+        expect(document.activeElement).toBe($("#delete-3"));
+      });
+
+      it(`the opener disabled by the reply, alone in its display:contents trigger (${engine}): no tabindex is lent to the wrapper`, () => {
+        setUp();
+        render(
+          `${triggerCss}<table><tbody id="rows">${rowWithDialog(1)}${rowWithDialog(2)}</tbody></table>`,
+        );
+        const [row1] = [1, 2].map(mountRowHooks);
+        $("#delete-1").focus();
+        keyboard();
+        click($("#delete-1"));
+        confirm(row1.el);
+        $("#delete-1").disabled = true;
+        toBody();
+        endExit(row1.el);
+
+        expect($("#d1-trigger").hasAttribute("tabindex")).toBe(false);
+        expect(document.activeElement).toBe(document.body);
+      });
+    }
+
+    it("an engine-only hiding (checkVisibility false where computed display is not none): the level is chosen by checkVisibility", () => {
+      // content-visibility: hidden on #panel skips its contents; jsdom's
+      // computed style knows nothing of it, so only checkVisibility can say.
+      Element.prototype.checkVisibility = function () {
+        return !(this !== $("#panel") && $("#panel")?.contains(this));
+      };
+      render(`
+        <div id="panel">
+          <table><tbody id="rows">${rowsHtml(3)}</tbody></table>
+        </div>
+        ${dialogHtml("d")}`);
+      const el = stubDialog($("#d"));
+      mountHook("PetalAlertDialog", el);
+      $("#delete-1").focus();
+      keyboard();
+      openWith(el);
+      confirm(el);
+      removeRow("row-1");
+      endExit(el);
+
+      expect(document.activeElement).not.toBe($("#delete-2"));
+      expect(document.activeElement).toBe($("#panel"));
+    });
+
     it("skips the next row's own closed dialog, disabled controls and tabindex=-1, never even trying them", () => {
       const seen = recordFocus();
       render(`
@@ -1208,8 +1439,98 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       endExit(el);
 
       expect(document.activeElement).toBe($("#show-2"));
-      expect(seen.map(([id]) => id)).not.toContain("disabled-2");
+      const tried = seen.map(([id]) => id);
+      expect(tried).not.toContain("disabled-2");
+      expect(tried).not.toContain("skip-2");
+      // d2's buttons have no id; the only id-less focus is d's own Cancel
+      expect(tried.filter((id) => id === "")).toHaveLength(1);
     });
+
+    // R8 one part at a time: the next row's only control is the case. A
+    // skipped one sends focus on to row 3.
+    const r8Cases = [
+      [
+        "an inert row",
+        `<tr id="row-2" inert><td><button type="button" id="c">C</button></td></tr>`,
+        "delete-3",
+      ],
+      [
+        "a select",
+        `<tr id="row-2"><td><select id="c"><option>A</option></select></td></tr>`,
+        "c",
+      ],
+      [
+        "a textarea",
+        `<tr id="row-2"><td><textarea id="c"></textarea></td></tr>`,
+        "c",
+      ],
+      [
+        "tabindex=0",
+        `<tr id="row-2"><td><div tabindex="0" id="c">C</div></td></tr>`,
+        "c",
+      ],
+      [
+        'contenteditable="false"',
+        `<tr id="row-2"><td><div contenteditable="false" id="c">C</div></td></tr>`,
+        "delete-3",
+      ],
+    ];
+    for (const [name, row2, expected] of r8Cases) {
+      it(`R8, the next row's only control is ${name}: ${expected === "c" ? "it takes focus" : "skipped"}`, () => {
+        render(`
+          <table><tbody id="rows">
+            <tr id="row-1"><td><button type="button" id="delete-1">Delete</button></td></tr>
+            ${row2}
+            <tr id="row-3"><td><button type="button" id="delete-3">Delete</button></td></tr>
+          </tbody></table>
+          ${dialogHtml("d")}`);
+        const el = stubDialog($("#d"));
+        mountHook("PetalAlertDialog", el);
+        $("#delete-1").focus();
+        keyboard();
+        openWith(el);
+        confirm(el);
+        removeRow("row-1");
+        endExit(el);
+
+        expect(document.activeElement.id).toBe(expected);
+      });
+    }
+
+    // What is no control is not counted when a row is compared with the
+    // gone one, so an extra one of these keeps the same-position landing.
+    const notCounted = [
+      [
+        "a hidden input",
+        `<a href="/1" id="show-1">Show</a><button type="button" id="delete-1">Delete</button>`,
+        `<input type="hidden" name="id" value="2" /><a href="/2" id="show-2">Show</a><button type="button" id="delete-2">Delete</button>`,
+      ],
+      [
+        "a second <summary>",
+        `<details><summary id="sum-1">More</summary></details><button type="button" id="delete-1">Delete</button>`,
+        `<details><summary id="sum-2">More</summary><summary>Extra</summary></details><button type="button" id="delete-2">Delete</button>`,
+      ],
+    ];
+    for (const [name, row1, row2] of notCounted) {
+      it(`R8, ${name} in the next row is not counted: still the same control`, () => {
+        render(`
+          <table><tbody id="rows">
+            <tr id="row-1"><td>${row1}</td></tr>
+            <tr id="row-2"><td>${row2}</td></tr>
+          </tbody></table>
+          ${dialogHtml("d")}`);
+        const el = stubDialog($("#d"));
+        mountHook("PetalAlertDialog", el);
+        $("#delete-1").focus();
+        keyboard();
+        openWith(el);
+        confirm(el);
+        removeRow("row-1");
+        endExit(el);
+
+        expect(document.activeElement).toBe($("#delete-2"));
+      });
+    }
 
     it("a bulk bar that disappears whole: focus goes to what follows it", () => {
       render(`
@@ -1410,6 +1731,35 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
         expect(document.activeElement).toBe($("#menu-button"));
       });
     }
+
+    it("a hidden opener is never given focus back, even by an engine that would take it", () => {
+      // jsdom focuses a display:none button; a browser refuses. Only the
+      // native close's focus() (no options) is refused here, so the hook's
+      // own focus would succeed: it must not depend on the engine refusing.
+      const realFocus = HTMLElement.prototype.focus;
+      vi.spyOn(HTMLElement.prototype, "focus").mockImplementation(
+        function (opts) {
+          if (opts === undefined && inDisplayNone(this)) return;
+          realFocus.call(this, opts);
+        },
+      );
+      render(`
+        <div id="dropdown">
+          <button type="button" id="menu-button">Actions</button>
+          <div id="menu"><button type="button" id="item-delete">Delete</button></div>
+        </div>
+        ${dialogHtml("d")}`);
+      const el = stubDialog($("#d"));
+      mountHook("PetalAlertDialog", el);
+      $("#item-delete").focus();
+      keyboard();
+      openWith(el, { dispatcher: $("#item-delete") });
+      $("#menu").style.display = "none";
+      confirm(el);
+      endExit(el);
+
+      expect(document.activeElement).toBe($("#menu-button"));
+    });
 
     it("a hidden part starts with the child after itself", () => {
       refuseFocus(inDisplayNone);
