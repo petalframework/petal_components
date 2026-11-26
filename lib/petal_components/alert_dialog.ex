@@ -95,6 +95,29 @@ defmodule PetalComponents.AlertDialog do
   modal dialog ignores backdrop clicks, which is exactly the behaviour the
   WAI-ARIA alertdialog pattern wants.
 
+  The native restoration only works while the opener is still in the page.
+  Delete a table row from the keyboard and the confirm takes its own Delete
+  button with it, so focus would fall to `<body>`. The dialog's hook catches
+  that.
+  Confirm the Delete on row 2 and focus lands on the Delete of the row below:
+  the same control in the row that took its place, or that row's first
+  control if it is built differently. When nothing is left, focus goes to the
+  empty state's first control, or to the list or page section that held it.
+
+  You get this with the dialog rendered inside the row it deletes, which is
+  the `petal.gen.live` shape. A dialog rendered outside the row only gets it
+  when the row goes before the dialog has finished closing. That usually
+  rules out a row with `phx-remove`, a user who prefers reduced motion, and a
+  slow reply. In those cases focus falls to `<body>` as before: render the
+  dialog inside the row to get it there too.
+
+  It acts when the dialog is opened or answered from the keyboard, or by
+  assistive technology that clicks a button for the user without a pointer:
+  the dialog's own buttons, or the opener in the `:trigger` slot (an opener
+  using `open_alert_dialog/2` only counts from the keyboard). A dialog opened
+  and answered with a mouse or a finger behaves exactly as it did before. And
+  it never takes focus from where the user put it.
+
   Two small hooks carry the parts `Phoenix.LiveView.JS` cannot reach:
   `showModal()`/`close()` are DOM methods with no JS-command equivalent, and
   Escape's native `cancel` event has to be intercepted so it runs `on_cancel`

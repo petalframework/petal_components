@@ -2507,6 +2507,58 @@ export const PetalCommandDialog = {
 const ALERT_DIALOG_EXIT_MS = 150;
 const ALERT_DIALOG_EXIT_GRACE_MS = 60;
 
+// What counts as a control, for the opener and for where focus may land. The
+// trigger hook uses the same list, so the two agree on what was clicked.
+const ALERT_DIALOG_FOCUSABLE =
+  'a[href], button, input:not([type="hidden"]), select, textarea, ' +
+  "details > summary:first-of-type, " +
+  '[contenteditable]:not([contenteditable="false"]), [tabindex]';
+
+// The opener's surroundings that own focus when they go: a modal, a dialog
+// or a LiveView root. If one has left the page, whatever removed it decides
+// where focus goes, and a live navigation moves nothing.
+const ALERT_DIALOG_REGION =
+  'dialog, [role="dialog"], [aria-modal="true"], [data-phx-session]';
+
+// A dropdown hides with an inline display:none (JS.hide), never [hidden], so
+// display has to be checked. checkVisibility() does it where it exists; the
+// walk is for engines without it (Safari before 17.4). getClientRects and
+// offsetParent are no use as a fallback: jsdom reports them empty for all.
+const alertDialogDisplayNone = (n) => {
+  for (let e = n; e; e = e.parentElement)
+    if (getComputedStyle(e).display === "none") return true;
+  return false;
+};
+
+// checkVisibility() is false for an element with no box, and a
+// display:contents element has none: the trigger wrapper is one, and so is a
+// stream container laid straight into a grid. Its children still show, so it
+// counts as in view when its parent is. That is also what the walk gives
+// where checkVisibility() is missing, so the engines agree.
+const alertDialogInView = (n) =>
+  !n.closest('[hidden], [inert], [aria-hidden="true"], dialog:not([open])') &&
+  (typeof n.checkVisibility === "function"
+    ? n.checkVisibility() ||
+      (getComputedStyle(n).display === "contents" &&
+        !!n.parentElement &&
+        alertDialogInView(n.parentElement))
+    : !alertDialogDisplayNone(n));
+
+// The ones a Tab would skip are out: disabled, a negative tabindex, out of
+// view (every row of a petal.gen.live table carries its own closed alert
+// dialog). The attribute, never the tabIndex property, which engines report
+// as -1 for some focusable elements (jsdom for contenteditable).
+const alertDialogCanTakeFocus = (n) =>
+  !n.matches(":disabled") &&
+  !(parseInt(n.getAttribute("tabindex"), 10) < 0) &&
+  alertDialogInView(n);
+
+// A control and every control inside it, the element itself first.
+const alertDialogControls = (n) => [
+  ...(n.matches(ALERT_DIALOG_FOCUSABLE) ? [n] : []),
+  ...n.querySelectorAll(ALERT_DIALOG_FOCUSABLE),
+];
+
 // The alertdialog: a native <dialog> asking one question with two answers.
 //
 // The hook exists for the four things CSS and Phoenix.LiveView.JS cannot do:
@@ -2535,7 +2587,8 @@ const ALERT_DIALOG_EXIT_GRACE_MS = 60;
 // native modal dialog ignores backdrop clicks, so click-away does nothing -
 // which is the behaviour the WAI-ARIA alertdialog pattern asks for. Focus
 // containment and focus restoration to the opener also come from the native
-// element, not from here.
+// element, not from here - except when the opener is gone (see
+// restoreFocus()).
 export const PetalAlertDialog = {
   mounted() {
     this.closedByUs = false;
@@ -2544,6 +2597,45 @@ export const PetalAlertDialog = {
     this.wasOpen = false;
     this.wasClosing = false;
     this.refocus = null;
+    // Where focus goes back to. The native close refocuses the element that
+    // had focus before showModal(), but only while it is still in the page.
+    // Delete a table row from its own Delete button and the opener is gone,
+    // so focus falls to <body> and a keyboard user loses their place. The
+    // hook remembers the opener and its surroundings at every open and, if
+    // focus is lost, puts it on the control that took the opener's place.
+    // Never for a pointer: for a mouse, touch or pen user from open to
+    // answer it does nothing, because a focus they never asked for can pop
+    // a tooltip, open a virtual keyboard or catch their next Space. It acts
+    // for the keyboard, and for assistive technology that clicks with no
+    // key press (a click with detail 0 that no pointer click led to).
+    //
+    // "Armed" means a restore can still matter. It is set at open and ends
+    // at the first sign the user has moved on: focus landing anywhere but
+    // the opener or the dialog, a pointerdown outside the dialog, a
+    // Cancel/Escape that put focus back on a living opener, or a dialog
+    // opened and answered with a pointer. A confirm stays armed: the row
+    // removal usually lands after the close. Disarming lets go of the
+    // opener and its path, so a shared dialog never holds on to removed
+    // rows. The two arming listeners exist only while armed, so an idle
+    // dialog (a table can hold fifty) does not run them on every focus
+    // change and pointer press.
+    this.opener = null;
+    this.openerPath = [];
+    this.region = null;
+    this.focusArmed = false;
+    this.focusListening = false;
+    this.openedByKeyboard = false;
+    this.closedByKeyboard = false;
+    this.actionWithoutPointer = false;
+    this.clickingCancel = false;
+    this.closeKind = null;
+    this.onArmedFocusIn = (e) => {
+      if (e.target === this.opener || this.el.contains(e.target)) return;
+      this.disarmFocus();
+    };
+    this.onArmedPointer = (e) => {
+      if (!this.el.contains(e.target)) this.disarmFocus();
+    };
     // WebKit marks ANY focus inside a freshly shown modal dialog as
     // keyboard-visible - even a script focus following a tap, even deferred
     // past the click task (measured against real WebKit; Chromium's
@@ -2560,20 +2652,48 @@ export const PetalAlertDialog = {
     this.onModalityPointer = () => {
       this.lastInputWasKeyboard = false;
     };
+    // A click a script makes while handling a pointer click has detail 0
+    // too: LiveView's JS.dispatch("click") from a menu item, app code
+    // calling button.click(). The user is on a pointer all the same, so a
+    // click with detail 0 counts as "no pointer" only when no pointer click
+    // is still being dispatched around it (eventPhase drops to NONE once a
+    // dispatch is over).
+    this.pointerClick = null;
+    this.onModalityClick = (e) => {
+      if (e.detail > 0) this.pointerClick = e;
+    };
     document.addEventListener("keydown", this.onModalityKey, true);
     document.addEventListener("pointerdown", this.onModalityPointer, true);
-    this.onOpen = () => this.open();
+    document.addEventListener("click", this.onModalityClick, true);
+    // The trigger hook names the control that was clicked (detail.opener);
+    // open_alert_dialog/2 goes through JS.dispatch, where LiveView names the
+    // element carrying the binding (detail.dispatcher). See findOpener().
+    this.onOpen = (e) => this.open(e.detail);
     this.onCloseEvent = () => this.requestClose();
     // Escape. Swallow the native close and route through the cancel button so
     // Escape and a Cancel click run the exact same on_cancel JS - one path.
     this.onCancel = (e) => {
       e.preventDefault();
-      const cancel = this.cancelButton();
-      cancel ? cancel.click() : this.requestClose();
+      if (!this.clickCancel()) this.requestClose();
     };
     // Both actions close the dialog after their phx-click JS has run.
+    // A click with detail 0 came from no pointer: Enter or Space, or
+    // assistive technology activating the button with no key press
+    // reaching the page. Noted for requestClose(), and kept until the next
+    // open: an on_confirm that also runs close_alert_dialog/2 makes a
+    // second close intent after this one, and that must not undo it. Not
+    // the Cancel click the hook makes itself (clickCancel()), nor one a
+    // script makes inside a pointer click: those say nothing about the
+    // user.
     this.onAction = (e) => {
-      if (e.target.closest("[data-pc-alert-dialog-close]")) this.requestClose();
+      const action = e.target.closest("[data-pc-alert-dialog-close]");
+      if (!action) return;
+      this.closeKind = action.hasAttribute("data-pc-alert-dialog-cancel")
+        ? "cancel"
+        : "confirm";
+      if (this.clickWithoutPointer(e) && !this.clickingCancel)
+        this.actionWithoutPointer = true;
+      this.requestClose();
     };
     // The native close event is where the dialog is really gone, so the
     // scroll unlock lives here - it drains every path, including the ones
@@ -2586,8 +2706,18 @@ export const PetalAlertDialog = {
       // never outlives the dialog it was animating.
       this.clearExit();
       document.body.classList.remove("overflow-hidden");
-      if (!this.closedByUs) this.cancelButton()?.click();
+      if (!this.closedByUs) this.clickCancel();
       this.closedByUs = false;
+      // The native close has had its go at giving focus back by now.
+      this.restoreFocus();
+      if (
+        this.closeKind === "cancel" &&
+        this.opener?.isConnected &&
+        document.activeElement === this.opener
+      ) {
+        this.disarmFocus();
+      }
+      this.closeKind = null;
     };
     // The exit finishes on the BOX's own animation. Three things this must
     // NOT react to: the entrance animation (same element, same event - the
@@ -2642,6 +2772,17 @@ export const PetalAlertDialog = {
     // never leave a watchdog pointed at a torn-down hook.
     this.clearExit();
     if (this.el.open) document.body.classList.remove("overflow-hidden");
+    // The Petal Pro shape: the dialog and its trigger sit in the row being
+    // deleted, so the patch that removes the row destroys this hook too,
+    // after the close or mid-exit. Only then, with the opener or the dialog
+    // already out of the page: a live navigation destroys every hook while
+    // the old page is still in the document, and focus must not move then.
+    // The dialog counts too because in a list with no :key LiveView keys
+    // rows by index, so morphdom moves the opener into the next item's row
+    // (blurring it) instead of removing it.
+    if (this.opener && (!this.opener.isConnected || !this.el.isConnected))
+      this.restoreFocus();
+    this.disarmFocus();
     this.el.removeEventListener("pc:alert-dialog-open", this.onOpen);
     this.el.removeEventListener("pc:alert-dialog-close", this.onCloseEvent);
     this.el.removeEventListener("cancel", this.onCancel);
@@ -2650,10 +2791,43 @@ export const PetalAlertDialog = {
     this.el.removeEventListener("animationend", this.onExitEnd);
     document.removeEventListener("keydown", this.onModalityKey, true);
     document.removeEventListener("pointerdown", this.onModalityPointer, true);
+    document.removeEventListener("click", this.onModalityClick, true);
+    this.pointerClick = null;
   },
 
   cancelButton() {
     return this.el.querySelector("[data-pc-alert-dialog-cancel]");
+  },
+
+  // A pointer click is still being dispatched: any click made now was made
+  // by a script handling it (see onModalityClick).
+  inPointerClick() {
+    return this.pointerClick?.eventPhase > Event.NONE;
+  },
+
+  // A click no pointer made: detail 0, and not a script's inside a pointer
+  // click.
+  clickWithoutPointer(e) {
+    return e.detail === 0 && !this.inPointerClick();
+  },
+
+  // The hook's own click on Cancel, so Escape and a close it did not start
+  // run on_cancel. Its detail is 0 like a keyboard click's, so it is marked
+  // as the hook's own and never noted as "no pointer": a cancel event no
+  // key caused (Android's back gesture, a close watcher) or a native close
+  // the hook did not start (app code calling dialog.close(), a
+  // <form method="dialog"> in the body) says nothing about how the user
+  // got there.
+  clickCancel() {
+    const cancel = this.cancelButton();
+    if (!cancel) return false;
+    this.clickingCancel = true;
+    try {
+      cancel.click();
+    } finally {
+      this.clickingCancel = false;
+    }
+    return true;
   },
 
   reducedMotion() {
@@ -2663,17 +2837,33 @@ export const PetalAlertDialog = {
     );
   },
 
-  open() {
+  open(detail) {
+    if (this.el.open && !this.closing) return;
+    // A fresh open, or an abandoned exit: no close intent is pending, and
+    // how this open was made is read afresh. "Keyboard" means "not a
+    // pointer": the trigger hook says when its click had detail 0, which
+    // assistive technology's activate gives with no key press.
+    this.closedByKeyboard = false;
+    this.actionWithoutPointer = false;
+    this.openedByKeyboard =
+      this.lastInputWasKeyboard ||
+      (detail?.keyboard === true && !this.inPointerClick());
     // Reopened mid-exit. The dialog is still open and still on the top layer,
     // so the recovery is to abandon the exit rather than close and reopen -
     // that would drop and re-take focus and restart the entrance from a
     // half-faded box. Drop the closing class, re-pin focus, done.
     if (this.closing) {
+      // The same open carrying on, so keep its opener unless this request
+      // names a new one (activeElement is inside the dialog by now).
+      const opener = this.findOpener(detail);
+      if (opener) this.rememberOpener(opener);
+      this.closeKind = null;
       this.clearExit();
       this.focusCancel();
       return;
     }
-    if (this.el.open) return;
+    this.closeKind = null;
+    this.rememberOpener(this.findOpener(detail));
     this.closedByUs = false;
     // The brief's "page behind does not scroll" - locked on open, unlocked
     // in onClose so every close path releases it.
@@ -2683,6 +2873,211 @@ export const PetalAlertDialog = {
     // cancel explicitly so the least destructive action is always the default,
     // whatever a consumer's body content puts above it.
     this.focusCancel();
+  },
+
+  // Who opened the dialog this time, decided afresh at every open. LiveView
+  // names the element that CARRIES the binding as dispatcher: often a
+  // wrapper around the button the user was on, or for a window key binding
+  // nowhere near it. So a dispatcher counts first only when it is a control;
+  // otherwise what had focus wins, and a non-control dispatcher (a clicked
+  // row with nothing focused) comes last.
+  findOpener(detail) {
+    const usable = (n) =>
+      n?.nodeType === Node.ELEMENT_NODE &&
+      n.isConnected &&
+      n !== document.body &&
+      n !== document.documentElement &&
+      !this.el.contains(n);
+    const dispatcher = usable(detail?.dispatcher) ? detail.dispatcher : null;
+    const active = usable(document.activeElement)
+      ? document.activeElement
+      : null;
+    if (usable(detail?.opener)) return detail.opener;
+    // A control that holds the focused control is not the opener either: a
+    // <tr tabindex="0"> carrying the binding, with focus on a button in it.
+    // (A dispatcher that is itself focused comes back as `active` below.)
+    if (
+      dispatcher?.matches(ALERT_DIALOG_FOCUSABLE) &&
+      !(active && dispatcher.contains(active))
+    )
+      return dispatcher;
+    if (active) return active;
+    return dispatcher;
+  },
+
+  // Recorded afresh at every open, never kept from an earlier one: a shared
+  // dialog opened from row 3 must not send focus near row 1. The path is
+  // taken NOW because a removed row takes its links with it: once detached
+  // it has no parent and no siblings to ask. Each step up keeps the
+  // element's place among its parent's children, so the restore can find
+  // the child that took a removed part's place. It also keeps how the step
+  // is built (its tag, how many controls it holds and which of them is the
+  // opener), because the detached part cannot be asked either: a normal
+  // patch takes every element with an id (the trigger wrapper, the dialog)
+  // out of a removed row one by one, so the row no longer holds the opener
+  // nor its old number of controls.
+  rememberOpener(opener) {
+    if (!opener) return this.disarmFocus();
+    this.opener = opener;
+    this.openerPath = [];
+    for (
+      let n = opener;
+      n.parentElement && n.parentElement !== document.body;
+      n = n.parentElement
+    ) {
+      const parent = n.parentElement;
+      const controls = alertDialogControls(n);
+      this.openerPath.push({
+        parent,
+        node: n,
+        tag: n.tagName,
+        index: Array.prototype.indexOf.call(parent.children, n),
+        next: n.nextElementSibling,
+        prev: n.previousElementSibling,
+        count: controls.length,
+        slot: controls.indexOf(opener),
+      });
+    }
+    this.region = opener.closest(ALERT_DIALOG_REGION);
+    this.armFocus();
+  },
+
+  armFocus() {
+    this.focusArmed = true;
+    if (this.focusListening) return;
+    this.focusListening = true;
+    document.addEventListener("focusin", this.onArmedFocusIn, true);
+    document.addEventListener("pointerdown", this.onArmedPointer, true);
+  },
+
+  disarmFocus() {
+    this.focusArmed = false;
+    this.opener = null;
+    this.openerPath = [];
+    this.region = null;
+    if (!this.focusListening) return;
+    this.focusListening = false;
+    document.removeEventListener("focusin", this.onArmedFocusIn, true);
+    document.removeEventListener("pointerdown", this.onArmedPointer, true);
+  },
+
+  // Acts only when the dialog was opened or answered without a pointer, and
+  // only when focus is LOST: on <body>, on nothing, disconnected, or left on
+  // a button inside this closed dialog. A focus the browser gave back to a
+  // living opener, or one the user moved, is never touched.
+  restoreFocus() {
+    // A guard only: a disarmed hook has no opener and no path, so the walk
+    // below would find nothing anyway.
+    if (!this.focusArmed) return;
+    if (!this.openedByKeyboard && !this.closedByKeyboard)
+      return this.disarmFocus();
+    const active = document.activeElement;
+    const lost =
+      !active ||
+      active === document.body ||
+      !active.isConnected ||
+      (!this.el.open && this.el.contains(active));
+    if (!lost) return;
+
+    // Only a keyboard or a click with no pointer gets here, so every focus
+    // asks for the ring.
+    const opts = { preventScroll: true, focusVisible: true };
+    const tryFocus = (n) => {
+      n.focus(opts);
+      return document.activeElement === n;
+    };
+    // Disarming drops these, so keep them for the walk.
+    const { opener, openerPath, region } = this;
+
+    // The opener is still here and can take focus. Still armed after this:
+    // the confirm's row removal can follow it.
+    if (opener?.isConnected && alertDialogInView(opener) && tryFocus(opener))
+      return;
+    // The opener is still here and in view but is no control: a clickable
+    // row or card that ran open_alert_dialog/2 with nothing focused. There
+    // is nothing to give back, and its neighbours are not where the user
+    // was. A cancel settles it; anything else stays armed in case the row
+    // goes next.
+    if (
+      opener?.isConnected &&
+      !opener.matches(ALERT_DIALOG_FOCUSABLE) &&
+      alertDialogInView(opener)
+    ) {
+      if (this.closeKind === "cancel") this.disarmFocus();
+      return;
+    }
+    this.disarmFocus();
+    // The modal, dialog or LiveView the opener sat in went with it: whoever
+    // closed that owns focus. (The level search below asks for a parent
+    // inside the region, which a detached region never has; this says so
+    // first.)
+    if (region && !region.isConnected) return;
+
+    // The part that went or hid is the child of the lowest parent still on
+    // screen. Look only among that parent's children, starting at the one
+    // now in the part's place, then after it, then before it. A part that
+    // is still there (hidden, or holding an opener that can no longer take
+    // focus) starts with the child after itself. Never higher: a jump to a
+    // sidebar or a footer reads like a navigation.
+    const level = openerPath.find(
+      ({ parent }) =>
+        parent.isConnected &&
+        alertDialogInView(parent) &&
+        (!region || region.contains(parent)),
+    );
+    if (!level) return;
+    const { parent, node, tag, index, next, prev, count, slot } = level;
+    const kids = Array.from(parent.children);
+    const at =
+      node.parentElement === parent
+        ? kids.indexOf(node) + 1
+        : next?.parentElement === parent
+          ? kids.indexOf(next)
+          : prev?.parentElement === parent
+            ? kids.indexOf(prev) + 1
+            : Math.min(index, kids.length);
+    const order = [...kids.slice(at), ...kids.slice(0, at).reverse()];
+
+    // In a child built like the part was at open (a row like the deleted
+    // row), the control where the opener was: Delete of the next row, in
+    // view where the user was scrolled to, and the same place a list with
+    // no keys already gives. Otherwise the child's first control.
+    const takes = (n) => alertDialogCanTakeFocus(n) && tryFocus(n);
+    for (const child of order) {
+      const controls = alertDialogControls(child);
+      const twin =
+        child.tagName === tag && controls.length === count
+          ? controls[slot]
+          : null;
+      const landing = (twin && takes(twin) && twin) || controls.find(takes);
+      if (!landing) continue;
+      // preventScroll keeps the page still; this only brings a control in
+      // a scrolled region (a wide table) into view, and is a no-op otherwise.
+      landing.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+      // It takes the opener's place, still armed: a row actions menu that
+      // hid sends focus to the menu's own trigger, and the row removal that
+      // follows must walk on from there.
+      this.rememberOpener(landing);
+      return;
+    }
+
+    // Nothing left to land on (the last row of a table went). The parent is
+    // rarely focusable: lend it tabindex="-1" for this one visit, tidy up on
+    // blur, and take it back at once if the focus did not take. Not a
+    // display:contents parent (an emptied trigger wrapper): it has no box to
+    // draw a ring on, and engines differ on whether it can take focus at all.
+    if (getComputedStyle(parent).display === "contents") return;
+    if (parent.hasAttribute("tabindex")) {
+      tryFocus(parent);
+      return;
+    }
+    parent.setAttribute("tabindex", "-1");
+    if (tryFocus(parent)) {
+      const tidy = () => parent.removeAttribute("tabindex");
+      parent.addEventListener("blur", tidy, { once: true });
+      return;
+    }
+    parent.removeAttribute("tabindex");
   },
 
   focusCancel() {
@@ -2701,6 +3096,12 @@ export const PetalAlertDialog = {
 
   // Close INTENT. The single door every close path walks through.
   requestClose() {
+    // Before the guard, so every close intent records how it was made. The
+    // note from onAction lasts until the next open, so a second intent in
+    // the same close (on_confirm running close_alert_dialog/2 after the
+    // hook's own) keeps the answer of the first.
+    this.closedByKeyboard =
+      this.lastInputWasKeyboard || this.actionWithoutPointer;
     if (!this.el.open || this.closing) return;
     if (this.reducedMotion()) return this.finishClose();
 
@@ -2737,9 +3138,21 @@ export const PetalAlertDialog = {
 // views, phx-click JS commands only run inside a LiveView.
 export const PetalAlertDialogTrigger = {
   mounted() {
-    this.onClick = () => {
+    // Name the control that was clicked, so the dialog knows its opener
+    // even where the click focused nothing, and whether a pointer made the
+    // click: a mouse click or a tap has detail 1 or more; Enter, Space,
+    // assistive technology's activate and a script's click have 0 (the
+    // dialog tells a script's click inside a pointer click apart).
+    this.onClick = (e) => {
       const dialog = document.getElementById(this.el.dataset.dialog);
-      if (dialog) dialog.dispatchEvent(new CustomEvent("pc:alert-dialog-open"));
+      const hit = e.target.closest?.(ALERT_DIALOG_FOCUSABLE);
+      const opener = hit && this.el.contains(hit) ? hit : null;
+      if (dialog)
+        dialog.dispatchEvent(
+          new CustomEvent("pc:alert-dialog-open", {
+            detail: { opener, keyboard: e.detail === 0 },
+          }),
+        );
     };
     this.el.addEventListener("click", this.onClick);
   },
