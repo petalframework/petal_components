@@ -4,12 +4,14 @@
 // restores focus to an opener that is still in the page, so without help
 // focus falls to <body> and a keyboard user loses their place.
 //
-// The hook acts for the keyboard only, so most specs start with a keydown
-// on document, which is what its modality tracker listens for. Half of
-// them guard the other direction: a mouse user gets exactly what they got
-// before, focus the user or the browser put somewhere is never taken, a
-// live navigation's teardown moves nothing, and nothing climbs out of the
-// list that lost a row.
+// The hook acts for anything that is not a pointer: the keyboard, and a
+// screen reader or switch access that clicks with no key press. So most
+// specs start with a keydown on document, which its modality tracker
+// listens for, and every click says how it was made (mouseClick, keyClick,
+// atClick below). Half of them guard the other direction: a mouse user gets
+// exactly what they got before, focus the user or the browser put somewhere
+// is never taken, a live navigation's teardown moves nothing, and nothing
+// climbs out of the list that lost a row.
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import hooks from "../../assets/js/petal_components.js";
@@ -110,11 +112,9 @@ function tableWithDialogInRows(rows = 2) {
 }
 
 const $ = (sel) => document.querySelector(sel);
-const click = (el) =>
-  el.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 const endExit = (el) => el.dispatchEvent(new Event("animationend"));
-const confirm = (el) => click(el.querySelector(".pc-alert-dialog__confirm"));
-const cancel = (el) => click(el.querySelector(".pc-alert-dialog__cancel"));
+const confirmOf = (el) => el.querySelector(".pc-alert-dialog__confirm");
+const cancelOf = (el) => el.querySelector(".pc-alert-dialog__cancel");
 const escape = (el) => {
   keyDown("Escape");
   el.dispatchEvent(new Event("cancel", { cancelable: true }));
@@ -128,6 +128,31 @@ const keyDown = (key) =>
 // The user reached the opener with Tab: the input the hook calls keyboard.
 const keyboard = () => keyDown("Tab");
 const toBody = () => document.activeElement?.blur();
+
+// Every click in this file says how it was made, because the hook tells a
+// pointer from the rest by the click's detail (R14): 1 or more for a mouse
+// click or a tap, 0 for anything else. jsdom's default is 0, so a click
+// that stands for the mouse has to say so.
+const clickWith = (el, detail) =>
+  el.dispatchEvent(new MouseEvent("click", { bubbles: true, detail }));
+// A mouse click or a tap: a pointerdown, then a click with detail 1. Pass
+// `focus: true` for the focus Chrome gives a clicked button on mousedown;
+// Safari gives none.
+const mouseClick = (el, { focus = false } = {}) => {
+  pointerDown(el);
+  if (focus) el.focus();
+  clickWith(el, 1);
+};
+// Enter on a control: a keydown the modality tracker sees, then the click
+// the browser makes from it, with detail 0.
+const keyClick = (el) => {
+  keyDown("Enter");
+  clickWith(el, 0);
+};
+// A screen reader's activate (browse mode, VoiceOver) or switch access: a
+// click with detail 0, and neither a key press nor a pointer reaches the
+// page.
+const atClick = (el) => clickWith(el, 0);
 
 // What LiveView does when a stream delete lands: the row leaves the DOM,
 // then every hook inside it gets destroyed().
@@ -216,7 +241,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
     delete window.matchMedia;
   });
 
-  describe("the keyboard gate (R1)", () => {
+  describe("the keyboard gate (R1, R14)", () => {
     it("mouse open, mouse confirm, row removed mid-exit: nothing moves and no arming listener is left", () => {
       const arming = trackArming();
       const { el, hook } = tableWithOutsideDialog(3);
@@ -225,8 +250,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-2").focus();
       openWith(el, { dispatcher: $("#delete-2") });
 
-      pointerDown(el.querySelector(".pc-alert-dialog__confirm"));
-      confirm(el);
+      mouseClick(confirmOf(el));
       removeRow("row-2");
       endExit(el);
 
@@ -241,12 +265,9 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const arming = trackArming();
       const [, row2] = tableWithDialogInRows(3);
       const mounted = arming();
-      pointerDown($("#delete-2"));
-      $("#delete-2").focus();
-      click($("#delete-2"));
+      mouseClick($("#delete-2"), { focus: true });
 
-      pointerDown(row2.el.querySelector(".pc-alert-dialog__confirm"));
-      confirm(row2.el);
+      mouseClick(confirmOf(row2.el));
       endExit(row2.el);
       expect(arming()).toEqual(mounted);
       removeRow("row-2", [row2.hook, row2.trigger]);
@@ -262,8 +283,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       openWith(el, { dispatcher: $("#delete-1") });
 
       keyboard();
-      keyDown("Enter");
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -280,8 +300,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyDown("Enter");
       openWith(el);
 
-      pointerDown(el.querySelector(".pc-alert-dialog__confirm"));
-      confirm(el);
+      mouseClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -310,17 +329,143 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const [, row2] = tableWithDialogInRows(3);
       $("#delete-2").focus();
       keyboard();
-      click($("#delete-2"));
+      keyClick($("#delete-2"));
       escape(row2.el);
       endExit(row2.el);
 
       // reopened with the mouse, then the row is deleted elsewhere while
       // the dialog is still open: no close intent at all
-      pointerDown($("#delete-2"));
-      click($("#delete-2"));
+      mouseClick($("#delete-2"));
       removeRow("row-2", [row2.hook, row2.trigger]);
 
       expect(document.activeElement).toBe(document.body);
+    });
+
+    // R14: a screen reader's activate and switch access click with no key
+    // press and no pointer. Each half on its own, so dropping either fails.
+    it("an activation with no key press and no pointer on the trigger (detail 0), then a pointer confirm: focus moves", () => {
+      const [, row2] = tableWithDialogInRows(3);
+      $("#delete-2").focus();
+      atClick($("#delete-2"));
+      expect(row2.hook.openedByKeyboard).toBe(true);
+
+      // made with a pointer, so only the trigger's detail can count
+      mouseClick(confirmOf(row2.el));
+      endExit(row2.el);
+      removeRow("row-2", [row2.hook, row2.trigger]);
+
+      expect(document.activeElement).toBe($("#delete-3"));
+    });
+
+    it("a mouse open, then an activation with no key press and no pointer on the confirm (detail 0): focus moves", () => {
+      const { el } = tableWithOutsideDialog(3);
+      pointerDown($("#delete-2"));
+      $("#delete-2").focus();
+      openWith(el, { dispatcher: $("#delete-2") });
+
+      atClick(confirmOf(el));
+      removeRow("row-2");
+      endExit(el);
+
+      expect(document.activeElement).toBe($("#delete-3"));
+    });
+
+    it("a screen reader from start to finish, not one key press: the next row's Delete, with the ring", () => {
+      const seen = recordFocus();
+      const [, row2] = tableWithDialogInRows(3);
+      $("#delete-2").focus();
+      atClick($("#delete-2"));
+      atClick(confirmOf(row2.el));
+      endExit(row2.el);
+      removeRow("row-2", [row2.hook, row2.trigger]);
+
+      expect(document.activeElement).toBe($("#delete-3"));
+      expect(seen.filter(([id]) => id === "delete-3")).toEqual([
+        ["delete-3", { preventScroll: true, focusVisible: true }],
+      ]);
+    });
+
+    it("a key press, then the mouse from start to finish: the pointerdowns clear the tracker, so nothing moves", () => {
+      const [, row2] = tableWithDialogInRows(3);
+      keyboard();
+      mouseClick($("#delete-2"), { focus: true });
+      mouseClick(confirmOf(row2.el));
+      endExit(row2.el);
+      removeRow("row-2", [row2.hook, row2.trigger]);
+
+      expect(document.activeElement).toBe(document.body);
+    });
+
+    // R14 ORs the click's detail with the key tracker, at the open and at
+    // the close. A pointer always sends a pointerdown before its click, so
+    // a click with detail 1 and no pointerdown can only come from a script.
+    // After a key press the tracker still says keyboard, and that answer
+    // stands. Pinned on each side so a change to it is a decision, not an
+    // accident.
+    it("a key press, then the trigger clicked with detail 1 but no pointerdown: the open still counts as keyboard", () => {
+      const [, row2] = tableWithDialogInRows(3);
+      keyboard();
+      $("#delete-2").focus();
+      clickWith($("#delete-2"), 1);
+      expect(row2.hook.openedByKeyboard).toBe(true);
+
+      // a real mouse confirm, so only the open can count
+      mouseClick(confirmOf(row2.el));
+      endExit(row2.el);
+      removeRow("row-2", [row2.hook, row2.trigger]);
+
+      expect(document.activeElement).toBe($("#delete-3"));
+    });
+
+    it("a mouse open, a key press, then the confirm clicked with detail 1 but no pointerdown: the close still counts as keyboard", () => {
+      const [, row2] = tableWithDialogInRows(3);
+      mouseClick($("#delete-2"), { focus: true });
+      expect(row2.hook.openedByKeyboard).toBe(false);
+
+      keyboard();
+      clickWith(confirmOf(row2.el), 1);
+      endExit(row2.el);
+      removeRow("row-2", [row2.hook, row2.trigger]);
+
+      expect(document.activeElement).toBe($("#delete-3"));
+    });
+
+    it("the note a pointer-free click leaves is used once: a later mouse open closed by close_alert_dialog/2 moves nothing", () => {
+      const { el } = tableWithOutsideDialog(3);
+      pointerDown($("#delete-1"));
+      $("#delete-1").focus();
+      openWith(el, { dispatcher: $("#delete-1") });
+      atClick(cancelOf(el));
+      endExit(el);
+      expect(document.activeElement).toBe($("#delete-1"));
+
+      pointerDown($("#delete-2"));
+      $("#delete-2").focus();
+      openWith(el, { dispatcher: $("#delete-2") });
+      el.dispatchEvent(new CustomEvent("pc:alert-dialog-close"));
+      removeRow("row-2");
+      endExit(el);
+
+      expect(document.activeElement).not.toBe($("#delete-3"));
+    });
+
+    // A close the hook did not start (a <form method="dialog"> button,
+    // clicked with the mouse) still runs on_cancel: the hook clicks Cancel
+    // itself. That click has detail 0 (HTMLElement.click(); jsdom's here)
+    // and is no sign of a keyboard.
+    it("a mouse open, then a close the hook did not start: the Cancel click the hook makes itself is no keyboard", () => {
+      const { el, hook } = tableWithOutsideDialog(3);
+      pointerDown($("#delete-2"));
+      $("#delete-2").focus();
+      openWith(el, { dispatcher: $("#delete-2") });
+      removeRow("row-2");
+
+      el.close();
+
+      expect(document.activeElement).not.toBe($("#delete-3"));
+      const active = document.activeElement;
+      expect(active === document.body || el.contains(active)).toBe(true);
+      expect(hook.focusArmed).toBe(false);
     });
   });
 
@@ -329,10 +474,11 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const [row1] = tableWithDialogInRows();
       keyboard();
       toBody();
-      click($("#delete-1"));
+      // a screen reader activates it from its own cursor: no DOM focus
+      atClick($("#delete-1"));
       expect(row1.el.open).toBe(true);
 
-      cancel(row1.el);
+      keyClick(cancelOf(row1.el));
       endExit(row1.el);
 
       expect(document.activeElement).toBe($("#delete-1"));
@@ -349,9 +495,9 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       mountHook("PetalAlertDialogTrigger", $("#d-trigger"));
       keyboard();
       toBody();
-      click($("#sum"));
+      atClick($("#sum"));
 
-      cancel(el);
+      keyClick(cancelOf(el));
       endExit(el);
 
       expect(document.activeElement).toBe($("#sum"));
@@ -373,7 +519,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
         named.push(e.detail.opener),
       );
 
-      click($("#label"));
+      mouseClick($("#label"));
 
       expect(named).toEqual([null]);
     });
@@ -385,6 +531,55 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       openWith(el, { dispatcher: $("#delete-3") });
 
       expect(hook.opener).toBe($("#delete-3"));
+    });
+
+    // <tr tabindex="0" phx-click={open_alert_dialog("d")}> with focus on a
+    // button inside it: LiveView names the row, which is a control itself,
+    // but the user was on the button (R13).
+    it("a dispatcher that is a control but holds the focused control: the focused control is the opener, and the same button of the next row takes focus", () => {
+      render(`
+        <table><tbody id="rows">
+          ${[1, 2, 3]
+            .map(
+              (n) =>
+                `<tr id="row-${n}" tabindex="0"><td>Invoice ${n}</td><td><button type="button" id="view-${n}">View</button></td></tr>`,
+            )
+            .join("")}
+        </tbody></table>
+        ${dialogHtml("d")}`);
+      const el = stubDialog($("#d"));
+      const hook = mountHook("PetalAlertDialog", el);
+      $("#view-2").focus();
+      keyClick($("#view-2"));
+      openWith(el, { dispatcher: $("#row-2") });
+      expect(hook.opener).toBe($("#view-2"));
+
+      keyClick(confirmOf(el));
+      removeRow("row-2");
+      endExit(el);
+
+      expect(document.activeElement).toBe($("#view-3"));
+      expect(document.activeElement).not.toBe($("#row-3"));
+    });
+
+    it("a dispatcher that is a control and is itself focused: still the opener", () => {
+      render(`
+        <table><tbody id="rows">
+          ${[1, 2]
+            .map(
+              (n) =>
+                `<tr id="row-${n}" tabindex="0"><td>Invoice ${n}</td><td><button type="button" id="view-${n}">View</button></td></tr>`,
+            )
+            .join("")}
+        </tbody></table>
+        ${dialogHtml("d")}`);
+      const el = stubDialog($("#d"));
+      const hook = mountHook("PetalAlertDialog", el);
+      $("#row-1").focus();
+      keyClick($("#row-1"));
+      openWith(el, { dispatcher: $("#row-1") });
+
+      expect(hook.opener).toBe($("#row-1"));
     });
 
     // <div phx-click={open_alert_dialog("dN")}><button>Delete</button></div>:
@@ -407,7 +602,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyDown("Enter");
       openWith(el, { dispatcher: $("#wrap-1") });
 
-      confirm(el);
+      keyClick(confirmOf(el));
       endExit(el);
       // the native close refocused the button: that must not disarm
       expect(document.activeElement).toBe($("#delete-1"));
@@ -438,7 +633,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyDown("Delete");
       openWith(el, { dispatcher: $("#shortcuts") });
 
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-2");
       endExit(el);
 
@@ -450,12 +645,12 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyboard();
       $("#delete-1").focus();
       openWith(el, {});
-      cancel(el);
+      keyClick(cancelOf(el));
       endExit(el);
 
       $("#delete-2").focus();
       openWith(el, {});
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-2");
       endExit(el);
 
@@ -468,7 +663,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-1").focus();
       openWith(el, {});
       // a confirm whose reply kept row 1: still armed on its Delete
-      confirm(el);
+      keyClick(confirmOf(el));
       endExit(el);
       expect(hook.opener).toBe($("#delete-1"));
 
@@ -476,7 +671,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       openWith(el, {});
       expect(hook.focusArmed).toBe(false);
       expect(hook.opener).toBe(null);
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -493,12 +688,12 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       toBody();
       // open_alert_dialog/2 through JS.dispatch: LiveView sets detail.dispatcher
       openWith(el, { dispatcher: $("#delete-1") });
-      cancel(el);
+      keyClick(cancelOf(el));
       endExit(el);
 
       toBody();
       openWith(el, { dispatcher: $("#delete-3") });
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-3");
       endExit(el);
 
@@ -558,7 +753,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       clickRow(el, $("#row-2"));
 
       keyboard();
-      cancel(el);
+      keyClick(cancelOf(el));
       endExit(el);
       nextFrame(el);
 
@@ -570,8 +765,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const { el } = clickableTable();
       clickRow(el, $("#row-2"));
 
-      keyDown("Enter");
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-2");
       endExit(el);
 
@@ -588,8 +782,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const hook = mountHook("PetalAlertDialog", el);
       clickRow(el, $("#row-1"));
 
-      keyDown("Enter");
-      confirm(el);
+      keyClick(confirmOf(el));
       endExit(el);
       nextFrame(el);
       expect(document.activeElement).toBe(document.body);
@@ -623,7 +816,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyDown("Enter");
       openWith(el, { dispatcher: $("#row-2") });
 
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-2");
       endExit(el);
 
@@ -635,10 +828,9 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
     it("the Pro shape: close finishes, THEN the row (with the dialog in it) is removed", () => {
       const [row1] = tableWithDialogInRows();
       $("#delete-1").focus();
-      keyDown("Enter");
-      click($("#delete-1"));
+      keyClick($("#delete-1"));
 
-      confirm(row1.el);
+      keyClick(confirmOf(row1.el));
       endExit(row1.el);
       // the native close put focus back on the opener
       expect(document.activeElement).toBe($("#delete-1"));
@@ -651,9 +843,8 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
     it("the Pro shape: the row is removed while the dialog is still open", () => {
       const [row1] = tableWithDialogInRows();
       $("#delete-1").focus();
-      keyDown("Enter");
-      click($("#delete-1"));
-      confirm(row1.el);
+      keyClick($("#delete-1"));
+      keyClick(confirmOf(row1.el));
 
       removeRow("row-1", [row1.hook, row1.trigger]);
 
@@ -679,9 +870,8 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const rows = [1, 2, 3].map(mountRowHooks);
       const opener = $('[data-label="delete-2"]');
       opener.focus();
-      keyDown("Enter");
-      click(opener);
-      confirm(rows[1].el);
+      keyClick(opener);
+      keyClick(confirmOf(rows[1].el));
       endExit(rows[1].el);
       expect(document.activeElement).toBe(opener);
 
@@ -703,7 +893,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyboard();
       openWith(el);
 
-      cancel(el);
+      keyClick(cancelOf(el));
       endExit(el);
 
       expect(document.activeElement).toBe($("#delete-1"));
@@ -714,8 +904,8 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const [row1] = tableWithDialogInRows();
       $("#delete-1").focus();
       keyboard();
-      click($("#delete-1"));
-      confirm(row1.el);
+      keyClick($("#delete-1"));
+      keyClick(confirmOf(row1.el));
       endExit(row1.el);
 
       $("#elsewhere").focus();
@@ -728,8 +918,8 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const [row1] = tableWithDialogInRows();
       $("#delete-1").focus();
       keyboard();
-      click($("#delete-1"));
-      confirm(row1.el);
+      keyClick($("#delete-1"));
+      keyClick(confirmOf(row1.el));
       endExit(row1.el);
 
       // Tab on to another control, which a later patch removes
@@ -746,8 +936,8 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const mounted = arming();
       $("#delete-1").focus();
       keyboard();
-      click($("#delete-1"));
-      confirm(row1.el);
+      keyClick($("#delete-1"));
+      keyClick(confirmOf(row1.el));
       endExit(row1.el);
       expect(arming()).toEqual({
         focusin: mounted.focusin + 1,
@@ -783,8 +973,8 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const [row1, row2] = tableWithDialogInRows();
       $("#delete-1").focus();
       keyboard();
-      click($("#delete-1"));
-      confirm(row1.el);
+      keyClick($("#delete-1"));
+      keyClick(confirmOf(row1.el));
       endExit(row1.el);
 
       // a mouse click on a plain table cell
@@ -804,9 +994,9 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const [row1] = [1, 2].map(mountRowHooks);
       $("#delete-1").focus();
       keyboard();
-      click($("#delete-1"));
+      keyClick($("#delete-1"));
       expect(row1.hook.region).toBe($("#panel"));
-      cancel(row1.el);
+      keyClick(cancelOf(row1.el));
       endExit(row1.el);
       expect(document.activeElement).toBe($("#delete-1"));
       expect(row1.hook.opener).toBe(null);
@@ -823,7 +1013,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const [row1] = tableWithDialogInRows();
       $("#delete-1").focus();
       keyboard();
-      click($("#delete-1"));
+      keyClick($("#delete-1"));
       escape(row1.el);
       endExit(row1.el);
       expect(document.activeElement).toBe($("#delete-1"));
@@ -847,7 +1037,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
         pointerdown: mounted.pointerdown + 1,
       });
 
-      cancel(el);
+      keyClick(cancelOf(el));
       endExit(el);
       expect(arming()).toEqual(mounted);
     });
@@ -856,12 +1046,12 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const [, row2] = tableWithDialogInRows(3);
       $("#delete-2").focus();
       keyboard();
-      click($("#delete-2"));
+      keyClick($("#delete-2"));
       escape(row2.el);
 
       // reopened from the same button while the exit plays, then closed by
       // close_alert_dialog/2, which is neither Cancel nor confirm
-      click($("#delete-2"));
+      keyClick($("#delete-2"));
       row2.el.dispatchEvent(new CustomEvent("pc:alert-dialog-close"));
       endExit(row2.el);
       expect(document.activeElement).toBe($("#delete-2"));
@@ -874,11 +1064,9 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
     // nothing to give back and the hook puts focus on the opener itself.
     it("a restore to the opener stays armed: the slow reply's row removal still sends focus on", () => {
       const [, row2] = tableWithDialogInRows(3);
-      pointerDown($("#delete-2"));
       toBody();
-      click($("#delete-2"));
-      keyDown("Enter");
-      confirm(row2.el);
+      mouseClick($("#delete-2"));
+      keyClick(confirmOf(row2.el));
       endExit(row2.el);
       expect(document.activeElement).toBe($("#delete-2"));
       expect(row2.hook.focusArmed).toBe(true);
@@ -893,12 +1081,12 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-2").focus();
       keyboard();
       openWith(el);
-      cancel(el);
+      keyClick(cancelOf(el));
 
       // activeElement is the Cancel button inside the dialog by now
       openWith(el);
       expect(el.open).toBe(true);
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-2");
       endExit(el);
 
@@ -910,7 +1098,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-2").focus();
       keyboard();
       openWith(el);
-      cancel(el);
+      keyClick(cancelOf(el));
       endExit(el);
 
       $("#row-2").insertAdjacentHTML(
@@ -919,7 +1107,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       );
       $("#delete-2").focus();
       openWith(el);
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-2");
       endExit(el);
 
@@ -933,7 +1121,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyboard();
       openWith(el);
 
-      confirm(el);
+      keyClick(confirmOf(el));
       expect(el.open).toBe(false);
       expect(document.activeElement).toBe($("#delete-2"));
       removeRow("row-2");
@@ -946,9 +1134,9 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const [, row2] = tableWithDialogInRows(3);
       $("#delete-2").focus();
       keyboard();
-      click($("#delete-2"));
+      keyClick($("#delete-2"));
 
-      confirm(row2.el);
+      keyClick(confirmOf(row2.el));
       expect(row2.el.open).toBe(false);
       removeRow("row-2", [row2.hook, row2.trigger]);
 
@@ -972,9 +1160,8 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
           </div>`);
         const rows = [1, 2].map(mountRowHooks);
         $("#delete-1").focus();
-        keyDown("Enter");
-        click($("#delete-1"));
-        confirm(rows[0].el);
+        keyClick($("#delete-1"));
+        keyClick(confirmOf(rows[0].el));
         endExit(rows[0].el);
 
         $("#modal").remove();
@@ -999,7 +1186,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyboard();
       openWith(el);
 
-      confirm(el);
+      keyClick(confirmOf(el));
       $("#modal").style.display = "none";
       removeRow("row-1");
       endExit(el);
@@ -1016,9 +1203,8 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const page = render(root());
       const rows = [1, 2].map(mountRowHooks);
       $("#delete-1").focus();
-      keyDown("Enter");
-      click($("#delete-1"));
-      confirm(rows[0].el);
+      keyClick($("#delete-1"));
+      keyClick(confirmOf(rows[0].el));
       endExit(rows[0].el);
 
       $("#root").remove();
@@ -1036,7 +1222,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyboard();
       openWith(el);
 
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -1049,7 +1235,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyboard();
       openWith(el);
 
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-3");
       endExit(el);
 
@@ -1060,12 +1246,55 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const [row1] = tableWithDialogInRows(3);
       $("#delete-1").focus();
       keyboard();
-      click($("#delete-1"));
-      confirm(row1.el);
+      keyClick($("#delete-1"));
+      keyClick(confirmOf(row1.el));
       removeRow("row-1", [row1.hook, row1.trigger]);
 
       expect(document.activeElement).toBe($("#delete-2"));
     });
+
+    // What a normal LiveView patch does to a row it removes (a stream
+    // delete is different: it takes the row out whole). morphdom takes the
+    // row out of the table, then takes each element inside it that has an
+    // id (the trigger wrapper, the dialog) out of the detached row one by
+    // one (keyedRemovalList in morphdom), and the hooks are destroyed after
+    // the patch. The detached row is left with the Show link only: neither
+    // the opener nor its old number of controls. So the position is the
+    // one recorded at open (R12). The lead measured this shape in Chrome
+    // (/keyed, delete the last item).
+    for (const timing of ["after the close", "mid-exit"]) {
+      it(`a normal patch removes the last item of an index-keyed list ${timing}: the Delete of the item before it, not its first control`, () => {
+        const row = (n) => `
+          <tr><td>
+            <a href="/invoices/${n}">Show</a>
+            <div id="d${n}-trigger" class="pc-alert-dialog__trigger" data-dialog="d${n}">
+              <button type="button" data-label="delete-${n}">Delete</button>
+            </div>
+            ${dialogHtml(`d${n}`)}
+          </td></tr>`;
+        render(
+          `<table><tbody id="rows">${[1, 2, 3, 4].map(row).join("")}</tbody></table>`,
+        );
+        const rows = [1, 2, 3, 4].map(mountRowHooks);
+        const opener = $('[data-label="delete-4"]');
+        opener.focus();
+        keyClick(opener);
+        keyClick(confirmOf(rows[3].el));
+        if (timing === "after the close") {
+          endExit(rows[3].el);
+          expect(document.activeElement).toBe(opener);
+        }
+
+        const tr4 = $("#rows").lastElementChild;
+        tr4.remove();
+        tr4.querySelector("#d4-trigger").remove();
+        tr4.querySelector("#d4").remove();
+        expect(tr4.querySelectorAll("a, button")).toHaveLength(1);
+        destroy([rows[3].hook, rows[3].trigger]);
+
+        expect(document.activeElement).toBe($('[data-label="delete-3"]'));
+      });
+    }
 
     it("a next row built differently: its first control", () => {
       render(`
@@ -1079,7 +1308,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-1").focus();
       keyboard();
       openWith(el);
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -1098,7 +1327,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-1").focus();
       keyboard();
       openWith(el);
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("card-1");
       endExit(el);
 
@@ -1117,7 +1346,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-1").focus();
       keyboard();
       openWith(el);
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -1141,7 +1370,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-2").focus();
       keyboard();
       openWith(el);
-      confirm(el);
+      keyClick(confirmOf(el));
       $("#detail-2").remove();
       removeRow("row-2");
       endExit(el);
@@ -1162,7 +1391,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-1").focus();
       keyboard();
       openWith(el);
-      confirm(el);
+      keyClick(confirmOf(el));
       $("#row-1").remove();
       $("#detail-1").remove();
       endExit(el);
@@ -1187,7 +1416,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
         "afterbegin",
         `<tr id="row-0"><td><button type="button" id="delete-0">Delete</button></td></tr>`,
       );
-      confirm(el);
+      keyClick(confirmOf(el));
       $("#detail-3").remove();
       removeRow("row-3");
       endExit(el);
@@ -1204,7 +1433,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
         "afterend",
         `<tr id="row-new"><td><button type="button" id="delete-new">Delete</button></td></tr>`,
       );
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-2");
       endExit(el);
 
@@ -1232,10 +1461,10 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const [, row2] = tableWithDialogInRows(3);
       $("#delete-2").focus();
       keyboard();
-      click($("#delete-2"));
+      keyClick($("#delete-2"));
 
       const fresh = rerenderRow(2);
-      cancel(row2.el);
+      keyClick(cancelOf(row2.el));
       endExit(row2.el);
 
       expect(document.activeElement).toBe(fresh);
@@ -1245,9 +1474,9 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const [, row2] = tableWithDialogInRows(3);
       $("#delete-2").focus();
       keyboard();
-      click($("#delete-2"));
+      keyClick($("#delete-2"));
 
-      confirm(row2.el);
+      keyClick(confirmOf(row2.el));
       const fresh = rerenderRow(2);
       endExit(row2.el);
 
@@ -1282,7 +1511,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
 
     it("the opener replaced in a cell that also holds another control: the replacement, not the other control", () => {
       const el = archiveTable();
-      confirm(el);
+      keyClick(confirmOf(el));
       $("#archive-1").replaceWith(restoreButton());
       endExit(el);
 
@@ -1291,7 +1520,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
 
     it("the same, with every control in the cell replaced: the replacement, found by its old position", () => {
       const el = archiveTable();
-      confirm(el);
+      keyClick(confirmOf(el));
       $("#cell-1").replaceChildren(
         Object.assign(document.createElement("a"), {
           href: "/1/edit",
@@ -1332,8 +1561,8 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
         const [row1] = [1, 2].map(mountRowHooks);
         $("#archive-1").focus();
         keyboard();
-        click($("#archive-1"));
-        confirm(row1.el);
+        keyClick($("#archive-1"));
+        keyClick(confirmOf(row1.el));
         $("#archive-1").replaceWith(
           Object.assign(document.createElement("button"), {
             type: "button",
@@ -1364,7 +1593,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
         $("#delete-2").focus();
         keyboard();
         openWith(el);
-        confirm(el);
+        keyClick(confirmOf(el));
         removeRow("card-2");
         endExit(el);
 
@@ -1379,8 +1608,8 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
         const [row1] = [1, 2].map(mountRowHooks);
         $("#delete-1").focus();
         keyboard();
-        click($("#delete-1"));
-        confirm(row1.el);
+        keyClick($("#delete-1"));
+        keyClick(confirmOf(row1.el));
         $("#delete-1").disabled = true;
         toBody();
         endExit(row1.el);
@@ -1406,7 +1635,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-1").focus();
       keyboard();
       openWith(el);
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -1434,7 +1663,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-1").focus();
       keyboard();
       openWith(el);
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -1489,7 +1718,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
         $("#delete-1").focus();
         keyboard();
         openWith(el);
-        confirm(el);
+        keyClick(confirmOf(el));
         removeRow("row-1");
         endExit(el);
 
@@ -1524,7 +1753,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
         $("#delete-1").focus();
         keyboard();
         openWith(el);
-        confirm(el);
+        keyClick(confirmOf(el));
         removeRow("row-1");
         endExit(el);
 
@@ -1548,8 +1777,8 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
 
       $("#bulk-delete").focus();
       keyboard();
-      click($("#bulk-delete"));
-      confirm(el);
+      keyClick($("#bulk-delete"));
+      keyClick(confirmOf(el));
       endExit(el);
       removeRow("bulk-bar", [hook, trigger]);
 
@@ -1575,7 +1804,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyboard();
       openWith(el);
 
-      confirm(el);
+      keyClick(confirmOf(el));
       $("#delete-2").disabled = true;
       toBody();
       endExit(el);
@@ -1601,7 +1830,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-1").focus();
       keyboard();
       openWith(el);
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -1619,7 +1848,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyboard();
       openWith(el);
 
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -1641,7 +1870,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-1").focus();
       keyboard();
       openWith(el);
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -1660,7 +1889,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-1").focus();
       keyboard();
       openWith(el);
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -1701,7 +1930,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
         keyboard();
         openWith(el, { dispatcher: $("#item-delete") });
         $("#menu").style.display = "none";
-        confirm(el);
+        keyClick(confirmOf(el));
         endExit(el);
 
         expect(document.activeElement).toBe($("#menu-button"));
@@ -1724,8 +1953,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
         toBody();
         openWith(el, { dispatcher: $("#item-delete") });
         $("#menu").style.display = "none";
-        keyDown("Enter");
-        confirm(el);
+        keyClick(confirmOf(el));
         endExit(el);
 
         expect(document.activeElement).toBe($("#menu-button"));
@@ -1755,7 +1983,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyboard();
       openWith(el, { dispatcher: $("#item-delete") });
       $("#menu").style.display = "none";
-      confirm(el);
+      keyClick(confirmOf(el));
       endExit(el);
 
       expect(document.activeElement).toBe($("#menu-button"));
@@ -1776,7 +2004,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyboard();
       openWith(el);
       $("#menu").style.display = "none";
-      confirm(el);
+      keyClick(confirmOf(el));
       endExit(el);
 
       expect(document.activeElement).toBe($("#after"));
@@ -1800,7 +2028,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyboard();
       openWith(el, { dispatcher: $("#item-delete-1") });
       $("#menu-1").style.display = "none";
-      confirm(el);
+      keyClick(confirmOf(el));
       endExit(el);
       expect(document.activeElement).toBe($("#menu-button-1"));
 
@@ -1822,7 +2050,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-1").focus();
       keyboard();
       openWith(el);
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -1856,7 +2084,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#in-1").focus();
       keyboard();
       openWith(el, { dispatcher: $("#in-1") });
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -1875,7 +2103,7 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       $("#delete-1").focus();
       keyboard();
       openWith(el);
-      confirm(el);
+      keyClick(confirmOf(el));
       removeRow("row-1");
       endExit(el);
 
@@ -1890,18 +2118,18 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       keyboard();
       // opener restore: the trigger named it, nothing had focus
       toBody();
-      click($("#delete-1"));
-      cancel(row1.el);
+      atClick($("#delete-1"));
+      keyClick(cancelOf(row1.el));
       endExit(row1.el);
       // walked landing
       $("#delete-1").focus();
-      click($("#delete-1"));
-      confirm(row1.el);
+      keyClick($("#delete-1"));
+      keyClick(confirmOf(row1.el));
       removeRow("row-1", [row1.hook, row1.trigger]);
       expect(document.activeElement).toBe($("#delete-2"));
       // the parent
-      click($("#delete-2"));
-      confirm(row2.el);
+      keyClick($("#delete-2"));
+      keyClick(confirmOf(row2.el));
       removeRow("row-2", [row2.hook, row2.trigger]);
       expect(document.activeElement).toBe($("#rows"));
 
@@ -1919,21 +2147,21 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
       const [row1, row2] = tableWithDialogInRows(2);
       keyboard();
       toBody();
-      click($("#delete-1"));
-      cancel(row1.el);
+      atClick($("#delete-1"));
+      keyClick(cancelOf(row1.el));
       endExit(row1.el);
       expect(document.activeElement).toBe($("#delete-1"));
       expect(scrolled).toEqual([]);
 
-      click($("#delete-1"));
-      confirm(row1.el);
+      keyClick($("#delete-1"));
+      keyClick(confirmOf(row1.el));
       removeRow("row-1", [row1.hook, row1.trigger]);
       expect(scrolled).toEqual([
         ["delete-2", { block: "nearest", inline: "nearest" }],
       ]);
 
-      click($("#delete-2"));
-      confirm(row2.el);
+      keyClick($("#delete-2"));
+      keyClick(confirmOf(row2.el));
       removeRow("row-2", [row2.hook, row2.trigger]);
       expect(document.activeElement).toBe($("#rows"));
       expect(scrolled).toHaveLength(1);
