@@ -2617,7 +2617,8 @@ export const PetalAlertDialog = {
     // removal usually lands after the close. Disarming lets go of the
     // opener and its path, so a shared dialog never holds on to removed
     // rows. The two arming listeners exist only while armed, so an idle
-    // dialog (a table can hold fifty) does not watch every focus and click.
+    // dialog (a table can hold fifty) does not run them on every focus
+    // change and pointer press.
     this.opener = null;
     this.openerPath = [];
     this.region = null;
