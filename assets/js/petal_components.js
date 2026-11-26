@@ -2874,10 +2874,16 @@ export const PetalAlertDialog = {
     const start = this.openerPath.findIndex(({ parent }) => parent.isConnected);
     if (start === -1) return;
     const levels = this.openerPath.slice(start);
-    for (const { parent, next, prev } of levels) {
+    for (const [i, { parent, next, prev }] of levels.entries()) {
       const here = (n) => n && n.parentElement === parent;
       if (here(next) && tryWithin(next)) return landed();
       if (here(prev) && tryWithin(prev)) return landed();
+      // The opener's own parent survived but the opener did not: a fresh
+      // render of the row (a stream insert) replaced it in place. Its
+      // replacement is in that parent, so look there before the next row.
+      if (i === 0 && start === 0 && !this.opener.isConnected) {
+        if (tryWithin(parent)) return landed();
+      }
     }
 
     // Nothing focusable is left beside it (the last row of a table went).

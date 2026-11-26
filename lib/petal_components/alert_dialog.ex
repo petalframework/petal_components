@@ -104,8 +104,9 @@ defmodule PetalComponents.AlertDialog do
   closing, or when the hook is destroyed after the opener or the dialog has
   left the page, and focus has been lost (it is on `<body>` or inside the closed dialog),
   the hook moves it: back to the opener if it is still there, else to the
-  first control in the next row, then the previous row, then the same one
-  level up, and last to the surviving container, which gets `tabindex="-1"`
+  first control in the next row, then the previous row, then (when a fresh
+  render of the row swapped the opener for a new one) the opener's own
+  container, then the same one level up, and last to the surviving container, which gets `tabindex="-1"`
   until it loses focus. It never takes focus from where the user or the
   browser put it, it stops watching as soon as the user moves on (a focus or
   a click elsewhere, or a Cancel that ends back on the opener), and a live

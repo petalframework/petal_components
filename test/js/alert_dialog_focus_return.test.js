@@ -263,6 +263,47 @@ describe("PetalAlertDialog focus return when the opener is removed", () => {
     expect(document.activeElement).toBe(opener);
   });
 
+  // A stream insert renders the item from scratch, so morphdom replaces
+  // every control in the row that has no id, the opener included, while the
+  // row and the trigger (both with ids) stay.
+  function rerenderRow(n) {
+    $(`#show-${n}`).replaceWith(
+      Object.assign(document.createElement("a"), {
+        href: `/invoices/${n}`,
+        id: `show-${n}`,
+      }),
+    );
+    const fresh = document.createElement("button");
+    fresh.type = "button";
+    fresh.dataset.label = `delete-${n}`;
+    $(`#d${n}-trigger`).replaceChildren(fresh);
+    return fresh;
+  }
+
+  it("the row re-rendered while the dialog is open, then Cancel: focus goes to the replacement opener, not the next row", () => {
+    const [, row2] = tableWithDialogInRows(3);
+    $("#delete-2").focus();
+    click($("#delete-2"));
+
+    const fresh = rerenderRow(2);
+    cancel(row2.el);
+    endExit(row2.el);
+
+    expect(document.activeElement).toBe(fresh);
+  });
+
+  it("a confirm whose reply re-renders the row it kept (Archive) mid-exit: focus goes to the replacement opener", () => {
+    const [, row2] = tableWithDialogInRows(3);
+    $("#delete-2").focus();
+    click($("#delete-2"));
+
+    confirm(row2.el);
+    const fresh = rerenderRow(2);
+    endExit(row2.el);
+
+    expect(document.activeElement).toBe(fresh);
+  });
+
   it("an opener still in the page keeps its focus: nothing else is touched", () => {
     const { el } = tableWithOutsideDialog();
     $("#delete-1").focus();
