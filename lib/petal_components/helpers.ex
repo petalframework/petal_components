@@ -64,6 +64,42 @@ defmodule PetalComponents.Helpers do
   def compose_js(%JS{ops: user_ops}, %JS{ops: component_ops}),
     do: %JS{ops: user_ops ++ component_ops}
 
+  # True when a rendered slot would put nothing but whitespace on the page.
+  # Pass it what `render_slot/1` returns, inside the template:
+  #
+  #     <div :if={!Helpers.blank_render?(render_slot(@inner_block))}>
+  #       {render_slot(@inner_block)}
+  #     </div>
+  #
+  # Testing `@inner_block != []` is not enough: an open and close call always
+  # carries an inner block, even when it holds only named slots and the
+  # whitespace between them. This walks the rendered tree instead, so
+  # whitespace, `nil`, empty strings and a false `:if` count as blank. A live
+  # component or a comprehension counts as content without being looked into
+  # (turning a live component into a string raises), so a slot holding only
+  # an empty `:for` still gets its wrapper.
+  #
+  # Internal for now (@doc false): it can be made public later, but not the
+  # other way round.
+  @doc false
+  def blank_render?(nil), do: true
+  def blank_render?(""), do: true
+  def blank_render?({:safe, data}), do: blank_render?(data)
+
+  def blank_render?(%Phoenix.LiveView.Rendered{static: static, dynamic: dynamic}) do
+    Enum.all?(static, &blank_render?/1) and Enum.all?(dynamic.(false), &blank_render?/1)
+  end
+
+  def blank_render?(data) when is_binary(data), do: String.trim(data) == ""
+
+  def blank_render?(data) when is_list(data) do
+    data |> IO.iodata_to_binary() |> String.trim() == ""
+  rescue
+    ArgumentError -> Enum.all?(data, &blank_render?/1)
+  end
+
+  def blank_render?(_other), do: false
+
   @doc """
   Generates a unique HTML ID based on the given string or iodata.
 
