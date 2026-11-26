@@ -88,8 +88,12 @@ defmodule PetalComponents.Alert do
                 </h2>
               <% end %>
 
+              <%!-- An open and close call always has an inner block, so test
+                    what it renders: with only :actions the label must show. --%>
               <div id={@label_id} class="pc-alert__label">
-                {render_slot(@inner_block) || @label}
+                {if Helpers.blank_render?(render_slot(@inner_block)),
+                  do: @label,
+                  else: render_slot(@inner_block)}
               </div>
 
               <div :if={@actions != []} class="pc-alert__actions">

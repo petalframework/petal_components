@@ -66,6 +66,14 @@
   `.pc-empty__footer` (a border, say), which no longer shows on them.
   If you made up the gap elsewhere (Petal Pro's billing success page
   has a skeleton with an extra `mb-3` for it), take that out too.
+- **An `<.alert label="...">` with an `:actions` slot shows its
+  label.** `<.alert color="danger" label="Wrong PIN">` with only
+  `<:actions>` inside rendered the actions and an empty message, and
+  `aria-describedby` pointed at that empty element, so a screen reader
+  heard nothing either. The label now shows whenever the inner block
+  renders only whitespace, as it already did for a self-closing call.
+  Text in the inner block still wins over `label`, and when to render
+  the alert at all is unchanged. No markup or class changes.
 - **A `tab` with a `label` shows its `number` badge.**
   `<.tab label="Reports" number={4} />` rendered "Reports" and no badge:
   the label was handed to the link inside the tab, which printed it in
