@@ -100,6 +100,28 @@
 }
 
 @layer components {
+  /* Overlay text reset: an overlay is a DOM child of its call site, so it
+     took a table cell's alignment, nowrap, case and figures. First in the
+     layer, so each component's own rules and a class on the panel still win. */
+  .pc-alert-dialog,
+  .pc-command-dialog,
+  .pc-modal,
+  .pc-slide-over,
+  .pc-dropdown__menu-items-wrapper,
+  .pc-popover__panel,
+  .pc-context-menu__panel,
+  .pc-hover-card__panel,
+  .pc-tooltip__content,
+  .pc-date-picker__panel {
+    text-align: start;
+    white-space: normal;
+    text-transform: none;
+    letter-spacing: normal;
+    font-style: normal;
+    font-variant-numeric: normal;
+    cursor: auto;
+  }
+
   /* Container */
 
   .pc-container {
@@ -8974,13 +8996,18 @@
   /* Separator - hairline dividers for app UI                            */
   /* ------------------------------------------------------------------ */
 
-  /* No margin by design: app layouts own their own rhythm. Colours match
-     .pc-hr so a page can mix the prose rule and the app rule. */
+  /* No margin by design: app layouts own their own rhythm. The colour is
+     the panel hairline the card border, the table rows and the dropdown
+     and command separators wear (gray-200, dark gray-400/17). An opaque
+     gray-800 all but vanished on a dark card (gray-900), about 1.2 to 1;
+     the alpha takes its contrast from whatever surface is under it. The
+     prose rule .pc-hr keeps its own opaque gray-800. */
   .pc-separator--horizontal {
-    @apply h-px w-full shrink-0 bg-gray-200 dark:bg-gray-800;
+    @apply h-px w-full shrink-0 bg-gray-200 dark:bg-gray-400/17;
   }
 
-  /* One ramp step darker than the horizontal rule. The horizontal one sits in
+  /* In light, one ramp step darker than the horizontal rule (gray-300 against
+     gray-200); in dark, an opaque gray-700. The horizontal one sits in
      open layout with a label and whitespace reinforcing it; the vertical one
      is a bare hairline wedged between toolbar buttons, where gray-200 reads as
      a gap rather than a divider. */
@@ -8995,7 +9022,7 @@
   }
 
   .pc-separator__line {
-    @apply h-px flex-1 bg-gray-200 dark:bg-gray-800;
+    @apply h-px flex-1 bg-gray-200 dark:bg-gray-400/17;
   }
 
   .pc-separator__label {

@@ -73,7 +73,7 @@ The alpha ladder (verified against default.css):
 
 Opaque dark surfaces exist for panels only: page/card/dropdown white flips to `dark:bg-gray-900`; nested secondary chrome to `dark:bg-gray-800`; code wells rarely `dark:bg-gray-950`. The one blessed white-alpha family is the barely-there muted fill: `dark:bg-white/[0.03]` (striped rows), `/[0.04]` (muted card fill), `dark:hover:bg-white/[0.06]` (row hover). Nothing brighter.
 
-Border grammar: structural hairline `border-gray-200` with `dark:border-gray-400/17` on panels (`dark:border-gray-800` for full-width rules like `hr`); input border `border-gray-300 dark:border-gray-400/25`.
+Border grammar: structural hairline `border-gray-200` with `dark:border-gray-400/17` on panels (`dark:border-gray-800` for the full-width prose rule `hr`; the app `<.separator>` wears the panel hairline, `bg-gray-200 dark:bg-gray-400/17`, like the dropdown and command separators, so it holds on a card); input border `border-gray-300 dark:border-gray-400/25`.
 
 Every light-mode color in a class string gets a `dark:` pair in the same string. Gotcha: `dark:` inside a `::-webkit-*` pseudo-element rule silently no-ops - set a CSS variable on the real host element and reference it from the pseudo-element.
 

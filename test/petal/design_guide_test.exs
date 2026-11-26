@@ -56,6 +56,18 @@ defmodule PetalComponents.DesignGuideTest do
     end
   end
 
+  test "the border grammar sentence is the same in both copies", %{
+    tokens: tokens,
+    guide: guide
+  } do
+    line = fn text ->
+      text |> String.split("\n") |> Enum.filter(&String.starts_with?(&1, "Border grammar:"))
+    end
+
+    assert [sentence] = line.(tokens), "tokens.md should hold one 'Border grammar:' line"
+    assert line.(guide) == [sentence], "the 'Border grammar:' lines differ; change both"
+  end
+
   test "the values both copies quote are the ones default.css ships", %{css: css} do
     for stop <- @ghost_stops, do: assert(css =~ stop, "default.css no longer uses #{stop}")
 
