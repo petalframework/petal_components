@@ -95,7 +95,7 @@ namespaced exactly as listed below. Bare dot-calls without the namespace will no
 - `<.color_scheme_switch>` - 8 attrs, 3 slots · required: id
 
 ## ComboBox
-- `<.combo_box>` - 31 attrs, 5 slots
+- `<.combo_box>` - 33 attrs, 5 slots
 
 ## Command
 - `<.command>` - 4 attrs, 1 slots · required: id · required slots: inner_block

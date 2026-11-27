@@ -4684,6 +4684,7 @@ export const PetalComboBox = {
     }
     this.live = this.el.querySelector("[data-pc-combo-live]");
     this.errorEl = this.el.querySelector("[data-pc-combo-error]");
+    this.renderResultsServer = this.el.hasAttribute("data-render-results-server");
     this.query = "";
 
     this.onInput = (e) => {
@@ -5043,6 +5044,7 @@ export const PetalComboBox = {
     // without data-highlighted, and filter() would re-home on the first
     // item (visible on iOS, masked by hover re-highlighting on desktop)
     const keepHighlight = this.highlightedValue;
+
     this.syncFromSelect();
     if (!this.panel.hidden) {
       this.filter();
@@ -5676,6 +5678,7 @@ export const PetalComboBox = {
     const handle = (reply) => {
       if (seq !== this.remoteSeq) return; // a newer search superseded this one
       if (this.loadingRow) this.loadingRow.hidden = true;
+      if (this.renderResultsServer) return;
       this.renderRemoteResults((reply && reply.results) || []);
     };
     if (this.remoteTarget && typeof this.pushEventTo === "function") {

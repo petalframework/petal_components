@@ -172,7 +172,7 @@ defmodule PetalComponents.Field do
       ~w(autocomplete autocorrect autocapitalize disabled form max maxlength min minlength list
     pattern placeholder readonly required size step value name multiple prompt default year month day hour minute second builder options layout cols rows wrap checked accept
     free_text create create_label max_items count_label search_placeholder listbox_label no_results_text results_label clear_label remove_label loading_label remote_options_event_name remote_options_target form_id
-    big_step precision decrement_label increment_label inputmode),
+    big_step precision decrement_label increment_label inputmode search_options render_search_results_on_server),
     doc: "All other props go on the input"
 
   def field(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do

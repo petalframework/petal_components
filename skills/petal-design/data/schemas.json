@@ -3780,6 +3780,14 @@
         },
         {
           "default": "false",
+          "doc": "should the results of a remote search be rendered on the server?",
+          "name": "render_search_results_on_server",
+          "required": false,
+          "type": ":boolean",
+          "values": null
+        },
+        {
+          "default": "false",
           "doc": "marks the control required: `aria-required` on the visible combobox and\n`required` on the hidden select, so native constraint validation guards\nthe real control. The select is inert and off-screen, so the hook takes\nthe browser's failed-validation report over - it shows the browser's own\nmessage on the visible control and puts focus there.\n",
           "name": "required",
           "required": false,
@@ -3800,6 +3808,14 @@
           "name": "results_label",
           "required": false,
           "type": ":string",
+          "values": null
+        },
+        {
+          "default": "[]",
+          "doc": "a list of options in the shape of `:options` but intended to house the remote search results",
+          "name": "search_options",
+          "required": false,
+          "type": ":list",
           "values": null
         },
         {
@@ -18008,6 +18024,6 @@
       "slots": []
     }
   ],
-  "generated_at": "2026-11-20T03:31:33.411855Z",
+  "generated_at": "2026-11-27T13:09:10.038416Z",
   "version": "4.18.1"
 }
